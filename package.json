@@ -1,0 +1,39 @@
+{
+  "name": "kubectl-ui",
+  "version": "1.0.0",
+  "description": "",
+  "main": "node_modules/@kui-shell/core/main/main.js",
+  "scripts": {
+    "compile": "kui-compile",
+    "watch": "tsc --build . --watch",
+    "webpack": "npm run -s pty:nodejs && kui-watch-webpack",
+    "proxy": "npm run -s pty:nodejs && kui-run-proxy",
+    "pty:rebuild": "if [ -d node_modules/node-pty-prebuilt-multiarch ]; then cd node_modules/node-pty-prebuilt-multiarch && npm run install; fi",
+    "pty:electron": "if [ -d node_modules/node-pty-prebuilt-multiarch ]; then if [ ! -e node_modules/node-pty-prebuilt-multiarch/.npmrc ]; then cp node_modules/@kui-shell/builder/npmrc node_modules/node-pty-prebuilt-multiarch/.npmrc && npm run pty:rebuild; fi; fi",
+    "pty:nodejs": "if [ -e node_modules/node-pty-prebuilt-multiarch/.npmrc ]; then rm -f node_modules/node-pty-prebuilt-multiarch/.npmrc; npm run pty:rebuild; fi",
+    "start": "npm run -s compile && npm run -s pty:electron && electron . shell"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git@github.com:kui-shell/plugin-kubeui.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "Apache-2.0",
+  "devDependencies": {
+    "@kui-shell/builder": "5.2.1",
+    "@kui-shell/core": "^5.2.1",
+    "@kui-shell/test": "^5.2.1",
+    "@types/mocha": "5.2.7",
+    "@types/node": "12.11.5",
+    "@types/uuid": "^3.4.5",
+    "@types/webdriverio": "^4.13.3",
+    "electron": "6.0.12",
+    "mocha": "6.2.2",
+    "spectron": "8.0.0",
+    "typescript": "3.6.4"
+  },
+  "dependencies": {
+    "@kui-shell/plugin-kubeui": "file:plugins/plugin-kubeui"
+  }
+}

@@ -1,0 +1,6 @@
+{
+  "packages": [
+    "plugins/*"
+  ],
+  "version": "1.0.6"
+}
