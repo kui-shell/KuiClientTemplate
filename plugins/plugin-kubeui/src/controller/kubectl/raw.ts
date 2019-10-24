@@ -17,17 +17,18 @@
 import * as Debug from 'debug'
 import { spawn } from 'child_process'
 
-import { inElectron } from '@kui-shell/core/api/capabilities'
+import { inBrowser } from '@kui-shell/core/api/capabilities'
 import Commands from '@kui-shell/core/api/commands'
 import Models from '@kui-shell/core/api/models'
 import Errors from '@kui-shell/core/api/errors'
 
+import flags from './flags'
 import RawResponse from './response'
 
 const debug = Debug('plugin-kubeui/controller/kubectl/raw')
 
 const doRaw = (args: Commands.Arguments): Promise<RawResponse> => new Promise((resolve, reject) => {
-  const env = Object.assign({}, inElectron() ? process.env : {}, args.execOptions.env)
+  const env = Object.assign({}, !inBrowser() ? process.env : {}, args.execOptions.env)
   delete env.DEBUG
 
   const child = spawn('kubectl', args.argv.slice(1), { env })
@@ -90,5 +91,5 @@ const doRaw = (args: Commands.Arguments): Promise<RawResponse> => new Promise((r
 })
 
 export default async (commandTree: Commands.Registrar) => {
-  commandTree.listen('/kubeui/_kubectl', doRaw)
+  commandTree.listen('/kubeui/_kubectl', doRaw, Object.assign({}, flags, { requiresLocal: true, inBrowserOk: false }))
 }
