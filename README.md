@@ -14,7 +14,12 @@ client.
 ```bash
 git clone https://github.com/kui-shell/plugin-kubeui && cd plugin-kubeui
 npm ci
+npm start
 ```
+
+You should see a window come up. You can now try, for example,
+`kubecel get pods`, and expect to see a table, with clickable cells,
+in response.
 
 # How this Project extends Kui
 
@@ -23,29 +28,18 @@ This project demonstrates adding a family of Kubernetes commands.
 # Local Development with Electron
 
 To develop your plugin, it is convenient to run it against a local
-electron client. To do so, issue this command:
+electron client. To do so, you may continue to use the `npm start`
+command from above. This will give you a local electron client. This
+client, in tandem with a TypeScript watcher:
 
-```bash
-npm start
+```
+npm run watch
 ```
 
-You should see a window come up. You can now try, for example,
-`kubecel get pods`, and expect to see a table, with clickable cells,
-in response.
-
-# Watchers
-
-This example is coded in
-[TypeScript](https://www.typescriptlang.org/). For a quick edit-debug
-loop, you can launch a TypeScript watcher, and then launch the stock
-electron client. Then, after every change you make to a `.ts` source
-file, a simple reload (Command/Ctrl+R) in the electron client will
-manifest your changes.
-
-```bash
-npm start      # <-- this launches the stock electron client
-npm run watch  # <-- this launches the TypeScript watcher
-```
+will be all you need to develop the plugin locally. After the
+TypeScript compiler has recompiled your source changes, a simple
+reload (Ctrl+R, or Command+R on macOS) suffices to integrate your
+changes into the client.
 
 # Webpack
 
@@ -53,10 +47,14 @@ You may also test against a webpack build. Assuming you have already
 launched a TypeScript watcher, you can also launch a Webpack watcher:
 
 ```bash
-npm run watch:webpack  # <-- this launches a webpack-dev-server
+npm run proxy &  # <-- this launches a Kui proxy server in the background
+npm run webpack  # <-- this launches a webpack-dev-server
 ```
 
 Then, visit `http://localhost:9080` to see your client in any browser.
+
+The proxy server is needed for this plugin, because it calls out to a
+native `kubectl` binary.
 
 # Proxy
 
