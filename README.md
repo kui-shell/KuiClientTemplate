@@ -18,8 +18,13 @@ npm start
 ```
 
 You should see a window come up. You can now try, for example,
-`kubecel get pods`, and expect to see a table, with clickable cells,
+`kubectl get pods`, and expect to see a table, with clickable cells,
 in response.
+
+As described [below](#webpack), you may also develop against a
+browser.  For example, here is the kubeui plugin running as a
+[webpack](https://webpack.js.org/) client in Firefox: ![kubeui running
+in firefox](docs/kubeui-firefox.png)
 
 # How this Project extends Kui
 
