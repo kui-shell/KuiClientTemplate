@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 
+import { isHeadless, inBrowser } from '@kui-shell/core/api/capabilities'
 import Commands from '@kui-shell/core/api/commands'
 import Errors from '@kui-shell/core/api/errors'
 import { i18n } from '@kui-shell/core/api/i18n'
@@ -57,13 +58,17 @@ export function doExecWithStdout<O extends KubeOptions>(args: Commands.Arguments
 }
 
 export function doExecWithPty<O extends KubeOptions>(args: Commands.Arguments<O>, prepare: Prepare<O> = NoPrepare): Promise<Commands.Response> {
-  const commandToPTY = args.command.replace(/^k(\s)/, 'kubectl$1')
-  return args.REPL.qexec(
-    `sendtopty ${commandToPTY}`,
-    args.block,
-    undefined,
-    Object.assign({}, args.execOptions, { rawResponse: true })
-  )
+  if (isHeadless() || (!inBrowser() && args.execOptions.raw)) {
+    return doExecWithStdout(args, prepare)
+  } else {
+    const commandToPTY = args.command.replace(/^k(\s)/, 'kubectl$1')
+    return args.REPL.qexec(
+      `sendtopty ${commandToPTY}`,
+      args.block,
+      undefined,
+      Object.assign({}, args.execOptions, { rawResponse: true })
+    )
+  }
 }
 
 /**

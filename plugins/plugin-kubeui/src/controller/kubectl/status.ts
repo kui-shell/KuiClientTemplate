@@ -179,7 +179,6 @@ const getDirectReferences = (command: string) => async ({
 }> => {
   const raw = Object.assign({}, execOptions, { raw: true })
 
-  console.error('!!!!!!', argvNoOptions)
   const idx = argvNoOptions.indexOf(command) + 1
   const file = argvNoOptions[idx]
   const name = argvNoOptions[idx + 1]
