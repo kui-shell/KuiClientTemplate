@@ -20,8 +20,8 @@ import Errors from '@kui-shell/core/api/errors'
 import { Table, MultiTable, Row, isMultiTable } from '@kui-shell/core/api/table-models'
 
 import flags from './flags'
-import { doExecWithTable } from './exec'
 import commandPrefix from '../command-prefix'
+import { doExecWithStdout, doExecWithTable } from './exec'
 
 const strings = i18n('plugin-kubeui')
 
@@ -49,8 +49,8 @@ const addClickHandlers = (
   { REPL }: Commands.Arguments,
   execOptions: Commands.ExecOptions
 ): Table => {
-  const body: Row[] = table.body.map(
-    (row): Row => {
+  const body = table.body.map(
+    row => {
       const nameAttr = row.attributes.find(({ key }) => key === 'NAME')
       const { value: contextName } = nameAttr
 
@@ -105,23 +105,19 @@ const listContexts = (args: Commands.Arguments): Promise<Table | MultiTable> => 
  *
  */
 export default (commandTree: Commands.Registrar) => {
-  commandTree.listen(`/${commandPrefix}/kubectl/config/get-contexts`, doExecWithTable)
+  commandTree.listen(`/${commandPrefix}/kubectl/config/get-contexts`, doExecWithTable, flags)
 
   commandTree.listen(
     `/${commandPrefix}/context`,
-    async ({ execOptions, REPL }) => {
-      return (await REPL.qexec<string>(
-        `kubectl config current-context`,
-        undefined,
-        undefined,
-        Object.assign({}, execOptions, { raw: true })
-      )).trim()
+    async ({ block, execOptions, REPL }) => {
+      return (await REPL.rexec<string>('kubectl config current-context')).trim()
     },
-    {
+    Object.assign({
       usage: usage.context('context'),
-      inBrowserOk: true
-    }
+    }, flags)
   )
+
+  // commandTree.listen(`/${commandPrefix}/kubectl/config/current-context`, doExecWithStdout, flags)
 
   commandTree.listen(`/${commandPrefix}/contexts`, listContexts, Object.assign({
     usage: usage.contexts('contexts'),

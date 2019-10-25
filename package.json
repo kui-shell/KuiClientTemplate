@@ -22,9 +22,9 @@
   "author": "",
   "license": "Apache-2.0",
   "devDependencies": {
-    "@kui-shell/builder": "5.2.5",
-    "@kui-shell/core": "^5.2.5",
-    "@kui-shell/test": "^5.2.5",
+    "@kui-shell/builder": "5.2.7",
+    "@kui-shell/core": "^5.2.7",
+    "@kui-shell/test": "^5.2.7",
     "@types/mocha": "5.2.7",
     "@types/node": "12.11.7",
     "@types/uuid": "^3.4.5",
@@ -35,12 +35,12 @@
     "typescript": "3.6.4"
   },
   "dependencies": {
-    "@kui-shell/plugin-bash-like": "^5.2.5",
-    "@kui-shell/plugin-core-support": "^5.2.5",
-    "@kui-shell/plugin-editor": "^5.2.5",
+    "@kui-shell/plugin-bash-like": "^5.2.7",
+    "@kui-shell/plugin-core-support": "^5.2.7",
+    "@kui-shell/plugin-editor": "^5.2.7",
     "@kui-shell/plugin-kubeui": "file:plugins/plugin-kubeui",
-    "@kui-shell/plugin-proxy-support": "^5.2.5",
-    "@kui-shell/proxy": "^5.2.5",
-    "@kui-shell/webpack": "^5.2.5"
+    "@kui-shell/plugin-proxy-support": "^5.2.7",
+    "@kui-shell/proxy": "^5.2.7",
+    "@kui-shell/webpack": "^5.2.7"
   }
 }
