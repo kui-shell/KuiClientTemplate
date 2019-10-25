@@ -46,33 +46,6 @@ function hasLastApplied(resource: KubeResource): boolean {
 }
 
 /**
- * Add a Pods mode button to the given modes model, if called for by
- * the given resource.
- *
- */
-export const lastAppliedMode: ModeRegistration<KubeResource> = {
-  when: hasLastApplied,
-  mode: (command: string, resource: Resource): Mode => {
-    debug('lastApplied', resource)
-    try {
-      return {
-        mode: 'last applied',
-        label: strings('lastApplied'),
-        leaveBottomStripeAlone: true,
-        direct: (tab: Tab) => renderAndViewLastApplied(tab, { command, resource })
-      }
-    } catch (err) {
-      debug('error rendering last applied', err)
-    }
-  }
-}
-
-interface Parameters {
-  command: string
-  resource: Resource
-}
-
-/**
  * Respond to REPL
  *
  * @param lastRaw the last applied configuration, unparsed
@@ -101,9 +74,30 @@ async function respondWith(lastRaw: string, fullResource: KubeResource): Promise
   }
 }
 
-export const renderAndViewLastApplied = async (tab: Tab, parameters: Parameters) => {
-  const { command, resource } = parameters
-  debug('renderAndViewLastApplied', command, resource)
+export const renderAndViewLastApplied = async (tab: Tab, resource: Resource) => {
+  debug('renderAndViewLastApplied', resource)
 
   return respondWith(getLastAppliedRaw(resource.resource), resource.resource)
+}
+
+/**
+ * Add a Pods mode button to the given modes model, if called for by
+ * the given resource.
+ *
+ */
+export const lastAppliedMode: ModeRegistration<KubeResource> = {
+  when: hasLastApplied,
+  mode: (command: string, resource: Resource): Mode => {
+    debug('lastApplied', resource)
+    try {
+      return {
+        mode: 'last applied',
+        label: strings('lastApplied'),
+        leaveBottomStripeAlone: true,
+        direct: (tab: Tab) => renderAndViewLastApplied(tab, resource)
+      }
+    } catch (err) {
+      debug('error rendering last applied', err)
+    }
+  }
 }

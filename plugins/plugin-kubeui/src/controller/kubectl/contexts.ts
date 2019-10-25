@@ -17,11 +17,11 @@
 import Commands from '@kui-shell/core/api/commands'
 import { i18n } from '@kui-shell/core/api/i18n'
 import Errors from '@kui-shell/core/api/errors'
-import { Table, MultiTable, Row, isMultiTable } from '@kui-shell/core/api/table-models'
+import { Table, MultiTable, isMultiTable } from '@kui-shell/core/api/table-models'
 
 import flags from './flags'
 import commandPrefix from '../command-prefix'
-import { doExecWithStdout, doExecWithTable } from './exec'
+import { doExecWithTable } from './exec'
 
 const strings = i18n('plugin-kubeui')
 
@@ -44,35 +44,29 @@ const usage = {
  * Add click handlers to change context
  *
  */
-const addClickHandlers = (
-  table: Table,
-  { REPL }: Commands.Arguments,
-  execOptions: Commands.ExecOptions
-): Table => {
-  const body = table.body.map(
-    row => {
-      const nameAttr = row.attributes.find(({ key }) => key === 'NAME')
-      const { value: contextName } = nameAttr
+const addClickHandlers = (table: Table, { REPL }: Commands.Arguments, execOptions: Commands.ExecOptions): Table => {
+  const body = table.body.map(row => {
+    const nameAttr = row.attributes.find(({ key }) => key === 'NAME')
+    const { value: contextName } = nameAttr
 
-      nameAttr.outerCSS += ' entity-name-group-narrow'
+    nameAttr.outerCSS += ' entity-name-group-narrow'
 
-      const onclick = async () => {
-        await REPL.qexec(
-          `kubectl config use-context ${REPL.encodeComponent(contextName)}`,
-          undefined,
-          undefined,
-          Object.assign({}, execOptions, { raw: true })
-        )
-        row.setSelected()
-      }
-
-      row.name = contextName
-      row.onclick = onclick
-      nameAttr.onclick = onclick
-
-      return row
+    const onclick = async () => {
+      await REPL.qexec(
+        `kubectl config use-context ${REPL.encodeComponent(contextName)}`,
+        undefined,
+        undefined,
+        Object.assign({}, execOptions, { raw: true })
+      )
+      row.setSelected()
     }
-  )
+
+    row.name = contextName
+    row.onclick = onclick
+    nameAttr.onclick = onclick
+
+    return row
+  })
 
   return new Table({
     header: table.header,
@@ -88,15 +82,11 @@ const addClickHandlers = (
 const listContexts = (args: Commands.Arguments): Promise<Table | MultiTable> => {
   const execOptions = Object.assign({}, args.execOptions, { render: false })
 
-  return args.REPL.qexec<Table | MultiTable>(
-    `kubectl config get-contexts`,
-    undefined,
-    undefined,
-    execOptions
-  ).then((contexts: Table | MultiTable) =>
-    isMultiTable(contexts)
-      ? { tables: contexts.tables.map(context => addClickHandlers(context, args, execOptions)) }
-      : addClickHandlers(contexts, args, execOptions)
+  return args.REPL.qexec<Table | MultiTable>(`kubectl config get-contexts`, undefined, undefined, execOptions).then(
+    (contexts: Table | MultiTable) =>
+      isMultiTable(contexts)
+        ? { tables: contexts.tables.map(context => addClickHandlers(context, args, execOptions)) }
+        : addClickHandlers(contexts, args, execOptions)
   )
 }
 
@@ -109,17 +99,25 @@ export default (commandTree: Commands.Registrar) => {
 
   commandTree.listen(
     `/${commandPrefix}/context`,
-    async ({ block, execOptions, REPL }) => {
+    async ({ REPL }) => {
       return (await REPL.rexec<string>('kubectl config current-context')).trim()
     },
-    Object.assign({
-      usage: usage.context('context'),
-    }, flags)
+    Object.assign(
+      {
+        usage: usage.context('context')
+      },
+      flags
+    )
   )
 
-  // commandTree.listen(`/${commandPrefix}/kubectl/config/current-context`, doExecWithStdout, flags)
-
-  commandTree.listen(`/${commandPrefix}/contexts`, listContexts, Object.assign({
-    usage: usage.contexts('contexts'),
-  }, flags))
+  commandTree.listen(
+    `/${commandPrefix}/contexts`,
+    listContexts,
+    Object.assign(
+      {
+        usage: usage.contexts('contexts')
+      },
+      flags
+    )
+  )
 }

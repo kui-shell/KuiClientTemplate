@@ -19,7 +19,7 @@ import Commands from '@kui-shell/core/api/commands'
 type EntityFormat = 'yaml' | 'json'
 type TableFormat = 'wide' | string // want: 'custom-columns-file=' | 'custom-columns='
 type CustomFormat = string // want: 'go-template' | 'go-template-file' | 'jsonpath' | 'jsonpath-file'
-type OutputFormat =  EntityFormat | TableFormat | CustomFormat
+type OutputFormat = EntityFormat | TableFormat | CustomFormat
 
 export function formatOf(args: Commands.Arguments<KubeOptions>): OutputFormat {
   return args.parsedOptions.o || args.parsedOptions.output

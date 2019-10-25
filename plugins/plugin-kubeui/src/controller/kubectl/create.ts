@@ -15,7 +15,6 @@
  */
 
 import Commands from '@kui-shell/core/api/commands'
-import Errors from '@kui-shell/core/api/errors'
 
 import flags from './flags'
 import { doExecWithStatus } from './exec'

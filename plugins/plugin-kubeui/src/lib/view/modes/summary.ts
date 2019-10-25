@@ -57,7 +57,10 @@ const summaryMode: ModeRegistration<KubeResource> = {
         mode: 'summary',
         label: strings('summary'),
         direct: async (tab: Tab) => {
-          const { kind, metadata: { name, namespace } } = resource.resource
+          const {
+            kind,
+            metadata: { name, namespace }
+          } = resource.resource
 
           const [map, { safeDump }] = await Promise.all([
             tab.REPL.qexec<Table>(`kubectl get ${kind} ${name} -n ${namespace} -o wide`).then(toMap),

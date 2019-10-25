@@ -14,7 +14,6 @@
  * limitations under the License.
  */
 
-import { Tab } from '@kui-shell/core/api/ui-lite'
 import { ModeRegistration, Mode } from '@kui-shell/core/api/registrars'
 
 import { Resource, KubeResource, isKubeResource } from '../../model/resource'
@@ -29,20 +28,16 @@ const yamlMode: ModeRegistration<KubeResource> = {
     return isKubeResource(resource)
   },
   mode: (command: string, resource: Resource): Mode => {
-    try {
-      return {
-        mode: 'raw',
-        label: 'YAML',
-        direct: (tab: Tab) => {
-          return {
-            content: resource.resource.data,
-            contentType: 'yaml'
-          }
-        },
-        order: 999
-      }
-    } catch (err) {
-      console.error('error rendering containers button', err)
+    return {
+      mode: 'raw',
+      label: 'YAML',
+      direct: () => {
+        return {
+          content: resource.resource.data,
+          contentType: 'yaml'
+        }
+      },
+      order: 999
     }
   }
 }

@@ -22,7 +22,7 @@ You should see a window come up. You can now try, for example,
 in response.
 
 As described [below](#webpack), you may also develop against a
-browser.  For example, here is the kubeui plugin running as a
+browser. For example, here is the kubeui plugin running as a
 [webpack](https://webpack.js.org/) client in Firefox: ![kubeui running
 in firefox](docs/kubeui-firefox.png)
 
@@ -93,7 +93,6 @@ plugins. For example, if multiple teams are developing loosely related
 extensions, each can have a subdirectory under [plugins/](plugins/). In this
 example project, we have only one such subdirectory.
 
-
 # Theming
 
 If your end goal is to ship a plugin, then you may skip this
@@ -102,4 +101,3 @@ your own, you have the option to customize the theming in several
 ways. These changes are captured in the `theme/` subdirectory. More
 details coming soon. For now, browse the
 [theme.json](theme/theme.json) file.
-
