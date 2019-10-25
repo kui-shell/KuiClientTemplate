@@ -23,6 +23,8 @@ import Tables from '@kui-shell/core/api/tables'
 import Util from '@kui-shell/core/api/util'
 
 import Options from './options'
+import commandPrefix from '../command-prefix'
+
 import { withRetryOn404 } from '../../lib/util/retry'
 import { isDirectory } from '../../lib/util/util'
 import { KubeResource } from '../../lib/model/resource'
@@ -364,7 +366,7 @@ export const status = (command: string) => async (
  *
  */
 export default (commandTree: Commands.Registrar) => {
-  commandTree.listen('/kubeui/status', status('status'), {
+  commandTree.listen(`/${commandPrefix}/status`, status('status'), {
     usage: usage('status'),
     inBrowserOk: true
   })

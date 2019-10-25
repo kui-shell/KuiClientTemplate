@@ -23,6 +23,7 @@ import { MultiModalResponse } from '@kui-shell/core/api/ui-lite'
 import flags from './flags'
 import { exec } from './exec'
 import { RawResponse } from './response'
+import commandPrefix from '../command-prefix'
 import { KubeResource } from '../../lib/model/resource'
 import { KubeOptions, isEntityRequest, isTableRequest, formatOf, isWatchRequest, isTableWatchRequest } from './options'
 import { stringToTable, KubeTableResponse } from '../../lib/view/formatTable'
@@ -133,6 +134,6 @@ async function doGet(args: Commands.Arguments<KubeOptions>): Promise<KubeResourc
 }
 
 export default (commandTree: Commands.Registrar) => {
-  commandTree.listen('/kubeui/kubectl/get', doGet, flags)
-  commandTree.listen('/kubeui/k/get', doGet, flags)
+  commandTree.listen(`/${commandPrefix}/kubectl/get`, doGet, flags)
+  commandTree.listen(`/${commandPrefix}/k/get`, doGet, flags)
 }

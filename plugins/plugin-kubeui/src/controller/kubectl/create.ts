@@ -19,12 +19,17 @@ import Errors from '@kui-shell/core/api/errors'
 
 import flags from './flags'
 import { doExecWithStatus } from './exec'
+import commandPrefix from '../command-prefix'
 
 import { FinalState } from '../../lib/model/states'
 
-export default (commandTree: Commands.Registrar) => {
-  const doCreate = doExecWithStatus('create', FinalState.OnlineLike)
+const verbs = ['create', 'apply']
 
-  commandTree.listen('/kubeui/kubectl/create', doCreate, flags)
-  commandTree.listen('/kubeui/k/create', doCreate, flags)
+export default (commandTree: Commands.Registrar) => {
+  verbs.forEach(verb => {
+    const doCreate = doExecWithStatus(verb, FinalState.OnlineLike)
+
+    commandTree.listen(`/${commandPrefix}/kubectl/${verb}`, doCreate, flags)
+    commandTree.listen(`/${commandPrefix}/k/${verb}`, doCreate, flags)
+  })
 }

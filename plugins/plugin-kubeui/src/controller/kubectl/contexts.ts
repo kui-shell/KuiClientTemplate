@@ -21,6 +21,7 @@ import { Table, MultiTable, Row, isMultiTable } from '@kui-shell/core/api/table-
 
 import flags from './flags'
 import { doExecWithTable } from './exec'
+import commandPrefix from '../command-prefix'
 
 const strings = i18n('plugin-kubeui')
 
@@ -104,10 +105,10 @@ const listContexts = (args: Commands.Arguments): Promise<Table | MultiTable> => 
  *
  */
 export default (commandTree: Commands.Registrar) => {
-  commandTree.listen('/kubeui/kubectl/config/get-contexts', doExecWithTable)
+  commandTree.listen(`/${commandPrefix}/kubectl/config/get-contexts`, doExecWithTable)
 
   commandTree.listen(
-    '/kubeui/context',
+    `/${commandPrefix}/context`,
     async ({ execOptions, REPL }) => {
       return (await REPL.qexec<string>(
         `kubectl config current-context`,
@@ -122,7 +123,7 @@ export default (commandTree: Commands.Registrar) => {
     }
   )
 
-  commandTree.listen('/kubeui/contexts', listContexts, Object.assign({
+  commandTree.listen(`/${commandPrefix}/contexts`, listContexts, Object.assign({
     usage: usage.contexts('contexts'),
   }, flags))
 }
