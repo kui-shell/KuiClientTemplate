@@ -24,6 +24,7 @@ import Errors from '@kui-shell/core/api/errors'
 
 import flags from './flags'
 import RawResponse from './response'
+import commandPrefix from '../command-prefix'
 
 const debug = Debug('plugin-kubeui/controller/kubectl/raw')
 
@@ -91,5 +92,5 @@ const doRaw = (args: Commands.Arguments): Promise<RawResponse> => new Promise((r
 })
 
 export default async (commandTree: Commands.Registrar) => {
-  commandTree.listen('/kubeui/_kubectl', doRaw, Object.assign({}, flags, { requiresLocal: true, inBrowserOk: false }))
+  commandTree.listen(`/${commandPrefix}/_kubectl`, doRaw, Object.assign({}, flags, { requiresLocal: true, inBrowserOk: false }))
 }

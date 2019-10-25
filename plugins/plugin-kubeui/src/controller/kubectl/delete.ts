@@ -19,6 +19,7 @@ import Commands from '@kui-shell/core/api/commands'
 import flags from './flags'
 import { KubeOptions } from './options'
 import { doExecWithStatus } from './exec'
+import commandPrefix from '../command-prefix'
 
 import { FinalState } from '../../lib/model/states'
 
@@ -41,6 +42,6 @@ const prepare = (args: Commands.Arguments<KubeOptions>) => {
 export default (commandTree: Commands.Registrar) => {
   const doDelete = doExecWithStatus('delete', FinalState.OfflineLike, prepare)
 
-  commandTree.listen('/kubeui/kubectl/delete', doDelete, flags)
-  commandTree.listen('/kubeui/k/delete', doDelete, flags)
+  commandTree.listen(`/${commandPrefix}/kubectl/delete`, doDelete, flags)
+  commandTree.listen(`/${commandPrefix}/k/delete`, doDelete, flags)
 }

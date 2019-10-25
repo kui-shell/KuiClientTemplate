@@ -56,6 +56,16 @@ export function doExecWithStdout<O extends KubeOptions>(args: Commands.Arguments
   return exec(args, prepare).then(_ => _.content.stdout)
 }
 
+export function doExecWithPty<O extends KubeOptions>(args: Commands.Arguments<O>, prepare: Prepare<O> = NoPrepare): Promise<Commands.Response> {
+  const commandToPTY = args.command.replace(/^k(\s)/, 'kubectl$1')
+  return args.REPL.qexec(
+    `sendtopty ${commandToPTY}`,
+    args.block,
+    undefined,
+    Object.assign({}, args.execOptions, { rawResponse: true })
+  )
+}
+
 /**
  * Behaves as does `exec`, except that it projects out just the
  * `stdout` part and parses it into a Table model.
@@ -65,7 +75,6 @@ export async function doExecWithTable<O extends KubeOptions>(args: Commands.Argu
   const response = await exec(args, prepare)
 
   const table = stringToTable(response.content.stdout, response.content.stderr, args)
-  console.error('TTTT', table)
   if (typeof table === 'string') {
     throw new Error(strings('Unable to parse table'))
   } else {

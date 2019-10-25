@@ -18,7 +18,11 @@ import Capabilities from '@kui-shell/core/api/capabilities'
 import Commands from '@kui-shell/core/api/commands'
 import Errors from '@kui-shell/core/api/errors'
 
-import { doExecWithStdout } from './exec'
+import { doExecWithPty } from './exec'
+import commandPrefix from '../command-prefix'
+
+/** is the given string `str` the `kubectl` command? */
+const isKubectl = (str: string) => /^k(ubectl)?$/.test(str)
 
 export default (commandTree: Commands.Registrar) => {
   if (Capabilities.inBrowser() && !Capabilities.hasProxy()) {
@@ -32,9 +36,9 @@ export default (commandTree: Commands.Registrar) => {
   //
   commandTree.catchall(
     (argv: string[]) => {
-      return argv[0] === 'kubectl' || (argv[0] === 'kubeui' && argv[1] === 'kubectl')
+      return isKubectl(argv[0]) || (argv[0] === commandPrefix && isKubectl(argv[1]))
     },
-    doExecWithStdout,
+    doExecWithPty,
     1, // priority
     { inBrowserOk: true }
   )
