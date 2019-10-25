@@ -42,35 +42,40 @@ describe(`kubectl get pod ${process.env.MOCHA_RUN_TARGET || ''}`, function(this:
         await this.app.client.click(Selectors.SIDECAR_MODE_BUTTON('containers'))
       }
 
+      // in any case, the containers tab should be selected now
+      await this.app.client.waitForVisible(Selectors.SIDECAR_MODE_BUTTON_SELECTED('containers'))
+
       const table = `${Selectors.SIDECAR} .bx--data-table`
-      await this.app.client.waitForExist(table)
+      await this.app.client.waitForVisible(table)
 
       // check the conditions rows
-      await this.app.client.waitForExist(`${table} .entity[data-name="nginx"] [data-key="ready"][data-value="true"]`)
+      await this.app.client.waitForVisible(`${table} .entity[data-name="nginx"] [data-key="ready"][data-value="true"]`)
 
       // check that the message shows the final state
       const message = await this.app.client.getText(`${table} .entity[data-name="nginx"] [data-key="message"]`)
       assert.ok(!/Initializing/i.test(message))
 
       // check that the ready check mark is green
-      await this.app.client.waitForExist(
+      await this.app.client.waitForVisible(
         `${table} .entity[data-name="nginx"] [data-key="ready"].green-text .cell-inner.graphical-icon`
       )
     }
 
     const testLogTabs = async () => {
       const container = `${Selectors.SIDECAR} .bx--data-table .entity[data-name="nginx"] .entity-name`
+      await this.app.client.waitForVisible(container)
       await this.app.client.click(container)
       await SidecarExpect.open(this.app)
 
       await this.app.client.waitForVisible(Selectors.SIDECAR_BACK_BUTTON) // make sure the back button exists
-      await this.app.client.waitForExist(Selectors.SIDECAR_MODE_BUTTON('result')) // Latest Tab
-      await this.app.client.waitForExist(Selectors.SIDECAR_MODE_BUTTON('previous'))
+      await this.app.client.waitForVisible(Selectors.SIDECAR_MODE_BUTTON_SELECTED('logs')) // Latest Tab
+      await this.app.client.waitForVisible(Selectors.SIDECAR_MODE_BUTTON('previous'))
 
       await this.app.client.waitForVisible(Selectors.SIDECAR_BACK_BUTTON) // make sure the back button exists
+      // await new Promise(resolve => setTimeout(resolve, 2000))
       await this.app.client.click(Selectors.SIDECAR_BACK_BUTTON) // transition back to the previous view
 
-      await this.app.client.waitForExist(Selectors.SIDECAR_MODE_BUTTON('containers'))
+      await this.app.client.waitForVisible(Selectors.SIDECAR_MODE_BUTTON_SELECTED('containers'))
     }
 
     const ns: string = createNS()

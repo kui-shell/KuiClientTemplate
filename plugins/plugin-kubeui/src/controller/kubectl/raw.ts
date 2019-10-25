@@ -84,7 +84,8 @@ const doRaw = (args: Commands.Arguments): Promise<RawResponse> =>
           content: {
             code,
             stdout,
-            stderr
+            stderr,
+            wasSentToPty: false
           }
         })
       }

@@ -40,6 +40,9 @@ export default async () => {
   if (!Capabilities.isHeadless()) {
     const { registerMode } = await import('@kui-shell/core/api/registrars')
     Promise.all([
+      import('./lib/view/modes/crud')
+        .then(_ => _.deleteResourceMode)
+        .then(registerMode), // summary tab
       import('./lib/view/modes/summary')
         .then(_ => _.default)
         .then(registerMode), // summary tab

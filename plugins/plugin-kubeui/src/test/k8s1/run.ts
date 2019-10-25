@@ -19,7 +19,7 @@ import { waitForGreen, createNS, allocateNS, deleteNS } from '@kui-shell/plugin-
 
 const synonyms = ['kubectl', 'k']
 
-describe('electron kubectl run', function(this: Common.ISuite) {
+describe(`kubectl run ${process.env.MOCHA_RUN_TARGET || ''}`, function(this: Common.ISuite) {
   before(Common.before(this))
   after(Common.after(this))
 

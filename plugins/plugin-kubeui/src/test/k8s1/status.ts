@@ -16,7 +16,7 @@
 
 import { Common } from '@kui-shell/test'
 import { createNS, waitTillNone } from '@kui-shell/plugin-kubeui/tests/lib/k8s/utils'
-import { kubectl, cli as kui, CLI } from '@kui-shell/core/tests/lib/headless'
+import { kubectl, CLI } from '@kui-shell/core/tests/lib/headless'
 
 import { dirname } from 'path'
 const ROOT = dirname(require.resolve('@kui-shell/plugin-kubeui/tests/package.json'))
@@ -40,7 +40,7 @@ const doHeadless = (ctx: Common.ISuite, impl: CLI) => {
   })
 
   const kubeAlternatives = ['kubectl', 'k']
-  const verbAlternatives = ['status', 'list']
+  const verbAlternatives = ['status']
   const entityAlternatives = [`pods -n ${ns}`]
 
   kubeAlternatives.forEach(kubectl => {
@@ -86,6 +86,6 @@ Common.localDescribe('k status kubectl kui headless mode', function(this: Common
   doHeadless(this, kubectl)
 })
 
-Common.localDescribe('k status bin/kui headless mode', function(this: Common.ISuite) {
+/* Common.localDescribe('k status bin/kui headless mode', function(this: Common.ISuite) {
   doHeadless(this, kui)
-})
+}) */
