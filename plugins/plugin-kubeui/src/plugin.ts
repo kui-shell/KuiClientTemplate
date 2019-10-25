@@ -16,22 +16,28 @@
 
 import Commands from '@kui-shell/core/api/commands'
 
+import contexts from './controller/kubectl/contexts'
+import create from './controller/kubectl/create'
+import kdelete from './controller/kubectl/delete'
+import describe from './controller/kubectl/describe'
+import kget from './controller/kubectl/get'
+import logs from './controller/kubectl/logs'
+import status from './controller/kubectl/status'
 import raw from './controller/kubectl/raw'
-import kubectlGet from './controller/kubectl/get'
-import kubectlCreate from './controller/kubectl/create'
-import kubectlDelete from './controller/kubectl/delete'
-import kubectlStatus from './controller/kubectl/status'
-import kubectlContexts from './controller/kubectl/contexts'
+import run from './controller/kubectl/run'
 import catchall from './controller/kubectl/catchall'
 
 export default async (commandTree: Commands.Registrar) => {
   return Promise.all([
+    contexts(commandTree),
+    create(commandTree),
+    kdelete(commandTree),
+    describe(commandTree),
+    kget(commandTree),
+    logs(commandTree),
     raw(commandTree),
-    kubectlGet(commandTree),
-    kubectlCreate(commandTree),
-    kubectlDelete(commandTree),
-    kubectlStatus(commandTree),
-    kubectlContexts(commandTree),
+    run(commandTree),
+    status(commandTree),
     catchall(commandTree)
   ])
 }

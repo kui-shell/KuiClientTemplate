@@ -1,0 +1,34 @@
+#
+# This is a Krew manifest
+#
+apiVersion: krew.googlecontainertools.github.com/v1alpha2
+kind: Plugin
+metadata:
+  name: kubeui
+spec:
+  homepage: https://github.com/kui-shell/plugin-kubeui
+  shortDescription: Pop-up visualizations for kubectl operations
+  description: |
+    This is a kubectl plugin that offers pop-up window visualizations
+    of the standard kubectl operations. For example, in response to a
+    get pods request, you will see a window pop up that displays a
+    navigable table. Clicking on a row will transition the
+    visualization to a multi-tab summary of that resource.
+
+  version: v1.0.0
+  platforms:
+    - uri: https://github.com/kui-shell/plugin-kubeui/releases/download/v1.0.0/kubectl-kubeui_linux_amd64.zip
+      sha256: "162dd81efcd806a94346535c87724cf06125d9c64677d2c61294304bddeedfb0"
+      bin: "kubectl-kubeui"
+      selector:
+        matchLabels:
+          os: linux
+          arch: amd64  
+    - uri: https://github.com/kui-shell/plugin-kubeui/releases/download/v1.0.0/kubectl-kubeui_darwin_amd64.zip
+      sha256: "162dd81efcd806a94346535c87724cf06125d9c64677d2c61294304bddeedfb0"
+      bin: "kubectl-kubeui"
+      selector:
+        matchLabels:
+          os: darwin
+          arch: amd64
+          

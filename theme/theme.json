@@ -21,6 +21,7 @@
   "gettingStarted": "tutorial play @tutorials/getting-started",
   "defaultTheme": "Carbon Gray10",
   "defaultContext": ["kubeui"],
+  "about": [{ "mode": "contexts", "label": "Contexts", "direct": "about --mode contexts --content contexts" }],
   "themes": [
     {
       "name": "Light",

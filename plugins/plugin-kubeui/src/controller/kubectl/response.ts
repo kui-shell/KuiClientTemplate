@@ -20,6 +20,7 @@ interface RawOutput {
   code: number
   stdout: string
   stderr: string
+  wasSentToPty: boolean
 }
 
 export type RawResponse = Models.ResourceWithMetadata<RawOutput>

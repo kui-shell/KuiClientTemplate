@@ -103,7 +103,7 @@ exports.deleteNS = (ctx, ns, theCli = CLI) => {
   if (!process.env.TRAVIS_JOB_ID) {
     // to save travis test time
     it(`should delete the namespace ${ns}`, () => {
-      theCli
+      return theCli
         .command(`kubectl delete namespace ${ns}`, ctx.app)
         .then(ReplExpect.okWithCustom({ selector: Selectors.BY_NAME(ns) }))
         .then(selector => exports.waitForRed(ctx.app, selector))

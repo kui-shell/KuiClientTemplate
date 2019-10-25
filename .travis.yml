@@ -1,7 +1,33 @@
 language: node_js
-os:
-  - linux
-node_js:
-  - 12
-  - 10
-  - 8
+node_js: 8
+
+services:
+  - docker
+
+install:
+  - Xvfb :1 -screen 0 ${WINDOW_WIDTH}x${WINDOW_HEIGHT}x24 :1 -ac >& /dev/null &
+  - ./tools/travis/microk8s.sh &
+  - k8s=$!
+  - npm ci
+  - if [ "$MOCHA_RUN_TARGET"] == "webpack" ]; then (npm run proxy &); (npm run webpack &); fi
+  - wait $!
+
+jobs:
+  include:
+    - stage: test
+      script: npm run test k8s
+      env: STAGE=k8s MOCHA_RUN_TARGET=electron
+    - stage: test
+      script: npm run test k8s1
+      env: STAGE=k8s1 MOCHA_RUN_TARGET=electron
+    - stage: test
+      script: npm run test k8s2
+      env: STAGE=k8s2 MOCHA_RUN_TARGET=electron
+
+env:
+  global:
+    - TRAVIS_KUBE_VERSION=1.12
+    - TRAVIS_HELM_VERSION=2.13.0
+    - WINDOW_WIDTH=1400
+    - WINDOW_HEIGHT=1050
+    - PATH=bin:$PATH
