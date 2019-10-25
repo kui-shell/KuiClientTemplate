@@ -15,7 +15,7 @@
  */
 
 import { Common } from '@kui-shell/test'
-import { kubectl, cli as kui, CLI } from '@kui-shell/core/tests/lib/headless'
+import { kubectl, CLI } from '@kui-shell/core/tests/lib/headless'
 import { createNS, waitTillNone } from '@kui-shell/plugin-kubeui/tests/lib/k8s/utils'
 
 import { dirname } from 'path'
@@ -100,6 +100,6 @@ Common.localDescribe('headless create pod kubectl kui mode', function(this: Comm
   doHeadless(this, kubectl)
 })
 
-Common.localDescribe('headless create pod bin/kui mode', function(this: Common.ISuite) {
+/* Common.localDescribe('headless create pod bin/kui mode', function(this: Common.ISuite) {
   doHeadless(this, kui)
-})
+}) */

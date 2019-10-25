@@ -17,17 +17,19 @@
 import Debug from 'debug'
 import { join } from 'path'
 
+import { isHeadless } from '@kui-shell/core/api/capabilities'
 import Commands from '@kui-shell/core/api/commands'
 import Errors from '@kui-shell/core/api/errors'
 import Tables from '@kui-shell/core/api/tables'
 import Util from '@kui-shell/core/api/util'
 
+import { flags } from './flags'
 import Options from './options'
 import commandPrefix from '../command-prefix'
 
-import { withRetryOn404 } from '../../lib/util/retry'
+import { withOkOn404, withRetryOn404 } from '../../lib/util/retry'
 import { isDirectory } from '../../lib/util/util'
-import { KubeResource } from '../../lib/model/resource'
+import { KubeItems, KubeResource } from '../../lib/model/resource'
 import { States, FinalState } from '../../lib/model/states'
 import { formatEntity } from '../../lib/view/formatEntity'
 
@@ -63,6 +65,16 @@ const usage = (command: string) => ({
       name: '--multi',
       alias: '-m',
       docs: 'Display multi-cluster views as a multiple tables'
+    },
+    {
+      name: '--response',
+      docs: 'The initial response from the CRUD command'
+    },
+    {
+      name: '--watching',
+      hidden: true,
+      boolean: true,
+      docs: 'internal use: called as part of the polling loop'
     },
     {
       name: '--watch',
@@ -166,6 +178,8 @@ const errorEntity = (execOptions: Commands.ExecOptions, base: KubeResource, back
  *
  */
 interface FinalStateOptions extends Options {
+  response?: string
+  watching?: boolean
   'final-state'?: FinalState
 }
 const getDirectReferences = (command: string) => async ({
@@ -175,7 +189,7 @@ const getDirectReferences = (command: string) => async ({
   REPL
 }: Commands.Arguments<FinalStateOptions>): Promise<{
   kind: string
-  resource: Promise<KubeResource | KubeResource[]>
+  resource: Promise<void | KubeResource | KubeResource[]>
 }> => {
   const raw = Object.assign({}, execOptions, { raw: true })
 
@@ -225,12 +239,18 @@ const getDirectReferences = (command: string) => async ({
     // note: don't retry the getter on 404 if we're expecting the
     // element (eventually) not to exist
     const getter = async (): Promise<KubeResource> => {
-      return REPL.qexec<KubeResource>(command, undefined, undefined, raw)
+      return REPL.rexec<KubeResource>(command, execOptions)
     }
 
-    const kubeEntity = !finalState || finalState === FinalState.OfflineLike ? getter() : withRetryOn404(getter, command)
+    const kubeEntity = await (!finalState || finalState === FinalState.OfflineLike
+      ? withOkOn404(getter, command)
+      : withRetryOn404(getter, command))
 
-    return { kind, resource: kubeEntity }
+    if (!kubeEntity) {
+      return { kind, resource: Promise.resolve() }
+    } else {
+      return { kind, resource: Promise.resolve(kubeEntity) }
+    }
   } else {
     const filepath = Util.findFile(file)
     const isURL = file.match(/^http[s]?:\/\//)
@@ -278,19 +298,21 @@ const getDirectReferences = (command: string) => async ({
       // then the file does not exist; maybe the user specified a resource kind, e.g. k status pods
       debug('status by resource kind', file, name)
 
-      const kubeEntities = REPL.qexec<KubeResource[]>(
+      const kubeEntities = REPL.qexec<KubeItems>(
         `kubectl get "${file}" "${name || ''}" ${ns()} -o json`,
         undefined,
         undefined,
         raw
-      ).catch(err => {
-        if (err.code === 404) {
-          // then no such resource type exists
-          throw err
-        } else {
-          return errorEntity(execOptions, undefined, namespace)(err)
-        }
-      })
+      )
+        .then(_ => _.items)
+        .catch(err => {
+          if (err.code === 404) {
+            // then no such resource type exists
+            throw err
+          } else {
+            return errorEntity(execOptions, undefined, namespace)(err)
+          }
+        })
 
       return { kind: file, resource: kubeEntities }
     } else {
@@ -329,17 +351,28 @@ const getDirectReferences = (command: string) => async ({
  */
 export const status = (command: string) => async (
   args: Commands.Arguments<FinalStateOptions>
-): Promise<KubeResource | Tables.Table> => {
-  const doWatch = args.parsedOptions.watch || args.parsedOptions.w
-
-  const refreshCommand = args.command.replace('--watch', '').replace('-w', '')
-
+): Promise<true | string | KubeResource | Tables.Table> => {
   const { kind, resource } = await getDirectReferences(command)(args)
   const direct = await resource
   // debug('getDirectReferences', direct)
 
   if (args.execOptions.raw && !Array.isArray(direct)) {
-    return direct
+    if (!direct) {
+      return undefined
+    } else {
+      return direct
+    }
+  }
+
+  if (!direct && args.parsedOptions['final-state'] === FinalState.OfflineLike) {
+    if (args.parsedOptions.watching) {
+      // this is part of the watching loop
+      const error: Errors.CodedError = new Error(args.parsedOptions.response || '')
+      error.code = 404
+      throw error
+    } else {
+      return args.parsedOptions.response || true
+    }
   }
 
   const body = Array.isArray(direct)
@@ -352,12 +385,16 @@ export const status = (command: string) => async (
     noSort: true
   })
 
-  return !doWatch
-    ? table
-    : Tables.formatWatchableTable(table, {
-        refreshCommand,
-        watchByDefault: true
-      })
+  const doWatch = !isHeadless() && (args.parsedOptions.watch || args.parsedOptions.w)
+  if (!doWatch) {
+    return table
+  } else {
+    const refreshCommand = `${args.command.replace('--watch', '').replace('-w', '')} --watching`
+    return Tables.formatWatchableTable(table, {
+      refreshCommand,
+      watchByDefault: true
+    })
+  }
 }
 
 /**
@@ -365,8 +402,16 @@ export const status = (command: string) => async (
  *
  */
 export default (commandTree: Commands.Registrar) => {
-  commandTree.listen(`/${commandPrefix}/status`, status('status'), {
-    usage: usage('status'),
-    inBrowserOk: true
-  })
+  const opts = Object.assign(
+    {
+      usage: usage('status')
+    },
+    flags(['watching'])
+  )
+
+  commandTree.listen(`/${commandPrefix}/status`, status('status'), opts)
+
+  commandTree.listen(`/${commandPrefix}/kubectl/status`, status('status'), opts)
+
+  commandTree.listen(`/${commandPrefix}/k/status`, status('status'), opts)
 }

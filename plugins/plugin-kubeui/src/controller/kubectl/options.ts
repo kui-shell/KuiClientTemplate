@@ -57,7 +57,31 @@ export function isTableWatchRequest(args: Commands.Arguments<KubeOptions>) {
   return isWatchRequest(args) && isTableRequest(args)
 }
 
+export function getNamespace(args: Commands.Arguments<KubeOptions>) {
+  return args.parsedOptions.n || args.parsedOptions.namespace
+}
+
+export function getNamespaceForArgv(args: Commands.Arguments<KubeOptions>) {
+  const ns = getNamespace(args)
+  if (ns) {
+    return `-n ${ns}`
+  } else {
+    return ''
+  }
+}
+
+export function getContextForArgv(args: Commands.Arguments<KubeOptions>) {
+  const context = args.parsedOptions.context
+  if (context) {
+    return `--context ${context}`
+  } else {
+    return ''
+  }
+}
+
 export interface KubeOptions extends Commands.ParsedOptions {
+  context: string
+
   n: string
   namespace: string
 

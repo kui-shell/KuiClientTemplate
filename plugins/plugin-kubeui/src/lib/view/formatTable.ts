@@ -14,11 +14,12 @@
  * limitations under the License.
  */
 
-import Tables from '@kui-shell/core/api/tables'
 import Commands from '@kui-shell/core/api/commands'
 import { encodeComponent } from '@kui-shell/core/api/repl-util'
+import { Table, MultiTable, Row, isTable, isMultiTable } from '@kui-shell/core/api/table-models'
 
 import KubeOptions from '../../controller/kubectl/options'
+import { RawResponse } from '../../controller/kubectl/response'
 
 /** return an array with at least maxColumns entries */
 const fillTo = (length, maxColumns) => {
@@ -203,7 +204,7 @@ export const formatTable = <O extends KubeOptions>(
   entityTypeFromCommandLine: string,
   options: O,
   preTable: Pair[][]
-): Tables.Table => {
+): Table => {
   // for helm status, table clicks should dispatch to kubectl;
   // otherwise, stay with the command (kubectl or helm) that we
   // started with
@@ -248,7 +249,7 @@ export const formatTable = <O extends KubeOptions>(
   let entityTypeFromRows: string
 
   const rows = preTable.map(
-    (rows, idx): Tables.Row => {
+    (rows, idx): Row => {
       const name = nameColumnIdx >= 0 ? rows[nameColumnIdx].value : ''
       const nameSplit = name.split(/\//) // for "get all", the name field will be <kind/entityName>
       const nameForDisplay = nameSplit[1] || rows[0].value
@@ -337,7 +338,11 @@ export const formatTable = <O extends KubeOptions>(
   }
 }
 
-export type KubeTableResponse = Tables.Table | Tables.MultiTable | string
+export type KubeTableResponse = Table | MultiTable | string
+
+export function isKubeTableResponse(response: KubeTableResponse | RawResponse): response is KubeTableResponse {
+  return typeof response === 'string' || isTable(response) || isMultiTable(response)
+}
 
 /**
  * Display the given string as a REPL table

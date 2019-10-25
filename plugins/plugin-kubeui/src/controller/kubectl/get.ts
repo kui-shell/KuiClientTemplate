@@ -25,18 +25,19 @@ import { RawResponse } from './response'
 import commandPrefix from '../command-prefix'
 import { KubeResource } from '../../lib/model/resource'
 import { KubeOptions, isEntityRequest, isTableRequest, formatOf, isWatchRequest, isTableWatchRequest } from './options'
-import { stringToTable, KubeTableResponse } from '../../lib/view/formatTable'
+import { stringToTable, KubeTableResponse, isKubeTableResponse } from '../../lib/view/formatTable'
 
 /**
  * For now, we handle watch ourselves, so strip these options off the command line
  *
  */
-function prepare(args: Commands.Arguments<KubeOptions>): Commands.Arguments<KubeOptions> {
-  const stripThese = ['-w', '--watch', '--watch-only', '-w=true', '--watch=true', '--watch-only=true']
+function prepareArgsForGet(args: Commands.Arguments<KubeOptions>) {
+  const stripThese = ['-w=true', '--watch=true', '--watch-only=true', '-w', '--watch', '--watch-only']
 
-  return Object.assign({}, args, {
-    command: stripThese.reduce((cmd, strip) => cmd.replace(strip, ''), args.command)
-  })
+  const idx = args.command.indexOf(' get ') + ' get '.length
+  const pre = args.command.slice(0, idx - 1)
+  const post = args.command.slice(idx - 1)
+  return pre + stripThese.reduce((cmd, strip) => cmd.replace(new RegExp(`(\\s)${strip}`), '$1'), post)
 }
 
 /**
@@ -50,7 +51,7 @@ function doGetTable(args: Commands.Arguments<KubeOptions>, response: RawResponse
 
   const command = 'kubectl'
   const verb = 'get'
-  const entityType = args.argvNoOptions[2]
+  const entityType = args.argvNoOptions[args.argvNoOptions.indexOf(verb) + 1]
 
   const table = stringToTable(stdout, stderr, args, command, verb, entityType)
 
@@ -80,7 +81,7 @@ function doGetEmptyTable(args: Commands.Arguments<KubeOptions>): KubeTableRespon
  * kubectl get as entity response
  *
  */
-async function doGetEntity(args: Commands.Arguments<KubeOptions>, response: RawResponse): Promise<KubeResource> {
+export async function doGetEntity(args: Commands.Arguments<KubeOptions>, response: RawResponse): Promise<KubeResource> {
   try {
     const resource =
       formatOf(args) === 'json'
@@ -105,10 +106,36 @@ async function doGetCustom(args: Commands.Arguments<KubeOptions>, response: RawR
   return response.content.stdout
 }
 
-async function doGet(args: Commands.Arguments<KubeOptions>): Promise<KubeResource | KubeTableResponse> {
-  const response = await exec(args, prepare)
+/**
+ * This is the main handler for `kubectl get`. Here, we act as a
+ * dispatcher: in `kubectl` a `get` can mean either get-as-table,
+ * get-as-entity, or get-as-custom, depending on the `-o` flag.
+ *
+ */
+async function doGet(args: Commands.Arguments<KubeOptions>): Promise<string | KubeResource | KubeTableResponse> {
+  // first, we do the raw exec of the given command
+  const response = await exec(args, prepareArgsForGet).catch((err: Errors.CodedError) => {
+    if (err.statusCode === 0 && err.code === 404 && isTableWatchRequest(args)) {
+      // Notes:
+      // err.statusCode === 0 means this was "normal error" (i.e. kubectl didn't bail)
+      // err.code === 404 means that raw.ts thinks this error was "not found" related
+      // if those hold, and the user asked us to watch a table, then
+      // respond with an empty table, rather than with the error
+      return doGetEmptyTable(args)
+    } else {
+      // Notes: we are using statusCode internally to this plugin;
+      // delete it before rethrowing the error, because the core would
+      // otherwise interpret the statusCode as being meaningful to the
+      // outside world
+      delete err.statusCode
+      throw err
+    }
+  })
 
-  if (response.content.code !== 0) {
+  if (isKubeTableResponse(response)) {
+    return response
+  } else if (response.content.code !== 0) {
+    // raw exec yielded an error!
     if (isTableWatchRequest(args)) {
       // special case: user requested a watchable table, and there is
       // not yet anything to display
@@ -118,11 +145,16 @@ async function doGet(args: Commands.Arguments<KubeOptions>): Promise<KubeResourc
       err.code = response.content.code
       throw err
     }
+  } else if (response.content.wasSentToPty) {
+    return response.content.stdout
   } else if (isEntityRequest(args)) {
+    // case 1: get-as-entity
     return doGetEntity(args, response)
   } else if (isTableRequest(args)) {
+    // case 2: get-as-table
     return doGetTable(args, response)
   } else {
+    // case 3: get-as-custom
     return doGetCustom(args, response)
   }
 }

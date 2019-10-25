@@ -25,7 +25,7 @@ Common.localDescribe('k8s table with empty status cell', function(this: Common.I
   before(Common.before(this))
   after(Common.after(this))
 
-  it('should format a table with an empty status cell', () =>
+  xit('should format a table with an empty status cell', () =>
     CLI.command(`kdebug "${input}"`, this.app)
       .then(ReplExpect.okWith('reviews-v3-rollout'))
       .catch(Common.oops(this)))

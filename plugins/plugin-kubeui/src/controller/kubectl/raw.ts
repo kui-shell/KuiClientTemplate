@@ -76,6 +76,7 @@ const doRaw = (args: Commands.Arguments): Promise<RawResponse> =>
           reject(new Error(undefined))
         } else {
           const error: Errors.CodedError = new Error(message)
+          error.statusCode = code
           error.code = codeForREPL
           reject(error)
         }
@@ -84,7 +85,8 @@ const doRaw = (args: Commands.Arguments): Promise<RawResponse> =>
           content: {
             code,
             stdout,
-            stderr
+            stderr,
+            wasSentToPty: false
           }
         })
       }
