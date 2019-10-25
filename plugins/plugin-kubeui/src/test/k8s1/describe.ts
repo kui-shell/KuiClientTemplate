@@ -27,7 +27,7 @@ import {
 const synonyms = ['kubectl']
 
 // this test is still oddly buggy with webpack+proxy, hence the localDescribe
-Common.localDescribe(`kubectl summary ${process.env.MOCHA_RUN_TARGET}`, function(this: Common.ISuite) {
+Common.localDescribe(`kubectl get summary tab ${process.env.MOCHA_RUN_TARGET}`, function(this: Common.ISuite) {
   before(Common.before(this))
   after(Common.after(this))
 
@@ -83,7 +83,7 @@ Common.localDescribe(`kubectl summary ${process.env.MOCHA_RUN_TARGET}`, function
     // localIt will have it run only in electron for now
     Common.localIt(`should fail with 404 for unknown resource type via ${kubectl}`, () => {
       const fakeType = 'yoyoyo1334u890724'
-      return CLI.command(`${kubectl} summary ${fakeType} productPage`, this.app)
+      return CLI.command(`${kubectl} get ${fakeType} productPage -o yaml`, this.app)
         .then(ReplExpect.error(404))
         .catch(Common.oops(this, true))
     })
@@ -99,7 +99,7 @@ Common.localDescribe(`kubectl summary ${process.env.MOCHA_RUN_TARGET}`, function
     })
 
     it(`should summarize that pod via ${kubectl}`, () => {
-      return CLI.command(`${kubectl} summary pod nginx -n ${ns}`, this.app)
+      return CLI.command(`${kubectl} get pod nginx -n ${ns} -o yaml`, this.app)
         .then(ReplExpect.justOK)
         .then(SidecarExpect.open)
         .then(SidecarExpect.mode(defaultModeForGet))
@@ -135,7 +135,7 @@ Common.localDescribe(`kubectl summary ${process.env.MOCHA_RUN_TARGET}`, function
         .waitUntil(async () => {
           const value = await this.app.client.getValue(Selectors.PROMPT_FINAL)
           if (++idx > 5) {
-            console.error(`kubectl summary ${process.env.MOCHA_RUN_TARGET || ''} still waiting for delete command`)
+            console.error(`kubectl get ${process.env.MOCHA_RUN_TARGET || ''} still waiting for delete command`)
           }
 
           return /delete/.test(value)

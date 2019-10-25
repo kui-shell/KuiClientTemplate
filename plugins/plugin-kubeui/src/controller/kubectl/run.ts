@@ -17,29 +17,24 @@
 import Commands from '@kui-shell/core/api/commands'
 
 import flags from './flags'
-import { KubeOptions } from './options'
 import { doExecWithStatus } from './exec'
 import commandPrefix from '../command-prefix'
+import { KubeOptions } from './options'
 
 import { FinalState } from '../../lib/model/states'
 
 /**
- * Prepare the command line for delete: by default, apparently,
- * kubernetes treats finalizers as synchronous, and --wait defaults to
- * true
+ * To get the status of a `run`, we look for the corresponding `deployment`
  *
  */
-function prepareArgsForDelete(args: Commands.Arguments<KubeOptions>) {
-  if (!Object.prototype.hasOwnProperty.call(args.parsedOptions, 'wait')) {
-    return args.command + ' --wait=false'
-  } else {
-    return args.command
-  }
+function prepareArgsForStatus(cmd: string, args: Commands.Arguments<KubeOptions>) {
+  const name = args.argvNoOptions[args.argvNoOptions.indexOf(cmd) + 1]
+  return `deployment ${name}`
 }
 
 export default (commandTree: Commands.Registrar) => {
-  const doDelete = doExecWithStatus('delete', FinalState.OfflineLike, prepareArgsForDelete)
+  const doRun = doExecWithStatus('run', FinalState.OnlineLike, undefined, prepareArgsForStatus)
 
-  commandTree.listen(`/${commandPrefix}/kubectl/delete`, doDelete, flags)
-  commandTree.listen(`/${commandPrefix}/k/delete`, doDelete, flags)
+  commandTree.listen(`/${commandPrefix}/kubectl/run`, doRun, flags)
+  commandTree.listen(`/${commandPrefix}/k/run`, doRun, flags)
 }

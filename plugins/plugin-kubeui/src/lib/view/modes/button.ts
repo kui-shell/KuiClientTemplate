@@ -14,7 +14,8 @@
  * limitations under the License.
  */
 
-import { REPL, UI } from '@kui-shell/core'
+import { REPL } from '@kui-shell/core'
+import { Tab } from '@kui-shell/core/api/ui-lite'
 
 import { KubeResource } from '../../model/resource'
 
@@ -28,11 +29,7 @@ interface BaseInfo {
 
 type Renderer = (resource: KubeResource) => KubeResource
 
-interface Parameters {
-  overrides: BaseInfo
-  fn: Renderer
-}
-export const renderButton = async (tab: UI.Tab, { overrides, fn }: Parameters, args): Promise<KubeResource> => {
+export const renderButton = async (tab: Tab, overrides: BaseInfo, fn: Renderer, args?): Promise<KubeResource> => {
   const resource = args.resource || args
   const { prettyType, kind = prettyType || '-f', metadata, name, resourceName, namespace: ns } = resource
 
@@ -56,11 +53,7 @@ const makeButton = (overrides: BaseInfo, fn?: Renderer) =>
   Object.assign(
     {},
     {
-      direct: {
-        plugin: 'k8s/dist/index',
-        operation: 'renderButton',
-        parameters: { overrides, fn }
-      },
+      direct: (tab: Tab, args) => renderButton(tab, overrides, fn, args),
       echo: true,
       noHistory: false,
       replSilence: false,

@@ -14,22 +14,29 @@
  * limitations under the License.
  */
 
-export default {
-  inBrowserOk: true,
-  flags: {
-    boolean: [
-      'w',
-      'watch',
-      'watch-only',
-      'A',
-      'all-namespaces',
-      'ignore-not-found',
-      'no-headers',
-      'R',
-      'recursive',
-      'server-print',
-      'show-kind',
-      'show-labels'
-    ]
+const defaultBooleans = [
+  'w',
+  'watch',
+  'watch-only',
+  'A',
+  'all-namespaces',
+  'ignore-not-found',
+  'no-headers',
+  'R',
+  'recursive',
+  'server-print',
+  'show-kind',
+  'show-labels'
+]
+
+export function flags(booleans: string[] = []) {
+  return {
+    inBrowserOk: true,
+    flags: {
+      boolean: booleans.concat(defaultBooleans)
+    }
   }
 }
+
+const defaultFlags = flags()
+export default defaultFlags

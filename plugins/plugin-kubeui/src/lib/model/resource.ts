@@ -161,6 +161,16 @@ export interface Pod extends KubeResource {
   }
 }
 
+/**
+ * e.g. `kubectl get pods -o json` will return a kind: items
+ *
+ */
+export interface KubeItems extends KubeResource {
+  apiVersion: 'v1'
+  kind: 'List'
+  items: KubeResource[]
+}
+
 export interface Resource<T = KubeResource> {
   filepathForDrilldown?: string
   kind?: string

@@ -17,6 +17,8 @@
 import Debug from 'debug'
 const debug = Debug('k8s/util/retry')
 
+import Errors from '@kui-shell/core/api/errors'
+
 export const withRetryOnCode = (code: number) => <T>(fn: () => Promise<T>, cmd: string): Promise<T> =>
   new Promise((resolve, reject) => {
     const iter = async () => {
@@ -36,4 +38,14 @@ export const withRetryOnCode = (code: number) => <T>(fn: () => Promise<T>, cmd: 
     iter()
   })
 
+export const withOkOnCode = (code: number) => <T>(fn: () => Promise<T>, cmd: string): Promise<void | T> =>
+  fn().catch((err: Errors.CodedError) => {
+    if (err.code === code) {
+      debug('404 ok', cmd)
+    } else {
+      throw err
+    }
+  })
+
+export const withOkOn404 = withOkOnCode(404)
 export const withRetryOn404 = withRetryOnCode(404)

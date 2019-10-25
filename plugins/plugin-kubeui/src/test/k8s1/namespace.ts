@@ -21,7 +21,7 @@ const ns1: string = createNS()
 const ns2: string = createNS()
 const synonyms = ['kubectl']
 
-describe('electron namespace', function(this: Common.ISuite) {
+describe(`kubectl namespace ${process.env.MOCHA_RUN_TARGET || ''}`, function(this: Common.ISuite) {
   before(Common.before(this))
   after(Common.after(this))
 
@@ -39,7 +39,7 @@ describe('electron namespace', function(this: Common.ISuite) {
     const expectDescribeText = (name: string) => () => {
       return this.app.client.waitUntil(async () => {
         const actualText = await getText()
-        return new RegExp(`Name:\\s+${name}`).test(actualText)
+        return new RegExp(`NAME:\\s+${name}`).test(actualText)
       })
     }
 
@@ -75,7 +75,7 @@ describe('electron namespace', function(this: Common.ISuite) {
           .then(ReplExpect.justOK)
           .then(SidecarExpect.open)
           .then(SidecarExpect.showing(name))
-          .then(SidecarExpect.mode('result'))
+          .then(SidecarExpect.mode('summary'))
           .then(expectDescribeText(name))
           .catch(Common.oops(this))
       })

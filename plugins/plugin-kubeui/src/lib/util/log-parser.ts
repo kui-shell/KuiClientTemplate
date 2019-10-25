@@ -30,11 +30,157 @@ const debug = Debug('k8s/util/log-parser')
  */
 const timestampFormat = 'short'
 
+type OutputType = ZaprEntry[] | HTMLDivElement
+interface Options<T extends OutputType> {
+  format(logEntries: ZaprEntry[]): T
+}
+
+/** filter out empty log entries */
+const notEmpty = (_: ZaprEntry) => _.timestamp || _.rest || _.origin || _.provider
+
+class AsHTML implements Options<HTMLDivElement> {
+  public readonly asHTML: true
+  public format(logEntries: ZaprEntry[]): HTMLDivElement {
+    const container = document.createElement('div')
+    container.classList.add('log-lines')
+    // container.classList.add('fixed-table-layout')
+
+    const doWeHaveAnyFirstColumns =
+      logEntries.findIndex(_ => !!(_.timestamp || _.origin || _.provider || _.runLength > 1)) >= 0
+
+    logEntries
+      .filter(notEmpty)
+      .forEach(({ logType = '', timestamp = '', origin = '', provider = '', rest, runLength = 1 }) => {
+        // dom for the log line
+        const logLine = document.createElement('div')
+        logLine.classList.add('log-line')
+        container.appendChild(logLine)
+
+        // stdout or stderr?
+        if (logType.match(/^I/) || logType.match(/^INFO$/i)) {
+          logLine.classList.add('logged-to-stdout')
+        } else if (logType.match(/^[EF]/) || logType.match(/^(ERROR|WARN)/i)) {
+          // errors or failures
+          logLine.classList.add('logged-to-stderr')
+        }
+
+        // timestamp rendering
+        if (doWeHaveAnyFirstColumns) {
+          const timestampDom = document.createElement('td')
+          timestampDom.className = 'log-field log-date entity-name-group hljs-attribute'
+          if (typeof timestamp === 'string') {
+            // due to td styling issues, some CSS attrs are on td > span
+            const inner = document.createElement('span')
+            inner.innerText = timestamp
+            timestampDom.appendChild(inner)
+          } else {
+            timestampDom.appendChild(timestamp)
+          }
+          logLine.appendChild(timestampDom)
+
+          // origin, e.g. filename and line number, rendering
+          if (origin) {
+            const originDom = document.createElement('span')
+            originDom.className = 'entity-name'
+            originDom.innerText = origin ? origin.replace(/]$/, '') : ''
+            timestampDom.appendChild(originDom)
+          }
+
+          if (provider) {
+            const providerDom = document.createElement('span')
+            providerDom.className = 'entity-name provider-name'
+            providerDom.innerText = provider ? provider.replace(/]$/, '') : ''
+            timestampDom.appendChild(providerDom)
+          }
+
+          // run length rendering
+          if (runLength > 1) {
+            const runLengthDom = document.createElement('div')
+            runLengthDom.innerText = `(${runLength} times)`
+            runLengthDom.classList.add('small-top-pad')
+            runLengthDom.classList.add('red-text')
+            timestampDom.appendChild(runLengthDom)
+          }
+        }
+
+        // log message rendering
+        const restDom = document.createElement('td')
+        restDom.className = 'log-field log-message slightly-smaller-text'
+
+        if (typeof rest === 'object') {
+          const pre = document.createElement('pre')
+          const code = document.createElement('code')
+          code.innerText = JSON.stringify(rest, undefined, 2)
+          pre.appendChild(code)
+          restDom.appendChild(pre)
+        } else {
+          const pre = document.createElement('pre')
+          pre.classList.add('pre-wrap')
+          pre.classList.add('break-all')
+          restDom.appendChild(pre)
+
+          // see if rest is of the form "a: b"
+          const trySplit = rest.split(/^(.*:)(\s+.*)?$/)
+          if (trySplit && trySplit.length > 1) {
+            const a = document.createElement('span')
+            a.classList.add('map-key')
+            a.innerText = trySplit[1]
+            pre.appendChild(a)
+
+            if (trySplit[2]) {
+              // we could just have a:<EOL>
+              const b = document.createElement('span')
+              b.classList.add('map-value')
+              b.innerText = trySplit[2]
+              pre.appendChild(b)
+            }
+          } else {
+            pre.innerText = rest
+          }
+        }
+        logLine.appendChild(restDom)
+      })
+
+    const wrapper = document.createElement('div')
+    wrapper.classList.add('padding-content')
+    wrapper.classList.add('scrollable')
+    wrapper.classList.add('scrollable-auto')
+    wrapper.classList.add('monospace')
+    wrapper.classList.add('smaller-text')
+    wrapper.appendChild(container)
+
+    return wrapper
+  }
+}
+
+class AsJSON implements Options<ZaprEntry[]> {
+  public readonly asJSON: true
+  public format(logEntries: ZaprEntry[]) {
+    return logEntries
+  }
+}
+
+function asJSON(options: Options<OutputType>): options is AsJSON {
+  return (options as AsJSON).asJSON
+}
+
+type Output = AsHTML | AsJSON
+
+interface ZaprEntry {
+  timestamp: string | Text | Element
+  rawTimestamp: string
+  logType: string
+  provider: string
+  origin: string
+  rest: string | Record<string, string>
+  runLength?: number
+}
+
 /**
  * Squash runs of the same log entry
  *
  */
-const squashLogRuns = (isNotCloudLens: boolean, options: Options) => (
+const squashLogRuns = <T extends OutputType, O extends Options<T>>(isNotCloudLens: boolean, options: O) => (
   soFar: ZaprEntry[],
   logLine: string
 ): ZaprEntry[] => {
@@ -50,7 +196,7 @@ const squashLogRuns = (isNotCloudLens: boolean, options: Options) => (
 
     let rest = rawRest
     try {
-      if (options.asJSON) {
+      if (asJSON(options)) {
         rest = JSON.parse(rawRest)
       }
     } catch (err) {
@@ -74,7 +220,7 @@ const squashLogRuns = (isNotCloudLens: boolean, options: Options) => (
         current = {
           logType: 'pair',
           origin,
-          rest: options.asJSON ? JSON.parse(record) : record,
+          rest: asJSON(options) ? JSON.parse(record) : record,
           runLength: 1,
           timestamp: '',
           rawTimestamp: '',
@@ -123,24 +269,7 @@ const squashLogRuns = (isNotCloudLens: boolean, options: Options) => (
   return soFar
 }
 
-interface Options {
-  asHTML?: boolean
-  asJSON?: boolean
-}
-
-interface ZaprEntry {
-  timestamp: string | Text | Element
-  rawTimestamp: string
-  logType: string
-  provider: string
-  origin: string
-  rest: string | Record<string, string>
-  runLength?: number
-}
-
 /**
- * sigh...
- *
  * Array.prorotype.findIndex does not accept a start index;
  * and Array.prototype.indexOf does not accept a pattern
  *
@@ -216,8 +345,11 @@ const parseZapr = (raw: string): ZaprEntry[] => {
  * @return undefined if we don't have any log entries
  *
  */
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-const parseCloudLens = (raw: string, execOptions: Commands.ExecOptions, options: Options): any[] => {
+const parseCloudLens = <T extends OutputType, O extends Options<T>>(
+  raw: string,
+  execOptions: Commands.ExecOptions,
+  options: O
+): ZaprEntry[] => {
   const pattern = /^(?=[IEF][0-9]+)/m
   const linesByCloudLens = raw.split(pattern)
 
@@ -341,129 +473,18 @@ const parseIstio = (raw: string, execOptions: Commands.ExecOptions): ZaprEntry[]
     }, [])
 }
 
-/** filter out empty log entries */
-const notEmpty = (_: ZaprEntry) => _.timestamp || _.rest || _.origin || _.provider
-
 /**
  * Format the kubectl access logs
  *
  */
-export const formatLogs = (raw: string, execOptions: Commands.ExecOptions, options: Options = { asHTML: true }) => {
-  const logEntries: ZaprEntry[] =
-    parseZapr(raw) || parseIstio(raw, execOptions) || parseCloudLens(raw, execOptions, options)
-  debug('logEntries', logEntries)
+export const processLogs = (
+  raw: string,
+  execOptions: Commands.ExecOptions,
+  options: Output = new AsHTML()
+): ZaprEntry[] => {
+  return parseZapr(raw) || parseIstio(raw, execOptions) || parseCloudLens(raw, execOptions, options)
+}
 
-  if (!options.asHTML) {
-    return logEntries
-  } else {
-    const container = document.createElement('div')
-    container.classList.add('log-lines')
-    // container.classList.add('fixed-table-layout')
-
-    const doWeHaveAnyFirstColumns =
-      logEntries.findIndex(_ => !!(_.timestamp || _.origin || _.provider || _.runLength > 1)) >= 0
-
-    logEntries
-      .filter(notEmpty)
-      .forEach(({ logType = '', timestamp = '', origin = '', provider = '', rest, runLength = 1 }) => {
-        // dom for the log line
-        const logLine = document.createElement('div')
-        logLine.classList.add('log-line')
-        container.appendChild(logLine)
-
-        // stdout or stderr?
-        if (logType.match(/^I/) || logType.match(/^INFO$/i)) {
-          logLine.classList.add('logged-to-stdout')
-        } else if (logType.match(/^[EF]/) || logType.match(/^(ERROR|WARN)/i)) {
-          // errors or failures
-          logLine.classList.add('logged-to-stderr')
-        }
-
-        // timestamp rendering
-        if (doWeHaveAnyFirstColumns) {
-          const timestampDom = document.createElement('td')
-          timestampDom.className = 'log-field log-date entity-name-group hljs-attribute'
-          if (typeof timestamp === 'string') {
-            // due to td styling issues, some CSS attrs are on td > span
-            const inner = document.createElement('span')
-            inner.innerText = timestamp
-            timestampDom.appendChild(inner)
-          } else {
-            timestampDom.appendChild(timestamp)
-          }
-          logLine.appendChild(timestampDom)
-
-          // origin, e.g. filename and line number, rendering
-          if (origin) {
-            const originDom = document.createElement('span')
-            originDom.className = 'entity-name'
-            originDom.innerText = origin ? origin.replace(/]$/, '') : ''
-            timestampDom.appendChild(originDom)
-          }
-
-          if (provider) {
-            const providerDom = document.createElement('span')
-            providerDom.className = 'entity-name provider-name'
-            providerDom.innerText = provider ? provider.replace(/]$/, '') : ''
-            timestampDom.appendChild(providerDom)
-          }
-
-          // run length rendering
-          if (runLength > 1) {
-            const runLengthDom = document.createElement('div')
-            runLengthDom.innerText = `(${runLength} times)`
-            runLengthDom.classList.add('small-top-pad')
-            runLengthDom.classList.add('red-text')
-            timestampDom.appendChild(runLengthDom)
-          }
-        }
-
-        // log message rendering
-        const restDom = document.createElement('td')
-        restDom.className = 'log-field log-message slightly-smaller-text'
-
-        if (typeof rest === 'object') {
-          const pre = document.createElement('pre')
-          const code = document.createElement('code')
-          code.innerText = JSON.stringify(rest, undefined, 2)
-          pre.appendChild(code)
-          restDom.appendChild(pre)
-        } else {
-          const pre = document.createElement('pre')
-          pre.classList.add('pre-wrap')
-          pre.classList.add('break-all')
-          restDom.appendChild(pre)
-
-          // see if rest is of the form "a: b"
-          const trySplit = rest.split(/^(.*:)(\s+.*)?$/)
-          if (trySplit && trySplit.length > 1) {
-            const a = document.createElement('span')
-            a.classList.add('map-key')
-            a.innerText = trySplit[1]
-            pre.appendChild(a)
-
-            if (trySplit[2]) {
-              // we could just have a:<EOL>
-              const b = document.createElement('span')
-              b.classList.add('map-value')
-              b.innerText = trySplit[2]
-              pre.appendChild(b)
-            }
-          } else {
-            pre.innerText = rest
-          }
-        }
-        logLine.appendChild(restDom)
-      })
-
-    const wrapper = document.createElement('div')
-    wrapper.classList.add('padding-content')
-    wrapper.classList.add('scrollable')
-    wrapper.classList.add('scrollable-auto')
-    wrapper.classList.add('monospace')
-    wrapper.classList.add('smaller-text')
-    wrapper.appendChild(container)
-
-    return wrapper
-  }
+export function formatLogs(raw: string, execOptions: Commands.ExecOptions) {
+  return new AsHTML().format(processLogs(raw, execOptions))
 }
