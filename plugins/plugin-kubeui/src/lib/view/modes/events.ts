@@ -67,6 +67,21 @@ function hasEvents(resource: KubeResource): boolean {
   return isKubeResource(resource) && !(resource.apiVersion === 'v1' && resource.kind === 'Event')
 }
 
+export const renderAndViewEvents = async (tab: Tab, resource: Resource) => {
+  debug('renderAndViewEvents', resource)
+
+  const events = await getEvents(tab, resource.resource)
+
+  if (typeof events === 'string') {
+    const pre = document.createElement('pre')
+    const code = document.createElement('code')
+    pre.appendChild(code)
+    code.innerText = events
+    return pre
+  } else {
+    return events
+  }
+}
 /**
  * Add a Events mode button to the given modes model, if called for by
  * the given resource.
@@ -81,32 +96,10 @@ export const eventsMode: ModeRegistration<KubeResource> = {
         mode: 'events',
         label: strings('events'),
         leaveBottomStripeAlone: true,
-        direct: (tab: Tab) => renderAndViewEvents(tab, { command, resource })
+        direct: (tab: Tab) => renderAndViewEvents(tab, resource)
       }
     } catch (err) {
       debug('error rendering events mode', err)
     }
-  }
-}
-
-interface Parameters {
-  command: string
-  resource: Resource
-}
-
-export const renderAndViewEvents = async (tab: Tab, parameters: Parameters) => {
-  const { command, resource } = parameters
-  debug('renderAndViewEvents', command, resource)
-
-  const events = await getEvents(tab, resource.resource)
-
-  if (typeof events === 'string') {
-    const pre = document.createElement('pre')
-    const code = document.createElement('code')
-    pre.appendChild(code)
-    code.innerText = events
-    return pre
-  } else {
-    return events
   }
 }

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-/*import { Common, CLI, ReplExpect, Selectors } from '@kui-shell/test'
+/* import { Common, CLI, ReplExpect, Selectors } from '@kui-shell/test'
 import { tabby, tabbyWithOptions } from '@kui-shell/plugin-core-support/tests/lib/core-support/tab-completion-util'
 import { dirname } from 'path'
 import { waitForGreen, createNS, allocateNS, deleteNS } from '@kui-shell/plugin-kubeui/tests/lib/k8s/utils'

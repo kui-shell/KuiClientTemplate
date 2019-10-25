@@ -23,10 +23,8 @@ import { Table, MultiTable } from '@kui-shell/core/api/table-models'
 import RawResponse from './response'
 import { KubeOptions } from './options'
 
-import { KubeTableResponse } from '../../lib/view/formatTable'
+import { stringToTable, KubeTableResponse } from '../../lib/view/formatTable'
 import { FinalState } from '../../lib/model/states'
-
-import { stringToTable } from '../../lib/view/formatTable'
 
 const strings = i18n('plugin-kubeui')
 
@@ -42,9 +40,14 @@ const NoPrepare = <O = KubeOptions>(args: Commands.Arguments<O>) => args
  * are the same machine).
  *
  */
-export function exec<O extends KubeOptions>(_args: Commands.Arguments<O>, prepare: Prepare<O> = NoPrepare): Promise<RawResponse> {
+export function exec<O extends KubeOptions>(
+  _args: Commands.Arguments<O>,
+  prepare: Prepare<O> = NoPrepare
+): Promise<RawResponse> {
   const args = prepare(_args)
-  const command = prepare(args).command.replace(/^kubectl(\s)?/, '_kubectl$1').replace(/^k(\s)?/, '_kubectl$1')
+  const command = prepare(args)
+    .command.replace(/^kubectl(\s)?/, '_kubectl$1')
+    .replace(/^k(\s)?/, '_kubectl$1')
   return args.REPL.qexec<RawResponse>(command, undefined, undefined, args.execOptions)
 }
 
@@ -53,11 +56,17 @@ export function exec<O extends KubeOptions>(_args: Commands.Arguments<O>, prepar
  * `stdout` part -- thus ignoring the exit `code` and `stderr`.
  *
  */
-export function doExecWithStdout<O extends KubeOptions>(args: Commands.Arguments<O>, prepare: Prepare<O> = NoPrepare): Promise<string> {
+export function doExecWithStdout<O extends KubeOptions>(
+  args: Commands.Arguments<O>,
+  prepare: Prepare<O> = NoPrepare
+): Promise<string> {
   return exec(args, prepare).then(_ => _.content.stdout)
 }
 
-export function doExecWithPty<O extends KubeOptions>(args: Commands.Arguments<O>, prepare: Prepare<O> = NoPrepare): Promise<Commands.Response> {
+export function doExecWithPty<O extends KubeOptions>(
+  args: Commands.Arguments<O>,
+  prepare: Prepare<O> = NoPrepare
+): Promise<Commands.Response> {
   if (isHeadless() || (!inBrowser() && args.execOptions.raw)) {
     return doExecWithStdout(args, prepare)
   } else {
@@ -76,7 +85,10 @@ export function doExecWithPty<O extends KubeOptions>(args: Commands.Arguments<O>
  * `stdout` part and parses it into a Table model.
  *
  */
-export async function doExecWithTable<O extends KubeOptions>(args: Commands.Arguments<O>, prepare: Prepare<O> = NoPrepare): Promise<Table | MultiTable> {
+export async function doExecWithTable<O extends KubeOptions>(
+  args: Commands.Arguments<O>,
+  prepare: Prepare<O> = NoPrepare
+): Promise<Table | MultiTable> {
   const response = await exec(args, prepare)
 
   const table = stringToTable(response.content.stdout, response.content.stderr, args)
@@ -92,7 +104,11 @@ export async function doExecWithTable<O extends KubeOptions>(args: Commands.Argu
  * poll until the given FinalState is reached.
  *
  */
-export const doExecWithStatus = <O extends KubeOptions>(cmd: string, finalState: FinalState, prepare?: Prepare<O>) => async (args: Commands.Arguments<O>): Promise<KubeTableResponse> => {
+export const doExecWithStatus = <O extends KubeOptions>(
+  cmd: string,
+  finalState: FinalState,
+  prepare?: Prepare<O>
+) => async (args: Commands.Arguments<O>): Promise<KubeTableResponse> => {
   const response = await exec<O>(args, prepare)
 
   if (response.content.code !== 0) {

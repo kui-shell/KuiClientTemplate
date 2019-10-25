@@ -14,7 +14,6 @@
  * limitations under the License.
  */
 
-import Capabilities from '@kui-shell/core/api/capabilities'
 import Commands from '@kui-shell/core/api/commands'
 
 import raw from './controller/kubectl/raw'

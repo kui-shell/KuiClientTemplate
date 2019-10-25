@@ -18,9 +18,8 @@ import Debug from 'debug'
 
 import { Tab } from '@kui-shell/core/api/ui-lite'
 import { ModeRegistration, Mode } from '@kui-shell/core/api/registrars'
-import { Row } from '@kui-shell/core/api/table-models'
+import { Row, Table } from '@kui-shell/core/api/table-models'
 import { i18n } from '@kui-shell/core/api/i18n'
-import { Table } from '@kui-shell/core/api/table-models'
 import { encodeComponent } from '@kui-shell/core/api/repl-util'
 
 import { Resource, KubeResource } from '../../model/resource'
@@ -28,53 +27,6 @@ import { TrafficLight } from '../../model/states'
 
 const strings = i18n('plugin-kubeui')
 const debug = Debug('k8s/view/modes/containers')
-
-/**
- * Return a sidecar mode button model that shows a containers table
- * for the given resource
- *
- */
-export const containersButton = (command: string, resource: Resource, overrides?): Mode =>
-  Object.assign(
-    {},
-    {
-      mode: 'containers',
-      label: strings('containers'),
-      direct: (tab: Tab) => renderContainers(tab, command, resource)
-    },
-    overrides || {}
-  )
-
-/**
- * Add a Containers mode button to the given modes model, if called
- * for by the given resource.
- *
- */
-export const containersMode: ModeRegistration<KubeResource> = {
-  when: (resource: KubeResource) => {
-    return resource.spec && resource.spec.containers
-  },
-  mode: (command: string, resource: Resource): Mode => {
-    try {
-      return containersButton(command, resource)
-    } catch (err) {
-      debug('error rendering containers button')
-      console.error(err)
-    }
-  }
-}
-
-/**
- * Return a drilldown function that shows container logs
- *
- */
-const showLogs = (tab: Tab, { pod, container }) => {
-  const podName = encodeComponent(pod.metadata.name)
-  const containerName = encodeComponent(container.name)
-  const ns = encodeComponent(pod.metadata.namespace)
-
-  return `kubectl logs ${podName} ${containerName} -n ${ns}`
-}
 
 /**
  * Render the table header model
@@ -100,6 +52,18 @@ const headerModel = (pod: KubeResource): Row => {
     outerCSS: 'header-cell not-too-wide',
     attributes: specAttrs.concat(statusAttrs)
   }
+}
+
+/**
+ * Return a drilldown function that shows container logs
+ *
+ */
+const showLogs = (tab: Tab, { pod, container }) => {
+  const podName = encodeComponent(pod.metadata.name)
+  const containerName = encodeComponent(container.name)
+  const ns = encodeComponent(pod.metadata.namespace)
+
+  return `kubectl logs ${podName} ${containerName} -n ${ns}`
 }
 
 /**
@@ -184,8 +148,8 @@ const bodyModel = (tab: Tab, pod: KubeResource): Row[] => {
  * Render the tabular containers view
  *
  */
-export const renderContainers = async (tab: Tab, command: string, resource: Resource): Promise<Table> => {
-  debug('renderContainers', command, resource)
+export const renderContainers = async (tab: Tab, resource: Resource): Promise<Table> => {
+  debug('renderContainers', resource)
 
   const fetchPod = `kubectl get pod ${encodeComponent(resource.resource.metadata.name)} -n "${
     resource.resource.metadata.namespace
@@ -212,13 +176,36 @@ export const renderContainers = async (tab: Tab, command: string, resource: Reso
 }
 
 /**
- * Render a containers table and show it in the sidecar
+ * Return a sidecar mode button model that shows a containers table
+ * for the given resource
  *
  */
-interface Parameters {
-  command: string
-  resource: Resource
-}
-export const renderAndViewContainers = (tab: Tab, parameters: Parameters) => {
-  return renderContainers(tab, parameters.command, parameters.resource)
+export const containersButton = (command: string, resource: Resource, overrides?): Mode =>
+  Object.assign(
+    {},
+    {
+      mode: 'containers',
+      label: strings('containers'),
+      direct: (tab: Tab) => renderContainers(tab, resource)
+    },
+    overrides || {}
+  )
+
+/**
+ * Add a Containers mode button to the given modes model, if called
+ * for by the given resource.
+ *
+ */
+export const containersMode: ModeRegistration<KubeResource> = {
+  when: (resource: KubeResource) => {
+    return resource.spec && resource.spec.containers
+  },
+  mode: (command: string, resource: Resource): Mode => {
+    try {
+      return containersButton(command, resource)
+    } catch (err) {
+      debug('error rendering containers button')
+      console.error(err)
+    }
+  }
 }

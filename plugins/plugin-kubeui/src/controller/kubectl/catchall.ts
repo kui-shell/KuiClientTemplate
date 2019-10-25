@@ -16,7 +16,6 @@
 
 import Capabilities from '@kui-shell/core/api/capabilities'
 import Commands from '@kui-shell/core/api/commands'
-import Errors from '@kui-shell/core/api/errors'
 
 import { doExecWithPty } from './exec'
 import commandPrefix from '../command-prefix'

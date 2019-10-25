@@ -18,7 +18,6 @@ import Commands from '@kui-shell/core/api/commands'
 import Errors from '@kui-shell/core/api/errors'
 import Tables from '@kui-shell/core/api/tables'
 import { Table } from '@kui-shell/core/api/table-models'
-import { MultiModalResponse } from '@kui-shell/core/api/ui-lite'
 
 import flags from './flags'
 import { exec } from './exec'
@@ -33,14 +32,7 @@ import { stringToTable, KubeTableResponse } from '../../lib/view/formatTable'
  *
  */
 function prepare(args: Commands.Arguments<KubeOptions>): Commands.Arguments<KubeOptions> {
-  const stripThese = [
-    '-w',
-    '--watch',
-    '--watch-only',
-    '-w=true',
-    '--watch=true',
-    '--watch-only=true'
-  ]
+  const stripThese = ['-w', '--watch', '--watch-only', '-w=true', '--watch=true', '--watch-only=true']
 
   return Object.assign({}, args, {
     command: stripThese.reduce((cmd, strip) => cmd.replace(strip, ''), args.command)
@@ -52,7 +44,9 @@ function prepare(args: Commands.Arguments<KubeOptions>): Commands.Arguments<Kube
  *
  */
 function doGetTable(args: Commands.Arguments<KubeOptions>, response: RawResponse): KubeTableResponse {
-  const { content: { code, stderr, stdout } } = response
+  const {
+    content: { stderr, stdout }
+  } = response
 
   const command = 'kubectl'
   const verb = 'get'
@@ -66,7 +60,7 @@ function doGetTable(args: Commands.Arguments<KubeOptions>, response: RawResponse
       watchByDefault: true
     })
   }
-    
+
   return table
 }
 
@@ -77,10 +71,7 @@ function doGetTable(args: Commands.Arguments<KubeOptions>, response: RawResponse
  */
 function doGetEmptyTable(args: Commands.Arguments<KubeOptions>): KubeTableResponse {
   return Tables.formatWatchableTable(new Table({ body: [] }), {
-    refreshCommand: args.command.replace(
-      /--watch=true|-w=true|--watch-only=true|--watch|-w|--watch-only/g,
-      ''
-    ),
+    refreshCommand: args.command.replace(/--watch=true|-w=true|--watch-only=true|--watch|-w|--watch-only/g, ''),
     watchByDefault: true
   })
 }
@@ -91,7 +82,10 @@ function doGetEmptyTable(args: Commands.Arguments<KubeOptions>): KubeTableRespon
  */
 async function doGetEntity(args: Commands.Arguments<KubeOptions>, response: RawResponse): Promise<KubeResource> {
   try {
-    const resource = formatOf(args) === 'json' ? JSON.parse(response.content.stdout) : (await import('js-yaml')).safeLoad(response.content.stdout)
+    const resource =
+      formatOf(args) === 'json'
+        ? JSON.parse(response.content.stdout)
+        : (await import('js-yaml')).safeLoad(response.content.stdout)
 
     return Object.assign(resource, {
       modes: [],

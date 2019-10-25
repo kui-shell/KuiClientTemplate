@@ -1,0 +1,7 @@
+plugins/**/*/dist/
+plugins/*/lib/**/*.js
+plugins/*/i18n/**/*.js
+plugins/*/*.js
+**/*/node_modules/
+**/*.d.ts
+*flycheck*.js

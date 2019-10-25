@@ -19,6 +19,6 @@
 export { renderButton } from './lib/view/modes/button'
 export { renderAndViewPods } from './lib/view/modes/pods'
 export { renderAndViewEvents } from './lib/view/modes/events'
-export { renderAndViewContainers } from './lib/view/modes/containers'
+export { renderContainers } from './lib/view/modes/containers'
 export { renderAndViewLastApplied } from './lib/view/modes/last-applied'
 export { KubeResource, KubeStatusCondition, KubeStatus, Pod, Resource } from './lib/model/resource'
