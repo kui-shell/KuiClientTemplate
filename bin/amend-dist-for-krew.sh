@@ -14,7 +14,7 @@ function darwin {
 
     echo "updating tarball for darwin"
     set +e
-    tar -C darwin -uvf /tmp/Kui-darwin-x64-tmp.tar kubectl-kubeui.sh
+    tar -C krew/darwin -uvf /tmp/Kui-darwin-x64-tmp.tar kubectl-kubeui.sh
     set -e
 
     echo "zipping for darwin"
@@ -24,7 +24,7 @@ function darwin {
 
 function linux {
     echo "updating zip for linux"
-    (cd linux && zip -u ../../dist/electron/Kui-linux-x64.zip kubectl-kubeui.sh)
+    (cd krew/linux && zip -u ../../../dist/electron/Kui-linux-x64.zip kubectl-kubeui.sh)
 }
 
 darwin &
