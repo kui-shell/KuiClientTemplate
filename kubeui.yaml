@@ -19,14 +19,14 @@ spec:
   platforms:
     - uri: https://github.com/kui-shell/plugin-kubeui/releases/download/v1.0.0/kubectl-kubeui_linux_amd64.zip
       sha256: "162dd81efcd806a94346535c87724cf06125d9c64677d2c61294304bddeedfb0"
-      bin: "kubectl-kubeui"
+      bin: "kubectl-kubeui.sh"
       selector:
         matchLabels:
           os: linux
           arch: amd64  
     - uri: https://github.com/kui-shell/plugin-kubeui/releases/download/v1.0.0/kubectl-kubeui_darwin_amd64.zip
-      sha256: "162dd81efcd806a94346535c87724cf06125d9c64677d2c61294304bddeedfb0"
-      bin: "kubectl-kubeui"
+      sha256: "0ed7457ac216180de7011b19cdb4bf2ac370c16bcadd91cdd4425c3b8eeed27f"
+      bin: "kubectl-kubeui.sh"
       selector:
         matchLabels:
           os: darwin

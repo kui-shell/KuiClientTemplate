@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
 
-SCRIPTDIR=$(cd $(dirname "$0") && pwd)
+BIN=$(readlink "$0")
+SCRIPTDIR=$(cd $(dirname "$BIN") && pwd)
 
 KUI_COMMAND_CONTEXT='["kubeui","kubectl"]' "$SCRIPTDIR"/Kui-linux-x64/Kui $@ &
