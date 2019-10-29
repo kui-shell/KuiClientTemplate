@@ -38,6 +38,7 @@ describe(`kubectl logs get ${process.env.MOCHA_RUN_TARGET || ''}`, function(this
     {
       podName: 'nginx',
       containerName: 'nginx',
+      label: 'name=nginx',
       cmdline: `kubectl create -f https://raw.githubusercontent.com/kubernetes/examples/master/staging/pod -n ${ns}`
     }
   ]
@@ -59,24 +60,35 @@ describe(`kubectl logs get ${process.env.MOCHA_RUN_TARGET || ''}`, function(this
     })
   }
 
-  const showLogs = (podName: string, containerName: string) => {
+  const showLogs = (podName: string, containerName: string, label: string) => {
     it(`should show logs for pod ${podName} container ${containerName}`, () => {
       return CLI.command(`kubectl logs ${podName} ${containerName} -n ${ns}`, this.app)
         .then(ReplExpect.justOK)
         .then(SidecarExpect.open)
         .then(SidecarExpect.showing(containerName))
+        .then(SidecarExpect.mode('logs'))
         .catch(Common.oops(this, true))
     })
+
+    if (label) {
+      it(`should show logs for label selector ${label}`, () => {
+        return CLI.command(`kubectl logs -l${label} -n ${ns}`, this.app)
+          .then(ReplExpect.justOK)
+          .then(SidecarExpect.open)
+          .then(SidecarExpect.mode('logs'))
+          .catch(Common.oops(this, true))
+      })
+    }
   }
 
   allocateNS(this, ns)
   inputs.forEach(_ => {
     createPod(_.podName, _.cmdline)
     waitForPod(_.podName)
-    showLogs(_.podName, _.containerName)
+    showLogs(_.podName, _.containerName, _.label)
   })
   inputs.forEach(_ => {
-    showLogs(_.podName, _.containerName)
+    showLogs(_.podName, _.containerName, _.label)
   })
   deleteNS(this, ns)
 })

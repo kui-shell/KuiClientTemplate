@@ -99,7 +99,7 @@ async function doGetLogsAsMMR(args: Commands.Arguments<LogOptions>): Promise<Mul
   return {
     kind: 'logs',
     metadata: {
-      name: containerName || name,
+      name: containerName || name || '', // name is optional when label selector exists
       namespace
     },
     modes: [logs, previous]
