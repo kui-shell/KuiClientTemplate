@@ -19,9 +19,9 @@ import Debug from 'debug'
 import Commands from '@kui-shell/core/api/commands'
 import { i18n } from '@kui-shell/core/api/i18n'
 import { Tab } from '@kui-shell/core/api/ui-lite'
-import { ModeRegistration, Mode } from '@kui-shell/core/api/registrars'
+import { ModeRegistration } from '@kui-shell/core/api/registrars'
 
-import { Resource, KubeResource } from '../../model/resource'
+import { KubeResource } from '../../model/resource'
 
 const strings = i18n('plugin-kubeui')
 const debug = Debug('k8s/view/modes/last-applied')
@@ -74,10 +74,10 @@ async function respondWith(lastRaw: string, fullResource: KubeResource): Promise
   }
 }
 
-export const renderAndViewLastApplied = async (tab: Tab, resource: Resource) => {
+const renderLastApplied = async (tab: Tab, resource: KubeResource) => {
   debug('renderAndViewLastApplied', resource)
 
-  return respondWith(getLastAppliedRaw(resource.resource), resource.resource)
+  return respondWith(getLastAppliedRaw(resource), resource)
 }
 
 /**
@@ -87,17 +87,9 @@ export const renderAndViewLastApplied = async (tab: Tab, resource: Resource) => 
  */
 export const lastAppliedMode: ModeRegistration<KubeResource> = {
   when: hasLastApplied,
-  mode: (command: string, resource: Resource): Mode => {
-    debug('lastApplied', resource)
-    try {
-      return {
-        mode: 'last applied',
-        label: strings('lastApplied'),
-        leaveBottomStripeAlone: true,
-        direct: (tab: Tab) => renderAndViewLastApplied(tab, resource)
-      }
-    } catch (err) {
-      debug('error rendering last applied', err)
-    }
+  mode: {
+    mode: 'last applied',
+    label: strings('lastApplied'),
+    content: renderLastApplied
   }
 }

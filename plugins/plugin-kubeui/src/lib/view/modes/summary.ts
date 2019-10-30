@@ -17,67 +17,47 @@
 import { i18n } from '@kui-shell/core/api/i18n'
 import { Tab } from '@kui-shell/core/api/ui-lite'
 import { Table } from '@kui-shell/core/api/table-models'
-import { ModeRegistration, Mode } from '@kui-shell/core/api/registrars'
+import { ModeRegistration } from '@kui-shell/core/api/registrars'
 
-import { Resource, KubeResource, isKubeResource } from '../../model/resource'
+import toMap from './table-to-map'
+import { KubeResource, isKubeResource } from '../../model/resource'
 
 const strings = i18n('plugin-kubeui')
 
 /**
- * Turn a one-row Table into a Map
+ * The content renderer for the summary tab
  *
  */
-function toMap(table: Table): Record<string, string> {
-  return table.body.reduce(
-    (map, row) => {
-      map[row.key] = row.name
+async function renderSummary(tab: Tab, resource: KubeResource) {
+  // a command that will fetch a single-row table
+  const cmd = `kubectl get ${resource.kind} ${resource.metadata.name} -n ${resource.metadata.namespace} -o wide`
 
-      row.attributes.forEach(({ key, value }) => {
-        map[key] = value
-      })
+  // in parallel, fetch the table model and the safeDump function from js-yaml
+  const [map, { safeDump }] = await Promise.all([tab.REPL.qexec<Table>(cmd).then(toMap), import('js-yaml')])
 
-      return map
-    },
-    {} as Record<string, string>
-  )
+  // our content is that map, rendered as yaml
+  return {
+    content: safeDump(map),
+    contentType: 'yaml'
+  }
 }
 
 /**
- * Add a Containers mode button to the given modes model, if called
- * for by the given resource.
+ * The Summary mode applies to all KubeResources, and uses
+ * `renderContent` to render the view.
  *
  */
 const summaryMode: ModeRegistration<KubeResource> = {
-  when: (resource: KubeResource) => {
-    return isKubeResource(resource)
-  },
-  mode: (command: string, resource: Resource): Mode => {
-    try {
-      return {
-        mode: 'summary',
-        label: strings('summary'),
-        direct: async (tab: Tab) => {
-          const {
-            kind,
-            metadata: { name, namespace }
-          } = resource.resource
+  when: isKubeResource,
+  mode: {
+    mode: 'summary',
+    label: strings('summary'),
 
-          const [map, { safeDump }] = await Promise.all([
-            tab.REPL.qexec<Table>(`kubectl get ${kind} ${name} -n ${namespace} -o wide`).then(toMap),
-            import('js-yaml')
-          ])
+    content: renderSummary,
 
-          return {
-            content: safeDump(map),
-            contentType: 'yaml'
-          }
-        },
-        defaultMode: true,
-        order: -999
-      }
-    } catch (err) {
-      console.error('error rendering containers button', err)
-    }
+    // traits:
+    defaultMode: true, // we'd like this to be the default selected tab
+    order: -999 // we want this to be placed as the first tab
   }
 }
 
