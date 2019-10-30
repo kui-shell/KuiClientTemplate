@@ -17,11 +17,11 @@
 import Debug from 'debug'
 
 import { Tab } from '@kui-shell/core/api/ui-lite'
-import { ModeRegistration, Mode } from '@kui-shell/core/api/registrars'
+import { ModeRegistration } from '@kui-shell/core/api/registrars'
 import { i18n } from '@kui-shell/core/api/i18n'
 import { Table, isTable } from '@kui-shell/core/api/table-models'
 
-import { Resource, KubeResource, isKubeResource } from '../../model/resource'
+import { KubeResource, isKubeResource } from '../../model/resource'
 
 const strings = i18n('plugin-kubeui')
 
@@ -67,10 +67,12 @@ function hasEvents(resource: KubeResource): boolean {
   return isKubeResource(resource) && !(resource.apiVersion === 'v1' && resource.kind === 'Event')
 }
 
-export const renderAndViewEvents = async (tab: Tab, resource: Resource) => {
-  debug('renderAndViewEvents', resource)
-
-  const events = await getEvents(tab, resource.resource)
+/**
+ * Content renderer
+ *
+ */
+async function renderEvents(tab: Tab, resource: KubeResource) {
+  const events = await getEvents(tab, resource)
 
   if (typeof events === 'string') {
     const pre = document.createElement('pre')
@@ -89,17 +91,9 @@ export const renderAndViewEvents = async (tab: Tab, resource: Resource) => {
  */
 export const eventsMode: ModeRegistration<KubeResource> = {
   when: hasEvents,
-  mode: (command: string, resource: Resource): Mode => {
-    debug('events', resource)
-    try {
-      return {
-        mode: 'events',
-        label: strings('events'),
-        leaveBottomStripeAlone: true,
-        direct: (tab: Tab) => renderAndViewEvents(tab, resource)
-      }
-    } catch (err) {
-      debug('error rendering events mode', err)
-    }
+  mode: {
+    mode: 'events',
+    label: strings('events'),
+    content: renderEvents
   }
 }

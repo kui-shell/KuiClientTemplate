@@ -99,7 +99,7 @@ export interface KubeResource<Status = KubeStatus> extends Models.ResourceWithMe
   metadata?: KubeMetadata
   status?: Status
   spec?: any // eslint-disable-line @typescript-eslint/no-explicit-any
-  data?: object
+  data?: string
 }
 export function isKubeResource(entity: Commands.Response): entity is KubeResource {
   const kube = entity as KubeResource

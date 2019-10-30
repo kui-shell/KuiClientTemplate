@@ -14,6 +14,23 @@
  * limitations under the License.
  */
 
-// this file defines the external API
+import { Table } from '@kui-shell/core/api/table-models'
 
-export { KubeResource, isKubeResource, KubeStatus, Pod, Resource } from './lib/model/resource'
+/**
+ * Turn a one-row Table into a Map
+ *
+ */
+export default function toMap(table: Table): Record<string, string> {
+  return table.body.reduce(
+    (map, row) => {
+      map[row.key] = row.name
+
+      row.attributes.forEach(({ key, value }) => {
+        map[key] = value
+      })
+
+      return map
+    },
+    {} as Record<string, string>
+  )
+}

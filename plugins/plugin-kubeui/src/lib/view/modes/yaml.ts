@@ -14,31 +14,29 @@
  * limitations under the License.
  */
 
-import { ModeRegistration, Mode } from '@kui-shell/core/api/registrars'
+import { ModeRegistration } from '@kui-shell/core/api/registrars'
 
-import { Resource, KubeResource, isKubeResource } from '../../model/resource'
+import { KubeResource, isKubeResource } from '../../model/resource'
 
 /**
- * Add a Containers mode button to the given modes model, if called
- * for by the given resource.
+ * The YAML mode applies to all KubeResources, and simply extracts the
+ * raw `data` field from the resource; note how we indicate that this
+ * raw data has a yaml content type.
  *
  */
 const yamlMode: ModeRegistration<KubeResource> = {
-  when: (resource: KubeResource) => {
-    return isKubeResource(resource)
-  },
-  mode: (command: string, resource: Resource): Mode => {
-    return {
-      mode: 'raw',
-      label: 'YAML',
-      direct: () => {
-        return {
-          content: resource.resource.data,
-          contentType: 'yaml'
-        }
-      },
-      order: 999
-    }
+  when: isKubeResource,
+  mode: {
+    mode: 'raw',
+    label: 'YAML',
+
+    content: (_, resource: KubeResource) => ({
+      content: resource.data,
+      contentType: 'yaml'
+    }),
+
+    // traits:
+    order: 999 // we want this to be placed as the last tab
   }
 }
 

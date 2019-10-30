@@ -17,12 +17,12 @@
 import Debug from 'debug'
 
 import { Tab } from '@kui-shell/core/api/ui-lite'
-import { ModeRegistration, Mode } from '@kui-shell/core/api/registrars'
+import { ModeRegistration } from '@kui-shell/core/api/registrars'
 import { Row, Table } from '@kui-shell/core/api/table-models'
 import { i18n } from '@kui-shell/core/api/i18n'
 import { encodeComponent } from '@kui-shell/core/api/repl-util'
 
-import { Resource, KubeResource } from '../../model/resource'
+import { KubeResource } from '../../model/resource'
 import { TrafficLight } from '../../model/states'
 
 const strings = i18n('plugin-kubeui')
@@ -148,11 +148,9 @@ const bodyModel = (tab: Tab, pod: KubeResource): Row[] => {
  * Render the tabular containers view
  *
  */
-export const renderContainers = async (tab: Tab, resource: Resource): Promise<Table> => {
-  debug('renderContainers', resource)
-
-  const fetchPod = `kubectl get pod ${encodeComponent(resource.resource.metadata.name)} -n "${
-    resource.resource.metadata.namespace
+async function renderContainers(tab: Tab, resource: KubeResource): Promise<Table> {
+  const fetchPod = `kubectl get pod ${encodeComponent(resource.metadata.name)} -n "${
+    resource.metadata.namespace
   }" -o json`
   debug('issuing command', fetchPod)
 
@@ -176,20 +174,12 @@ export const renderContainers = async (tab: Tab, resource: Resource): Promise<Ta
 }
 
 /**
- * Return a sidecar mode button model that shows a containers table
- * for the given resource
+ * Resource filter: if the resource has containers in its spec
  *
  */
-export const containersButton = (command: string, resource: Resource, overrides?): Mode =>
-  Object.assign(
-    {},
-    {
-      mode: 'containers',
-      label: strings('containers'),
-      direct: (tab: Tab) => renderContainers(tab, resource)
-    },
-    overrides || {}
-  )
+function hasContainers(resource: KubeResource) {
+  return resource.spec && resource.spec.containers
+}
 
 /**
  * Add a Containers mode button to the given modes model, if called
@@ -197,15 +187,10 @@ export const containersButton = (command: string, resource: Resource, overrides?
  *
  */
 export const containersMode: ModeRegistration<KubeResource> = {
-  when: (resource: KubeResource) => {
-    return resource.spec && resource.spec.containers
-  },
-  mode: (command: string, resource: Resource): Mode => {
-    try {
-      return containersButton(command, resource)
-    } catch (err) {
-      debug('error rendering containers button')
-      console.error(err)
-    }
+  when: hasContainers,
+  mode: {
+    mode: 'containers',
+    label: strings('containers'),
+    content: renderContainers
   }
 }
