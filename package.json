@@ -11,7 +11,7 @@
     "build:krew": "npm run -s kui-build-electron && ./bin/amend-dist-for-krew.sh",
     "compile": "kui-compile",
     "watch": "tsc --build . --watch",
-    "webpack": "npm run -s pty:nodejs && kui-watch-webpack",
+    "webpack": "npm ci && npm run -s pty:nodejs && kui-watch-webpack",
     "proxy": "npm run -s pty:nodejs && kui-run-proxy",
     "pty:rebuild": "if [ -d node_modules/node-pty-prebuilt-multiarch ]; then cd node_modules/node-pty-prebuilt-multiarch && npm run install; fi",
     "pty:electron": "if [ -d node_modules/node-pty-prebuilt-multiarch ]; then if [ ! -e node_modules/node-pty-prebuilt-multiarch/.npmrc ]; then cp node_modules/@kui-shell/builder/npmrc node_modules/node-pty-prebuilt-multiarch/.npmrc && npm run pty:rebuild; fi; fi",
