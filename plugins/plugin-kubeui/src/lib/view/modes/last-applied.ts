@@ -14,27 +14,20 @@
  * limitations under the License.
  */
 
-import Debug from 'debug'
-
-import Commands from '@kui-shell/core/api/commands'
 import { i18n } from '@kui-shell/core/api/i18n'
 import { Tab } from '@kui-shell/core/api/ui-lite'
-import { ModeRegistration } from '@kui-shell/core/api/registrars'
 
 import { KubeResource } from '../../model/resource'
 
 const strings = i18n('plugin-kubeui')
-const debug = Debug('k8s/view/modes/last-applied')
 
 /**
- * Extract the last-applied-configuration annotation
+ * @return The last-applied-configuration annotation, as a raw string
  *
  */
 function getLastAppliedRaw(resource: KubeResource): string {
-  // kube stores the last applied configuration (if any) in a raw json string
-  return (
-    resource.metadata.annotations && resource.metadata.annotations['kubectl.kubernetes.io/last-applied-configuration']
-  )
+  const annotations = resource.metadata.annotations
+  return annotations !== undefined && annotations['kubectl.kubernetes.io/last-applied-configuration']
 }
 
 /**
@@ -46,46 +39,26 @@ function hasLastApplied(resource: KubeResource): boolean {
 }
 
 /**
- * Respond to REPL
+ * The main work here is to extract and parse the JSON, and turn it
+ * into something we want to display: a yaml string.
  *
- * @param lastRaw the last applied configuration, unparsed
  */
-async function respondWith(lastRaw: string, fullResource: KubeResource): Promise<Commands.CustomResponse> {
+const renderLastApplied = async (tab: Tab, resource: KubeResource) => {
+  // this module is expensive to load, so we defer that expense
   const { safeDump } = await import('js-yaml')
 
-  // oof, it comes in as a JSON string, but we want a YAML string
-  const resource: KubeResource = JSON.parse(lastRaw) // we will extract some parameters from this
-  const content = safeDump(resource) // this is what we want to show up in the UI
-
-  // add a startTime (after serializing the content, which is what
-  // will be displayed in the editor body), so that the sidecar
-  // renders with a toolbar text
-  if (!resource.metadata.creationTimestamp) {
-    resource.metadata.creationTimestamp = fullResource.metadata.creationTimestamp
-  }
-
+  // raw is a JSON string, but we want a YAML string
   return {
-    type: 'custom',
-    isEntity: true,
-    name: resource.metadata.name,
-    contentType: 'yaml',
-    content,
-    resource
+    content: safeDump(JSON.parse(getLastAppliedRaw(resource))),
+    contentType: 'yaml'
   }
-}
-
-const renderLastApplied = async (tab: Tab, resource: KubeResource) => {
-  debug('renderAndViewLastApplied', resource)
-
-  return respondWith(getLastAppliedRaw(resource), resource)
 }
 
 /**
- * Add a Pods mode button to the given modes model, if called for by
- * the given resource.
+ * This is our mode model for the Last Applied tab.
  *
  */
-export const lastAppliedMode: ModeRegistration<KubeResource> = {
+export default {
   when: hasLastApplied,
   mode: {
     mode: 'last applied',

@@ -59,7 +59,7 @@ export default async () => {
         .then(_ => _.containersMode)
         .then(registerMode), // show containers of pods
       import('./lib/view/modes/last-applied')
-        .then(_ => _.lastAppliedMode)
+        .then(_ => _.default)
         .then(registerMode), // show a last applied configuration tab
       import('./lib/tab-completion')
         .then(_ => _.default())
