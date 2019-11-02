@@ -15,7 +15,7 @@
  */
 
 import Debug from 'debug'
-const debug = Debug('plugins/k8s/preload')
+const debug = Debug('plugins/kubeui/preload')
 debug('loading')
 
 import Capabilities from '@kui-shell/core/api/capabilities'
@@ -66,7 +66,7 @@ export default async () => {
         .catch((err: Error) => {
           // don't utterly fail if we can't install the tab completion
           // https://github.com/IBM/kui/issues/2793
-          debug('error installing k8s tab-completion extensions', err)
+          debug('error installing kubeui tab-completion extensions', err)
         })
     ])
   }

@@ -23,6 +23,7 @@ import flags from './flags'
 import { exec } from './exec'
 import { RawResponse } from './response'
 import commandPrefix from '../command-prefix'
+import extractAppAndName from '../../lib/util/name'
 import { KubeResource } from '../../lib/model/resource'
 import { KubeOptions, isEntityRequest, isTableRequest, formatOf, isWatchRequest, isTableWatchRequest } from './options'
 import { stringToTable, KubeTableResponse, isKubeTableResponse } from '../../lib/view/formatTable'
@@ -67,7 +68,7 @@ function doGetTable(args: Commands.Arguments<KubeOptions>, response: RawResponse
 
 /**
  * Special case: user requested a watchable table, and there is
- * not yet anything to display
+ * nothing yet to display
  *
  */
 function doGetEmptyTable(args: Commands.Arguments<KubeOptions>): KubeTableResponse {
@@ -83,17 +84,24 @@ function doGetEmptyTable(args: Commands.Arguments<KubeOptions>): KubeTableRespon
  */
 export async function doGetEntity(args: Commands.Arguments<KubeOptions>, response: RawResponse): Promise<KubeResource> {
   try {
-    const resource =
-      formatOf(args) === 'json'
-        ? JSON.parse(response.content.stdout)
-        : (await import('js-yaml')).safeLoad(response.content.stdout)
+    // this is the raw data string we get from `kubectl`
+    const data = response.content.stdout
+
+    // parse the raw response; the parser we use depends on whether
+    // the user asked for JSON or for YAML
+    const resource = formatOf(args) === 'json' ? JSON.parse(data) : (await import('js-yaml')).safeLoad(data)
+
+    // attempt to separate out the app and generated parts of the resource name
+    const { name, nameHash } = extractAppAndName(resource)
+    resource.prettyName = name
+    resource.nameHash = nameHash
 
     return Object.assign(resource, {
-      modes: [],
-      data: response.content.stdout
+      modes: [], // this tells Kui that we want the response to be interpreted as a MultiModalResponse
+      data // also include the raw, uninterpreted data string we got back
     })
   } catch (err) {
-    console.error('trouble handling entity response', response.content.stdout)
+    console.error('error handling entity response; raw=', response.content.stdout)
     throw err
   }
 }
