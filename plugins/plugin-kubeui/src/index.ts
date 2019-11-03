@@ -16,4 +16,13 @@
 
 // this file defines the external API
 
-export { KubeResource, isKubeResource, KubeStatus, Pod, Resource } from './lib/model/resource'
+export {
+  KubeResource,
+  isKubeResource,
+  KubeStatus,
+  Pod,
+  isPod,
+  Deployment,
+  isDeployment,
+  Resource
+} from './lib/model/resource'
