@@ -143,7 +143,13 @@ export interface CRDResource extends KubeResource {
   }
 }
 
+/**
+ * Kubernetes Pod resource type
+ *
+ */
 export interface Pod extends KubeResource {
+  apiVersion: 'v1'
+  kind: 'Pod'
   spec: {
     containers: {
       args: string[]
@@ -159,6 +165,31 @@ export interface Pod extends KubeResource {
       workingDir: string
     }[]
   }
+}
+
+/**
+ * @return whether the given resource is an instance of a Pod
+ *
+ */
+export function isPod(resource: KubeResource): resource is Pod {
+  return resource.apiVersion === 'v1' && resource.kind === 'Pod'
+}
+
+/**
+ * Kubernetes Deployment resource type
+ *
+ */
+export interface Deployment extends KubeResource {
+  apiVersion: 'extensions/v1beta1'
+  kind: 'Deployment'
+}
+
+/**
+ * @return whether the given resource is an instance of a Deploymemt
+ *
+ */
+export function isDeployment(resource: KubeResource): resource is Deployment {
+  return resource.apiVersion === 'extensions/v1beta1' && resource.kind === 'Deployment'
 }
 
 /**
