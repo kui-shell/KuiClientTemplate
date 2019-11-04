@@ -28,3 +28,5 @@ export {
   isJob,
   Resource
 } from './lib/model/resource'
+
+export { doExecWithPty, doExecWithStdout, doExecWithStatus, doExecWithTable } from './controller/kubectl/exec'
