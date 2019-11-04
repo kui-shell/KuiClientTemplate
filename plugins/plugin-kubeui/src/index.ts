@@ -24,5 +24,7 @@ export {
   isPod,
   Deployment,
   isDeployment,
+  Job,
+  isJob,
   Resource
 } from './lib/model/resource'
