@@ -176,6 +176,23 @@ export function isPod(resource: KubeResource): resource is Pod {
 }
 
 /**
+ * Kubernetes Job resource type
+ *
+ */
+export interface Job extends KubeResource {
+  apiVersion: 'batch/v1'
+  kind: 'Job'
+}
+
+/**
+ * @return whether the given resource is an instance of a Deploymemt
+ *
+ */
+export function isJob(resource: KubeResource): resource is Job {
+  return resource.apiVersion === 'batch/v1' && resource.kind === 'Job'
+}
+
+/**
  * Kubernetes Deployment resource type
  *
  */
