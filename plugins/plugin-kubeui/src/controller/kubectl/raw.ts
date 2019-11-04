@@ -20,6 +20,7 @@ import { spawn } from 'child_process'
 import { inBrowser } from '@kui-shell/core/api/capabilities'
 import Commands from '@kui-shell/core/api/commands'
 import Errors from '@kui-shell/core/api/errors'
+import { split } from '@kui-shell/core/api/repl-util'
 
 import flags from './flags'
 import RawResponse from './response'
@@ -27,7 +28,14 @@ import commandPrefix from '../command-prefix'
 
 const debug = Debug('plugin-kubeui/controller/kubectl/raw')
 
-const doRaw = (args: Commands.Arguments): Promise<RawResponse> =>
+/** this is the subset of Commands.Arguments that we need */
+interface Arguments {
+  command: string
+  argv: string[]
+  execOptions: Commands.ExecOptions
+}
+
+const doRaw = (args: Arguments): Promise<RawResponse> =>
   new Promise((resolve, reject) => {
     const env = Object.assign({}, !inBrowser() ? process.env : {}, args.execOptions.env)
     delete env.DEBUG
@@ -92,6 +100,13 @@ const doRaw = (args: Commands.Arguments): Promise<RawResponse> =>
       }
     })
   })
+
+export async function doExecRaw(
+  command: string,
+  execOptions: Commands.ExecOptions = new Commands.DefaultExecOptions()
+): Promise<string> {
+  return (await doRaw({ command, argv: split(command), execOptions })).content.stdout
+}
 
 export default async (commandTree: Commands.Registrar) => {
   commandTree.listen(
