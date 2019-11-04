@@ -30,3 +30,5 @@ export {
 } from './lib/model/resource'
 
 export { doExecWithPty, doExecWithStdout, doExecWithStatus, doExecWithTable } from './controller/kubectl/exec'
+
+export { doExecRaw } from './controller/kubectl/raw'
