@@ -27,7 +27,7 @@ const strings = i18n('plugin-kubeui')
  */
 function getLastAppliedRaw(resource: KubeResource): string {
   const annotations = resource.metadata.annotations
-  return annotations !== undefined && annotations['kubectl.kubernetes.io/last-applied-configuration']
+  return annotations !== undefined ? annotations['kubectl.kubernetes.io/last-applied-configuration'] : undefined
 }
 
 /**

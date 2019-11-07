@@ -30,7 +30,7 @@ const synonyms = ['kubectl']
 
 /** sleep for N seconds */
 function sleep(N: number) {
-  it(`should sleep for ${N} seconds`, () => new Promise(resolve => setTimeout(resolve, N * 1000)))
+  return new Promise(resolve => setTimeout(resolve, N * 1000))
 }
 
 describe(`kubectl get events ${process.env.MOCHA_RUN_TARGET || ''}`, function(this: Common.ISuite) {
@@ -47,32 +47,36 @@ describe(`kubectl get events ${process.env.MOCHA_RUN_TARGET || ''}`, function(th
         .then(ReplExpect.okWithString(podName))
         .catch(Common.oops(this, true)))
 
-    it('should open pod in sidecar', () =>
-      CLI.command(`${kubectl} get pod ${podName} -n ${ns} -o yaml`, this.app)
-        .then(ReplExpect.justOK)
-        .then(SidecarExpect.open)
-        .then(SidecarExpect.showing(podName))
-        .catch(Common.oops(this, true)))
-
-    sleep(sleepTime)
-
-    it('should switch to events tab', async () => {
+    it('should open pod in sidecar, then click on events button', async () => {
       try {
+        const res = await CLI.command(`${kubectl} get pod ${podName} -n ${ns} -o yaml`, this.app)
+
+        await Promise.resolve(res)
+          .then(ReplExpect.justOK)
+          .then(SidecarExpect.open)
+          .then(SidecarExpect.showing(podName))
+          .catch(Common.oops(this, true))
+
+        await sleep(sleepTime)
+
         await this.app.client.waitForVisible(Selectors.SIDECAR_MODE_BUTTON('events'))
         await this.app.client.click(Selectors.SIDECAR_MODE_BUTTON('events'))
-        await this.app.client.waitForExist(Selectors.SIDECAR_MODE_BUTTON_SELECTED('events'))
+
+        await Promise.resolve({ app: this.app, count: res.count + 1 }).then(ReplExpect.okWithAny)
+
+        const table = `${Selectors.OUTPUT_N(res.count + 1)} .result-table`
 
         // test events table has correct header
         const header = ['TYPE', 'REASON', 'LAST SEEN', 'FIRST SEEN', 'FROM', 'MESSAGE']
         header.forEach(async _header => {
-          await this.app.client.waitForExist(
-            `${Selectors.SIDECAR_CUSTOM_CONTENT} .result-table .header-row .header-cell .cell-inner[data-key="${_header}"]`
-          )
+          await this.app.client.waitForExist(`${table} .header-row .header-cell .cell-inner[data-key="${_header}"]`)
         })
 
-        await this.app.client.waitForExist(
-          `${Selectors.SIDECAR_CUSTOM_CONTENT} .result-table badge[data-key="REASON"].yellow-background`
-        )
+        await this.app.client.waitForExist(`${table} badge[data-key="REASON"].yellow-background`)
+
+        await this.app.client.click(`${table} tr:first-child .clickable`)
+
+        await SidecarExpect.open(this.app).then(SidecarExpect.kind('EVENT'))
       } catch (err) {
         return Common.oops(this, true)
       }

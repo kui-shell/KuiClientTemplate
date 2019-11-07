@@ -210,6 +210,37 @@ export function isDeployment(resource: KubeResource): resource is Deployment {
 }
 
 /**
+ * Kubernetes Event resource type
+ *
+ */
+export interface Event extends KubeResource {
+  apiVersion: 'v1'
+  kind: 'Event'
+  firstTimestamp: string
+  lastTimestamp: string
+  count: number
+  reason: string
+  type: 'Normal' | 'Warning' | 'Error'
+  involvedObject: {
+    apiVersion: string
+    kind: string
+    fieldPath: string
+    name: string
+    namespace: string
+    resourceVersion: string
+    uid: string
+  }
+}
+
+/**
+ * @return whether the given resource is an instance of an Event
+ *
+ */
+export function isEvent(resource: KubeResource): resource is Event {
+  return resource.apiVersion === 'v1' && resource.kind === 'Event'
+}
+
+/**
  * e.g. `kubectl get pods -o json` will return a kind: items
  *
  */

@@ -14,76 +14,38 @@
  * limitations under the License.
  */
 
-import Debug from 'debug'
-
 import { Tab } from '@kui-shell/core/api/ui-lite'
-import { ModeRegistration } from '@kui-shell/core/api/registrars'
+import { BadgeRegistration, ModeRegistration } from '@kui-shell/core/api/registrars'
 import { i18n } from '@kui-shell/core/api/i18n'
-import { Table, isTable } from '@kui-shell/core/api/table-models'
 
-import { KubeResource, isKubeResource } from '../../model/resource'
+import cssForValue from '../css-for-value'
+import { Event, isEvent, KubeResource, isKubeResource } from '../../model/resource'
 
 const strings = i18n('plugin-kubeui')
-
-const debug = Debug('k8s/view/modes/events')
 
 /**
  * Extract the events
  *
  */
-async function getEvents(tab: Tab, resource: KubeResource): Promise<string | Table> {
-  try {
-    const cmdGetPodEvents = `kubectl get events --field-selector involvedObject.name=${resource.metadata.name},involvedObject.namespace=${resource.metadata.namespace} -n ${resource.metadata.namespace}`
+function command(tab: Tab, resource: KubeResource) {
+  const cmdGetPodEvents = `kubectl get events --field-selector involvedObject.name=${resource.metadata.name},involvedObject.namespace=${resource.metadata.namespace} -n ${resource.metadata.namespace}`
 
-    // mimic the events table shown in the 'kubectl describe' output
-    const customColumns =
-      'custom-columns=TYPE:type,REASON:reason,LAST SEEN:lastTimestamp,COUNT:count,FIRST SEEN:firstTimestamp,FROM:source.component,MESSAGE:message'
+  // mimic the events table shown in the 'kubectl describe' output
+  const customColumns = 'wide'
+  // 'custom-columns=TYPE:type,REASON:reason,LAST SEEN:lastTimestamp,COUNT:count,FIRST SEEN:firstTimestamp,FROM:source.component,MESSAGE:message'
 
-    const cmd = `${cmdGetPodEvents} -o "${customColumns}"`
-
-    debug('getEvents', cmd)
-
-    return tab.REPL.qexec<Table>(cmd).then(result => {
-      // When using custom-columns, if a pod doesn't have any events,
-      // we can't get the 'No resources found.' error from kubectl,
-      // so we handle this error by checking whether the table has content
-      if (isTable(result) && !result.body[0]) {
-        return strings('No resources found.')
-      }
-
-      return result
-    })
-  } catch (err) {
-    return err.message
-  }
+  return `${cmdGetPodEvents} -o "${customColumns}"`
 }
 
 /**
- * @return whether the given resource has events (and: Events don't
- * have Events!)
+ * @return whether the given resource might possibly have events;
+ * since Events never have Events, we can exclude those always
  *
  */
 function hasEvents(resource: KubeResource): boolean {
-  return isKubeResource(resource) && !(resource.apiVersion === 'v1' && resource.kind === 'Event')
+  return isKubeResource(resource) && !isEvent(resource)
 }
 
-/**
- * Content renderer
- *
- */
-async function renderEvents(tab: Tab, resource: KubeResource) {
-  const events = await getEvents(tab, resource)
-
-  if (typeof events === 'string') {
-    const pre = document.createElement('pre')
-    const code = document.createElement('code')
-    pre.appendChild(code)
-    code.innerText = events
-    return pre
-  } else {
-    return events
-  }
-}
 /**
  * Add a Events mode button to the given modes model, if called for by
  * the given resource.
@@ -93,7 +55,21 @@ export const eventsMode: ModeRegistration<KubeResource> = {
   when: hasEvents,
   mode: {
     mode: 'events',
-    label: strings('events'),
-    content: renderEvents
+    label: strings('Show Events'),
+    command,
+    kind: 'drilldown'
+  }
+}
+
+export const eventsBadge: BadgeRegistration<Event> = {
+  when: isEvent,
+  badge: (event: Event) => {
+    const cssFromReason = cssForValue[event.reason]
+    return {
+      title: cssFromReason ? event.reason : event.type,
+      css:
+        cssFromReason ||
+        (event.type === 'Error' ? 'red-background' : event.type === 'Warning' ? 'yellow-background' : undefined)
+    }
   }
 }
