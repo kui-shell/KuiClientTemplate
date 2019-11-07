@@ -14,7 +14,6 @@
  * limitations under the License.
  */
 
-import { REPL } from '@kui-shell/core'
 import { Tab } from '@kui-shell/core/api/ui-lite'
 
 import { KubeResource } from '../../model/resource'
@@ -37,8 +36,8 @@ export const renderButton = async (tab: Tab, overrides: BaseInfo, fn: Renderer, 
   const commandToExec = `kubectl ${overrides.mode} ${kind} ${resourceName || name || (metadata && metadata.name)} ${
     namespace ? '-n ' + namespace : ''
   }`
-  const response: KubeResource = await REPL.qexec(
-    `confirm ${REPL.encodeComponent(commandToExec)}`,
+  const response: KubeResource = await tab.REPL.qexec(
+    `confirm ${tab.REPL.encodeComponent(commandToExec)}`,
     undefined,
     undefined,
     {

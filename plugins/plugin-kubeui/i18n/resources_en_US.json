@@ -20,6 +20,7 @@
   "logs": "logs",
   "containers": "containers",
   "events": "events",
+  "Show Events": "Show Events",
   "Unable to parse table": "Unable to parse table",
   "No resources found.": "No resources found.",
   "allContexts": "Resources Across All Contexts",

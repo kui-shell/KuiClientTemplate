@@ -38,7 +38,7 @@ export const registerCapability: Capabilities.Registration = async () => {
  */
 export default async () => {
   if (!Capabilities.isHeadless()) {
-    const { registerMode } = await import('@kui-shell/core/api/registrars')
+    const { registerMode, registerBadge } = await import('@kui-shell/core/api/registrars')
     Promise.all([
       import('./lib/view/modes/crud')
         .then(_ => _.deleteResourceMode)
@@ -52,9 +52,10 @@ export default async () => {
       import('./lib/view/modes/pods')
         .then(_ => _.podMode)
         .then(registerMode), // show pods of deployments
-      import('./lib/view/modes/events')
-        .then(_ => _.eventsMode)
-        .then(registerMode), // show events
+      import('./lib/view/modes/events').then(_ => {
+        registerMode(_.eventsMode)
+        registerBadge(_.eventsBadge)
+      }),
       import('./lib/view/modes/containers')
         .then(_ => _.containersMode)
         .then(registerMode), // show containers of pods

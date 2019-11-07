@@ -21,6 +21,8 @@ import { Table, MultiTable, Row, Cell, isTable, isMultiTable } from '@kui-shell/
 import KubeOptions from '../../controller/kubectl/options'
 import { RawResponse } from '../../controller/kubectl/response'
 
+import cssForValue from './css-for-value'
+
 /** return an array with at least maxColumns entries */
 const fillTo = (length: number, maxColumns: number): Cell[] => {
   if (length >= maxColumns) {
@@ -36,7 +38,7 @@ const outerCSSForKey = {
   READY: 'a-few-numbers-wide',
   KIND: 'max-width-id-like entity-kind',
   NAMESPACE: 'entity-name-group hide-with-sidecar not-a-name', // kubectl get pods --all-namespaces
-  MESSAGE: 'not-too-compact',
+  MESSAGE: 'not-too-compact hide-with-sidecar',
   TYPE: 'hide-with-sidecar',
 
   CLUSTER: 'entity-name-group entity-name-group-narrow hide-with-sidecar', // kubectl config get-contexts
@@ -53,6 +55,8 @@ const outerCSSForKey = {
 
   'LAST SEEN': 'hide-with-sidecar entity-name-group-extra-narrow', // kubectl get events
   'FIRST SEEN': 'hide-with-sidecar entity-name-group-extra-narrow', // kubectl get events
+
+  COUNT: 'keep-with-sidecar',
 
   UPDATED: 'min-width-date-like', // helm ls
   REVISION: 'hide-with-sidecar', // helm ls
@@ -81,59 +85,6 @@ const tagForKey = {
 }
 
 const cssForKeyValue = {}
-
-/** decorate certain values specially */
-const cssForValue = {
-  // helm lifecycle
-  UNKNOWN: '',
-  DEPLOYED: 'green-background',
-  DELETED: '',
-  SUPERSEDED: 'yellow-background',
-  FAILED: 'red-background',
-  DELETING: 'yellow-background',
-
-  // pod lifecycle
-  'Init:0/1': 'yellow-background',
-  PodScheduled: 'yellow-background',
-  PodInitializing: 'yellow-background',
-  Initialized: 'yellow-background',
-  Terminating: 'yellow-background',
-
-  // kube lifecycle
-  CrashLoopBackOff: 'red-background',
-  Failed: 'red-background',
-  Running: 'green-background',
-  Pending: 'yellow-background',
-  Succeeded: 'gray-background', // successfully terminated; don't use a color
-  Completed: 'gray-background', // successfully terminated; don't use a color
-  Unknown: '',
-
-  // AWS events
-  Ready: 'green-background',
-  ProvisionedSuccessfully: 'green-background',
-
-  // kube events
-  Active: 'green-background',
-  Online: 'green-background',
-  NodeReady: 'green-background',
-  Pulled: 'green-background',
-  Rebooted: 'green-background',
-  Started: 'green-background',
-  Created: 'green-background',
-  Scheduled: 'green-background',
-  SuccessfulCreate: 'green-background',
-  SuccessfulMountVol: 'green-background',
-  ContainerCreating: 'yellow-background',
-  Starting: 'yellow-background',
-  NodeNotReady: 'yellow-background',
-  Killing: 'yellow-background',
-  Deleting: 'yellow-background',
-  Pulling: 'yellow-background',
-  BackOff: 'yellow-background',
-  Unhealthy: 'red-background',
-  FailedScheduling: 'red-background',
-  FailedKillPod: 'red-background'
-}
 
 /**
  * Split the given string at the given split indices
