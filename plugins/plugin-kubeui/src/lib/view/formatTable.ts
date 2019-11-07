@@ -16,13 +16,13 @@
 
 import Commands from '@kui-shell/core/api/commands'
 import { encodeComponent } from '@kui-shell/core/api/repl-util'
-import { Table, MultiTable, Row, isTable, isMultiTable } from '@kui-shell/core/api/table-models'
+import { Table, MultiTable, Row, Cell, isTable, isMultiTable } from '@kui-shell/core/api/table-models'
 
 import KubeOptions from '../../controller/kubectl/options'
 import { RawResponse } from '../../controller/kubectl/response'
 
 /** return an array with at least maxColumns entries */
-const fillTo = (length, maxColumns) => {
+const fillTo = (length: number, maxColumns: number): Cell[] => {
   if (length >= maxColumns) {
     return []
   } else {
@@ -306,25 +306,28 @@ export const formatTable = <O extends KubeOptions>(
         name: nameForDisplay,
         fontawesome: idx !== 0 && rows[0].key === 'CURRENT' && 'fas fa-check',
         onclick: nameColumnIdx === 0 && onclick, // if the first column isn't the NAME column, no onclick; see onclick below
+        onclickSilence: true,
         css: firstColumnCSS,
         rowCSS,
         outerCSS: `${header} ${outerCSSForKey[rows[0].key] || ''}`,
         attributes: rows
           .slice(1)
-          .map(({ key, value: column }, colIdx) => ({
-            key,
-            tag: idx > 0 && tagForKey[key],
-            onclick: colIdx + 1 === nameColumnIdx && onclick, // see the onclick comment: above ^^^; +1 because of slice(1)
-            outerCSS:
-              header +
-              ' ' +
-              outerCSSForKey[key] +
-              (colIdx <= 1 || colIdx === nameColumnIdx - 1 || columnVisibleWithSidecar.test(key)
-                ? ''
-                : ' hide-with-sidecar'), // nameColumnIndex - 1 beacuse of rows.slice(1)
-            css: css + ' ' + ((idx > 0 && cssForKey[key]) || '') + ' ' + (cssForValue[column] || maybeRed(column)),
-            value: key === 'STATUS' && idx > 0 ? capitalize(column) : column
-          }))
+          .map(
+            ({ key, value: column }, colIdx): Cell => ({
+              key,
+              tag: idx > 0 && tagForKey[key],
+              onclick: colIdx + 1 === nameColumnIdx && onclick, // see the onclick comment: above ^^^; +1 because of slice(1)
+              outerCSS:
+                header +
+                ' ' +
+                outerCSSForKey[key] +
+                (colIdx <= 1 || colIdx === nameColumnIdx - 1 || columnVisibleWithSidecar.test(key)
+                  ? ''
+                  : ' hide-with-sidecar'), // nameColumnIndex - 1 beacuse of rows.slice(1)
+              css: css + ' ' + ((idx > 0 && cssForKey[key]) || '') + ' ' + (cssForValue[column] || maybeRed(column)),
+              value: key === 'STATUS' && idx > 0 ? capitalize(column) : column
+            })
+          )
           .concat(fillTo(rows.length, maxColumns))
       }
     }
