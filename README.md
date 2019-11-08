@@ -4,15 +4,19 @@
 [![License](https://img.shields.io/badge/license-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
 
 This project offers a kubectl plugin that offers graphical popups in
-response to normal `kubectl` commands. It leverages the
+response to normal `kubectl` commands. To provide a
+popup-from-terminal experience, this project leverages the
 [Kui](https://github.com/IBM/kui) project.
 
 For example, `kubectl kubeui get pods` will pop up a window that
-[displays a table with clickable pod
-names](docs/kubeui-popup.png). <img alt="kubeui popup"
-src="docs/kubeui-popup.png" width="500px" align="right"/> Upon
-clicking a pod name, you should see a detail view similar to the [pod
-detail screenshot](docs/kubeui-pod-detail.png) below.
+displays a table with clickable pod names; the screenshot to the right
+illustrates one such popup. <img alt="kubeui popup"
+src="docs/kubeui-popup.png" width="500px" align="right"/>
+
+Upon clicking a pod name, you will be presented with a multi-tab view
+of the detail of the resource you selected; the screenshot a bit
+further down and on the left illustrates such a [multi-tab detail
+view](docs/kubeui-pod-detail.png).
 
 # Prebuilt Images
 
