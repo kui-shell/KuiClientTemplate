@@ -210,17 +210,10 @@ export function isDeployment(resource: KubeResource): resource is Deployment {
 }
 
 /**
- * Kubernetes Event resource type
+ * Trait that defines an involvedObject, e.g. for Events
  *
  */
-export interface Event extends KubeResource {
-  apiVersion: 'v1'
-  kind: 'Event'
-  firstTimestamp: string
-  lastTimestamp: string
-  count: number
-  reason: string
-  type: 'Normal' | 'Warning' | 'Error'
+export interface KubeResourceWithInvolvedObject extends KubeResource {
   involvedObject: {
     apiVersion: string
     kind: string
@@ -230,6 +223,30 @@ export interface Event extends KubeResource {
     resourceVersion: string
     uid: string
   }
+}
+
+export function hasInvolvedObject(resource: KubeResource): resource is KubeResourceWithInvolvedObject {
+  const io = resource as KubeResourceWithInvolvedObject
+  return (
+    io.involvedObject !== undefined &&
+    typeof io.involvedObject.apiVersion === 'string' &&
+    typeof io.involvedObject.kind === 'string' &&
+    typeof io.involvedObject.name === 'string'
+  )
+}
+
+/**
+ * Kubernetes Event resource type
+ *
+ */
+export type Event = KubeResourceWithInvolvedObject & {
+  apiVersion: 'v1'
+  kind: 'Event'
+  firstTimestamp: string
+  lastTimestamp: string
+  count: number
+  reason: string
+  type: 'Normal' | 'Warning' | 'Error'
 }
 
 /**

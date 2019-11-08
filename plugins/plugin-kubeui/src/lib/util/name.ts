@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import { KubeResource } from '../model/resource'
+import { KubeResource, hasInvolvedObject } from '../model/resource'
 
 /**
  * Separate the app and generated parts of a resource name
@@ -30,10 +30,14 @@ export default function extract(resource: KubeResource) {
     metadata.labels['app.kubernetes.io/instance'] &&
     `${metadata.labels['app.kubernetes.io/instance']}-${metadata.labels['app.kubernetes.io/name']}`
 
-  const app = appFromNameAndInstance || (metadata && metadata.labels && metadata.labels.app)
+  const app: string | false =
+    appFromNameAndInstance ||
+    (metadata && metadata.labels && metadata.labels.app) ||
+    (hasInvolvedObject(resource) && resource.involvedObject.name)
 
   if (app) {
-    const match = resource.metadata.name.match(new RegExp(`(^${app})-([0-9a-zA-Z]+-.+)`))
+    const pattern = `(^${app})[-.]([0-9a-zA-Z]+-.+|[0-9a-z]{16})`
+    const match = resource.metadata.name.match(new RegExp(pattern))
     const name = match && match[1]
     const nameHash = match && match[2]
     // const name = resource.metadata.name

@@ -52,6 +52,7 @@ export default async () => {
       import('./lib/view/modes/pods')
         .then(_ => _.podMode)
         .then(registerMode), // show pods of deployments
+      import('./lib/view/modes/involved-object').then(_ => registerMode(_.default)),
       import('./lib/view/modes/events').then(_ => {
         registerMode(_.eventsMode)
         registerBadge(_.eventsBadge)
