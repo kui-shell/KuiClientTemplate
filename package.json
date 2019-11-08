@@ -8,7 +8,7 @@
     "build:electron:linux": "PLATFORM=linux kui-build-electron",
     "build:electron:win32": "PLATFORM=win32 kui-build-electron",
     "build:electron:all": "kui-build-electron",
-    "build:krew": "npm run -s kui-build-electron && ./bin/amend-dist-for-krew.sh",
+    "build:krew": "npm run -s build:electron:all && ./bin/amend-dist-for-krew.sh",
     "compile": "kui-compile",
     "watch": "tsc --build . --watch",
     "webpack": "npm ci && npm run -s pty:nodejs && kui-watch-webpack",
