@@ -14,7 +14,7 @@ src="docs/kubeui-popup.png" width="500px" align="right"/> Upon
 clicking a pod name, you should see a detail view similar to the [pod
 detail screenshot](docs/kubeui-pod-detail.png) below.
 
-# Prebuilt Image
+# Prebuilt Images
 
 You may choose to consume prebuilt images: download and extract into
 your `~/.krew/bin`, make sure that directory is on your PATH, then
