@@ -3,13 +3,26 @@
 [![Build Status](https://travis-ci.org/kui-shell/plugin-kubeui.svg?branch=master)](https://travis-ci.org/kui-shell/plugin-kubeui)
 [![License](https://img.shields.io/badge/license-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
 
-This project demonstrates how to develop for
-[Kui](https://github.com/IBM/kui). With this repo as a basis, you can
-author a Kui plugin, and optionally ship it as custom
-[Electron](https://electronjs.org) or [Webpack](https://webpackjs.org)
-client.
+This project offers a kubectl plugin that offers graphical popups in
+response to normal `kubectl` commands. It leverages the
+[Kui](https://github.com/IBM/kui) project.
 
-# Clone and Own the Repo
+For example, `kubectl kubeui get pods` will pop up a window that
+[displays a table with clickable pod
+names](docs/kubeui-popup.png). <img alt="kubeui popup"
+src="docs/kubeui-popup.png" width="500px" align="right"/> Upon
+clicking a pod name, you should see a detail view similar to the [pod
+detail screenshot](docs/kubeui-pod-detail.png) below.
+
+# Prebuilt Image
+
+You may choose to consume prebuilt images: download and extract into
+your `~/.krew/bin`, make sure that directory is on your PATH, then
+issue `kubectl kubeui get pods`.
+
+[Latest Release](https://github.com/kui-shell/plugin-kubeui/releases/latest/) **|** [Mac](https://kubeui.kui-shell.org/v0.0.7/Kui-darwin-x64.tar.gz) **|** [Linux](https://kubeui.kui-shell.org/v0.0.7/Kui-linux-x64.tar.gz)
+
+# Code and Contribute
 
 ```bash
 git clone https://github.com/kui-shell/plugin-kubeui && cd plugin-kubeui
@@ -18,86 +31,63 @@ npm start
 ```
 
 You should see a window come up. You can now try, for example,
-`kubectl get pods`, and expect to see a table, with clickable cells,
-in response.
+`kubectl get pods`, and expect to see a table, similar to that in the
+above screenshot. This development client popup has an integrated
+terminal. You may issue rapid-fire commands within this terminal, so
+that you can test out a variety of commands in quick succession.
 
-As described [below](#webpack), you may also develop against a
-browser. For example, here is the kubeui plugin running as a
-[webpack](https://webpack.js.org/) client in Firefox: ![kubeui running
-in firefox](docs/kubeui-firefox.png)
+<img alt="kubeui pod detail" src="docs/kubeui-pod-detail.png" width="400px" align="left"/>
 
-# How this Project extends Kui
+## Edit-debug Loop
 
-This project demonstrates adding a family of Kubernetes commands.
-
-# Local Development with Electron
-
-To develop your plugin, it is convenient to run it against a local
-electron client. To do so, you may continue to use the `npm start`
-command from above. This will give you a local electron client. This
-client, in tandem with a TypeScript watcher:
+This project is coded in [TypeScript](https://www.typescriptlang.org).
+You may launch a TypeScript watcher via:
 
 ```
 npm run watch
 ```
 
-will be all you need to develop the plugin locally. After the
-TypeScript compiler has recompiled your source changes, a simple
-reload (Ctrl+R, or Command+R on macOS) suffices to integrate your
-changes into the client.
+The edit-debug loop involves: edit and save a source change; wait for
+the TypeScript compiler to recompile your source changes; finally, in
+most cases a simple reload (via Ctrl+R, or Command+R on macOS) of the
+development client suffices to integrate your changes into an
+already-open window.
 
-# Webpack
+## Building a Distribution
 
-You may also test against a webpack build. Assuming you have already
-launched a TypeScript watcher, you can also launch a Webpack watcher:
+To pack up a set of platform clients for subsequent distribution, you
+may leverage several npm targets expressed in the
+[package.json](package.json):
 
-```bash
-npm run proxy &  # <-- this launches a Kui proxy server in the background
-npm run webpack  # <-- this launches a webpack-dev-server
+This command will build a macOS tarball, and place it in
+`dist/electron/Kui-darwin-x64.tar.bz2`:
+
+```sh
+npm run build:electron:mac
 ```
 
-Then, visit `http://localhost:9080` to see your client in any browser.
+To enable your already-built bundles as kubectl plugins, this script
+amends those archives with a simple `kubectl-kubeui` script front end:
 
-The proxy server is needed for this plugin, because it calls out to a
-native `kubectl` binary.
-
-# Proxy
-
-By default, webpack clients have no backend. For this sample plugin,
-that is sufficient, as none of the sample commands communicate to the
-outside world. Once you do so, you may find a need for a backend. Kui
-offers this via the Kui Proxy.
-
-```bash
-npm run proxy   # <-- this launches a proxy
+```sh
+./bin/amend-dist-for-krew.sh
 ```
 
-# Guide to the Directory Structure
+Or, you can build kubectl-enabled archives for all known platforms via:
 
-This is the layout of a Kui project:
-
-```
-├── plugins/
-│   └── plugin-kubeui/
-├── theme/
-│   ├── css/
-│   ├── icons/
-│   ├── images/
-│   ├── config.json
-│   └── theme.json
-├── tsconfig.json
+```sh
+npm run build:krew
 ```
 
-This structure allows you to maintain a hierarchical structure to your
-plugins. For example, if multiple teams are developing loosely related
-extensions, each can have a subdirectory under [plugins/](plugins/). In this
-example project, we have only one such subdirectory.
+### Theming
 
-# Theming
+You have the option to customize the theming in several ways. Here are
+some of the choices you can influence:
 
-If your end goal is to ship a plugin, then you may skip this
-section. If you would rather ship an electron or webpack client of
-your own, you have the option to customize the theming in several
-ways. These changes are captured in the `theme/` subdirectory. More
-details coming soon. For now, browse the
-[theme.json](theme/theme.json) file.
+- client name
+- client icon
+- default theme
+- available themes
+
+These changes are captured in the `theme/` subdirectory. More details
+coming soon. For now, browse the [theme.json](theme/theme.json) file.
