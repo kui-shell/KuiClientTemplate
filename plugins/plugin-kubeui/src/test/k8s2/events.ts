@@ -72,14 +72,21 @@ describe(`kubectl get events ${process.env.MOCHA_RUN_TARGET || ''}`, function(th
           await this.app.client.waitForExist(`${table} .header-row .header-cell .cell-inner[data-key="${_header}"]`)
         })
 
-        await this.app.client.waitForExist(`${table} badge[data-key="REASON"].yellow-background`)
-
         await this.app.client.click(`${table} tr:first-child .clickable`)
 
         await SidecarExpect.open(this.app).then(SidecarExpect.kind('EVENT'))
       } catch (err) {
-        return Common.oops(this, true)
+        await SidecarExpect.open(this.app).then(SidecarExpect.kind('EVENT'))
+        await Common.oops(this, true)
       }
+    })
+
+    it('should click on Show Involved Object', async () => {
+      await this.app.client.waitForVisible(Selectors.SIDECAR_MODE_BUTTON('involvedObject'))
+      await this.app.client.click(Selectors.SIDECAR_MODE_BUTTON('involvedObject'))
+      await SidecarExpect.open(this.app)
+        .then(SidecarExpect.showing(podName))
+        .then(SidecarExpect.kind('POD'))
     })
 
     deleteNS(this, ns)

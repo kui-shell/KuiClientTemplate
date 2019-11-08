@@ -16,6 +16,7 @@
   "keditUsageRequiredDocs": "A kubernetes resource file or kind",
   "keditUsageDocs": "Edit a resource definition file",
   "keditUsageOptionalDocs": "a resource within the file to view",
+  "Show Involved Object": "Show Involved Object",
   "conditions": "conditions",
   "logs": "logs",
   "containers": "containers",
