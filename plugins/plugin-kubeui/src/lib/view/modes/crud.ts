@@ -18,7 +18,7 @@ import { i18n } from '@kui-shell/core/api/i18n'
 import { ModeRegistration, Mode } from '@kui-shell/core/api/registrars'
 
 import makeButton from './button'
-import { isKubeResource, KubeResource } from '../../model/resource'
+import { isCrudableKubeResource, KubeResource } from '../../model/resource'
 
 const strings = i18n('plugin-kubeui')
 
@@ -41,6 +41,6 @@ export const deleteResourceButton = (fn?): Mode =>
   )
 
 export const deleteResourceMode: ModeRegistration<KubeResource> = {
-  when: isKubeResource,
+  when: isCrudableKubeResource,
   mode: deleteResourceButton
 }

@@ -19,6 +19,9 @@
 export {
   KubeResource,
   isKubeResource,
+  isCrudableKubeResource,
+  KubeResourceWithSummary,
+  InvolvedObject,
   KubeStatus,
   Pod,
   isPod,
@@ -32,3 +35,9 @@ export {
 export { doExecWithPty, doExecWithStdout, doExecWithStatus, doExecWithTable } from './controller/kubectl/exec'
 
 export { doExecRaw } from './controller/kubectl/raw'
+
+export { default as defaultFlags } from './controller/kubectl/flags'
+
+export { KubeOptions, getNamespace, getNamespaceForArgv } from './controller/kubectl/options'
+
+export { default as parseName } from './lib/util/name'

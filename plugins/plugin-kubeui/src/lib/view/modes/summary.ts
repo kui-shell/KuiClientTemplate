@@ -20,7 +20,7 @@ import { Table } from '@kui-shell/core/api/table-models'
 import { ModeRegistration } from '@kui-shell/core/api/registrars'
 
 import toMap from './table-to-map'
-import { KubeResource, isKubeResource } from '../../model/resource'
+import { KubeResource, isKubeResource, isKubeResourceWithItsOwnSummary } from '../../model/resource'
 
 const strings = i18n('plugin-kubeui')
 
@@ -29,6 +29,10 @@ const strings = i18n('plugin-kubeui')
  *
  */
 async function renderSummary(tab: Tab, resource: KubeResource) {
+  if (isKubeResourceWithItsOwnSummary(resource)) {
+    return resource.summary
+  }
+
   // a command that will fetch a single-row table
   const cmd = `kubectl get ${resource.kind} ${resource.metadata.name} -n ${resource.metadata.namespace} -o wide`
 
