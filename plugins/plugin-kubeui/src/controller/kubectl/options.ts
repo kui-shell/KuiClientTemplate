@@ -57,6 +57,10 @@ export function isTableWatchRequest(args: Commands.Arguments<KubeOptions>) {
   return isWatchRequest(args) && isTableRequest(args)
 }
 
+export function getLabel(args: Commands.Arguments<KubeOptions>) {
+  return args.parsedOptions.l || args.parsedOptions.label
+}
+
 export function getNamespace(args: Commands.Arguments<KubeOptions>) {
   return args.parsedOptions.n || args.parsedOptions.namespace
 }
@@ -93,6 +97,9 @@ export interface KubeOptions extends Commands.ParsedOptions {
   'watch-only': boolean
 
   wait: boolean
+
+  l: string
+  label: string
 }
 
 export default KubeOptions

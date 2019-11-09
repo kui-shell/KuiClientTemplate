@@ -16,6 +16,7 @@
 
 import { Tab } from '@kui-shell/core/api/ui-lite'
 import { ModeRegistration } from '@kui-shell/core/api/registrars'
+import { encodeComponent } from '@kui-shell/core/api/repl-util'
 import { i18n } from '@kui-shell/core/api/i18n'
 
 import { hasInvolvedObject, KubeResourceWithInvolvedObject } from '../../model/resource'
@@ -27,7 +28,9 @@ const strings = i18n('plugin-kubeui')
  *
  */
 function command(tab: Tab, { involvedObject: { kind, name, namespace } }: KubeResourceWithInvolvedObject) {
-  return `kubectl get "${kind}" "${name}" -n "${namespace}" -o yaml`
+  return `kubectl get ${encodeComponent(kind)} ${encodeComponent(name)} -n ${encodeComponent(
+    namespace || 'default'
+  )} -o yaml`
 }
 
 /**

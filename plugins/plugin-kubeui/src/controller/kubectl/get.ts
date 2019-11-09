@@ -92,11 +92,12 @@ export async function doGetEntity(args: Commands.Arguments<KubeOptions>, respons
     const resource = formatOf(args) === 'json' ? JSON.parse(data) : (await import('js-yaml')).safeLoad(data)
 
     // attempt to separate out the app and generated parts of the resource name
-    const { name, nameHash } = extractAppAndName(resource)
-    resource.prettyName = name
-    resource.nameHash = nameHash
+    const { name: prettyName, nameHash } = extractAppAndName(resource)
 
     return Object.assign(resource, {
+      prettyName,
+      nameHash,
+      originatingCommand: args.command,
       modes: [], // this tells Kui that we want the response to be interpreted as a MultiModalResponse
       data // also include the raw, uninterpreted data string we got back
     })

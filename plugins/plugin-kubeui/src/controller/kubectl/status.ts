@@ -138,6 +138,7 @@ const errorEntity = (execOptions: Commands.ExecOptions, base: KubeResource, back
     base = {
       apiVersion: undefined,
       kind: undefined,
+      originatingCommand: base.originatingCommand,
       metadata: { name: undefined, namespace: backupNamespace }
     }
   } else if (!base.metadata) {

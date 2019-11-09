@@ -14,7 +14,10 @@
  * limitations under the License.
  */
 
-import { Commands, Models } from '@kui-shell/core'
+import Commands from '@kui-shell/core/api/commands'
+import Models from '@kui-shell/core/api/models'
+
+import kubeuiApiVersion from '../../controller/kubectl/apiVersion'
 
 export interface KubeStatusCondition {
   lastProbeTime?: string
@@ -93,17 +96,49 @@ interface RoleRef {
   name: string
 }
 
+/**
+ * The basic Kubernetes resource
+ *
+ */
 export interface KubeResource<Status = KubeStatus> extends Models.ResourceWithMetadata {
   apiVersion: string
   kind: string
   metadata?: KubeMetadata
   status?: Status
   spec?: any // eslint-disable-line @typescript-eslint/no-explicit-any
-  data?: string
+
+  // TODO we should factor these out into a trait
+  data?: string // the raw data
+  originatingCommand: string // the command that generated this raw data
+  isSimulacrum?: boolean // is this a manufactured resource that does not exist on the api server?
 }
+
+/** is the command response a Kubernetes resource? note: excluding any ones we simulate in kubeui */
 export function isKubeResource(entity: Commands.Response): entity is KubeResource {
   const kube = entity as KubeResource
-  return kube.apiVersion !== undefined && kube.kind !== undefined
+  return kube.apiVersion !== undefined && kube.apiVersion !== kubeuiApiVersion && kube.kind !== undefined
+}
+
+/** is the command response a kube resource that can responds to "kubectl delete", etc.? */
+export function isCrudableKubeResource(entity: Commands.Response): entity is KubeResource {
+  return isKubeResource(entity) && !(entity as KubeResource).isSimulacrum
+}
+
+/**
+ * `KubeResourceWithSummary` allows plugins to provide their own
+ * Summary. Otherwise lib/views/modes/summary will try to fetch one
+ * automatically.
+ *
+ */
+export interface KubeResourceWithSummary<Status = KubeStatus> extends KubeResource<Status> {
+  summary: {
+    content: string
+    contentType?: 'yaml' | 'text/markdown'
+  }
+}
+
+export function isKubeResourceWithItsOwnSummary(resource: KubeResource): resource is KubeResourceWithSummary {
+  return resource !== undefined && (resource as KubeResourceWithSummary).summary !== undefined
 }
 
 /** Role */
@@ -213,19 +248,22 @@ export function isDeployment(resource: KubeResource): resource is Deployment {
  * Trait that defines an involvedObject, e.g. for Events
  *
  */
-export interface KubeResourceWithInvolvedObject extends KubeResource {
+export interface InvolvedObject {
   involvedObject: {
     apiVersion: string
     kind: string
-    fieldPath: string
     name: string
     namespace: string
-    resourceVersion: string
-    uid: string
+    uid?: string
+    fieldPath?: string
+    resourceVersion?: string
   }
 }
+export type KubeResourceWithInvolvedObject = KubeResource & InvolvedObject
 
-export function hasInvolvedObject(resource: KubeResource): resource is KubeResourceWithInvolvedObject {
+export function hasInvolvedObject(
+  resource: KubeResource | KubeResourceWithInvolvedObject
+): resource is KubeResourceWithInvolvedObject {
   const io = resource as KubeResourceWithInvolvedObject
   return (
     io.involvedObject !== undefined &&

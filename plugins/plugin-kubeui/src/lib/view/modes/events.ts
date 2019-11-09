@@ -19,7 +19,7 @@ import { BadgeRegistration, ModeRegistration } from '@kui-shell/core/api/registr
 import { i18n } from '@kui-shell/core/api/i18n'
 
 import cssForValue from '../css-for-value'
-import { Event, isEvent, KubeResource, isKubeResource } from '../../model/resource'
+import { Event, isEvent, KubeResource, isCrudableKubeResource } from '../../model/resource'
 
 const strings = i18n('plugin-kubeui')
 
@@ -43,7 +43,7 @@ function command(tab: Tab, resource: KubeResource) {
  *
  */
 function hasEvents(resource: KubeResource): boolean {
-  return isKubeResource(resource) && !isEvent(resource)
+  return isCrudableKubeResource(resource) && !isEvent(resource)
 }
 
 /**

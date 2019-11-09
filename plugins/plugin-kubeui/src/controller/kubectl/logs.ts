@@ -19,12 +19,13 @@ import { i18n } from '@kui-shell/core/api/i18n'
 import { MultiModalResponse } from '@kui-shell/core/api/ui-lite'
 
 import flags from './flags'
+import kubeuiApiVersion from './apiVersion'
 import commandPrefix from '../command-prefix'
 import { doExecWithPty, doExecWithStdout, Prepare } from './exec'
-import { KubeOptions, getNamespace } from './options'
+import { KubeOptions, getLabel, getNamespace } from './options'
 
 import { formatLogs } from '../../lib/util/log-parser'
-import { KubeResource } from '../../lib/model/resource'
+import { KubeResourceWithInvolvedObject } from '../../lib/model/resource'
 
 const strings = i18n('plugin-kubeui')
 
@@ -70,11 +71,8 @@ function prepareArgsForPrevious(args: Commands.Arguments<LogOptions>) {
   }
 }
 
-const getLogContent = (args: Commands.Arguments<LogOptions>, prepare: Prepare<LogOptions>) => async (): Promise<
-  HTMLElement
-> => {
-  const logString = await doExecWithStdout(args, prepare)
-  return formatLogs(logString, args.execOptions)
+const getLogContent = (args: Commands.Arguments<LogOptions>, prepare: Prepare<LogOptions>) => {
+  return doExecWithStdout(args, prepare)
 }
 
 async function doGetLogsAsMMR(args: Commands.Arguments<LogOptions>): Promise<MultiModalResponse> {
@@ -85,28 +83,58 @@ async function doGetLogsAsMMR(args: Commands.Arguments<LogOptions>): Promise<Mul
   const logs = {
     mode: 'logs',
     label: strings('logs'),
-    content: getLogContent(args, prepareArgsForLogs),
+    content: async () => formatLogs(await getLogContent(args, prepareArgsForLogs), args.execOptions),
     defaultMode: !args.parsedOptions.previous
   }
 
   const previous = {
     mode: 'previous',
     label: strings('previous'),
-    content: getLogContent(args, prepareArgsForPrevious),
+    content: async () => formatLogs(await getLogContent(args, prepareArgsForPrevious), args.execOptions),
     defaultMode: args.parsedOptions.previous
   }
 
-  return {
+  // look for kind in the name; e.g. k logs deployment/myDeployment
+  // the default, without a prefix "kind/" part, is pod
+  // notes: these are going to be used as properties of involvedObject
+  const kindMatch = name && name.match(/(\w+)\//)
+  const kindOfInvolved = kindMatch ? kindMatch[1] : 'pod'
+  const apiVersionOfInvolved = /^deploy/i.test(kindOfInvolved)
+    ? 'extensions/v1beta1'
+    : /^job/i.test(kindOfInvolved)
+    ? 'batch/v1'
+    : 'v1'
+
+  const involvedObject =
+    kindOfInvolved && apiVersionOfInvolved
+      ? {
+          apiVersion: apiVersionOfInvolved,
+          kind: kindOfInvolved,
+          name,
+          namespace
+        }
+      : undefined
+  console.error('!!!!!!', involvedObject)
+
+  const response: MultiModalResponse<KubeResourceWithInvolvedObject> = {
+    apiVersion: kubeuiApiVersion,
     kind: 'logs',
     metadata: {
-      name: containerName || name || '', // name is optional when label selector exists
+      name: containerName || name || getLabel(args) || '', // name is optional when label selector exists
       namespace
     },
+    involvedObject,
+    originatingCommand: args.command,
+    data: await getLogContent(args, prepareArgsForLogs),
     modes: [logs, previous]
   }
+
+  return response
 }
 
-function doLogs(args: Commands.Arguments<LogOptions>): Promise<string | KubeResource | MultiModalResponse> {
+function doLogs(
+  args: Commands.Arguments<LogOptions>
+): Promise<string | KubeResourceWithInvolvedObject | MultiModalResponse> {
   const streamed = args.parsedOptions.follow || args.parsedOptions.f
   const hasSelector = args.parsedOptions.selector || args.parsedOptions.l
   const resourePos = args.argvNoOptions[0] === commandPrefix ? 4 : 3
