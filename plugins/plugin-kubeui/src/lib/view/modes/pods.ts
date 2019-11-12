@@ -56,3 +56,5 @@ export const podMode: ModeRegistration<KubeResource> = {
     content: renderPods
   }
 }
+
+export default podMode
