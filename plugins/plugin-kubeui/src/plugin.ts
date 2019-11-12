@@ -28,7 +28,7 @@ import run from './controller/kubectl/run'
 import catchall from './controller/kubectl/catchall'
 
 export default async (commandTree: Commands.Registrar) => {
-  return Promise.all([
+  await Promise.all([
     contexts(commandTree),
     create(commandTree),
     kdelete(commandTree),

@@ -194,3 +194,5 @@ export const containersMode: ModeRegistration<KubeResource> = {
     content: renderContainers
   }
 }
+
+export default containersMode

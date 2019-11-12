@@ -44,3 +44,5 @@ export const deleteResourceMode: ModeRegistration<KubeResource> = {
   when: isCrudableKubeResource,
   mode: deleteResourceButton
 }
+
+export default deleteResourceMode

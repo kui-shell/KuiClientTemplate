@@ -114,7 +114,6 @@ async function doGetLogsAsMMR(args: Commands.Arguments<LogOptions>): Promise<Mul
           namespace
         }
       : undefined
-  console.error('!!!!!!', involvedObject)
 
   const response: MultiModalResponse<KubeResourceWithInvolvedObject> = {
     apiVersion: kubeuiApiVersion,
