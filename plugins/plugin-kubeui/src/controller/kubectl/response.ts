@@ -16,7 +16,7 @@
 
 import Models from '@kui-shell/core/api/models'
 
-interface RawOutput {
+export interface RawOutput {
   code: number
   stdout: string
   stderr: string
