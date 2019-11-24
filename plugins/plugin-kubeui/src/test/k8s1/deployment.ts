@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import { Common, CLI, ReplExpect, SidecarExpect, Selectors } from '@kui-shell/test'
+import { Common, CLI, ReplExpect, SidecarExpect, Selectors, Util } from '@kui-shell/test'
 import {
   waitForGreen,
   defaultModeForGet,
@@ -83,8 +83,14 @@ describe(`kubectl deployment ${process.env.MOCHA_RUN_TARGET || ''}`, function(th
         await SidecarExpect.open(this.app)
           .then(SidecarExpect.mode(defaultModeForGet))
           .then(SidecarExpect.showing('myapp', undefined, undefined, ns))
+          .then(() => this.app.client.waitForVisible(Selectors.SIDECAR_MODE_BUTTON_SELECTED('summary')))
+          .then(() => this.app)
+          .then(Util.getValueFromMonaco)
+          .then(Util.expectYAMLSubset({ NAME: 'myapp' }))
+          .then(() => new Promise(resolve => setTimeout(resolve, 1000)))
           .then(() => this.app.client.waitForVisible(Selectors.SIDECAR_MODE_BUTTON('pods')))
           .then(() => this.app.client.click(Selectors.SIDECAR_MODE_BUTTON('pods')))
+          .then(() => this.app.client.waitForVisible(Selectors.SIDECAR_MODE_BUTTON_SELECTED('pods')))
           .then(() => this.app.client.waitForExist(`${Selectors.SIDECAR_CUSTOM_CONTENT} .bx--data-table`))
           .then(async () => {
             if (singletonTablesHaveTitle) {

@@ -27,7 +27,9 @@ import {
 const synonyms = ['kubectl']
 
 // this test is still oddly buggy with webpack+proxy, hence the localDescribe
-Common.localDescribe(`kubectl get summary tab ${process.env.MOCHA_RUN_TARGET}`, function(this: Common.ISuite) {
+Common.localDescribe(`kubectl get summary tab describe ${process.env.MOCHA_RUN_TARGET || ''}`, function(
+  this: Common.ISuite
+) {
   before(Common.before(this))
   after(Common.after(this))
 

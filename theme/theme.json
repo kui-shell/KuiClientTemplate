@@ -21,7 +21,7 @@
   "gettingStarted": "tutorial play @tutorials/getting-started",
   "defaultTheme": "Carbon Gray10",
   "defaultContext": ["kubeui"],
-  "contentSecurityPolicy": "default-src * 'nonce-kuiDefaultNonce'; img-src * data:; style-src * 'unsafe-inline'",
+  "contentSecurityPolicy": "default-src * 'nonce-kuiDefaultNonce' 'unsafe-eval'; img-src * data:; style-src * 'unsafe-inline'; connect-src 'self'",
   "about": [{ "mode": "contexts", "label": "Contexts", "direct": "about --mode contexts --content contexts" }],
   "themes": [
     {
