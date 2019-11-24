@@ -240,7 +240,7 @@ const getDirectReferences = (command: string) => async ({
     // note: don't retry the getter on 404 if we're expecting the
     // element (eventually) not to exist
     const getter = async (): Promise<KubeResource> => {
-      return REPL.rexec<KubeResource>(command, execOptions)
+      return REPL.qexec<KubeResource>(command, undefined, undefined, Object.assign({}, execOptions, { raw: true }))
     }
 
     const kubeEntity = await (!finalState || finalState === FinalState.OfflineLike

@@ -14,8 +14,7 @@
  * limitations under the License.
  */
 
-import Commands from '@kui-shell/core/api/commands'
-import Models from '@kui-shell/core/api/models'
+import { ResourceWithMetadata } from '@kui-shell/core/api/models'
 
 import kubeuiApiVersion from '../../controller/kubectl/apiVersion'
 
@@ -100,7 +99,7 @@ interface RoleRef {
  * The basic Kubernetes resource
  *
  */
-export interface KubeResource<Status = KubeStatus> extends Models.ResourceWithMetadata {
+export interface KubeResource<Status = KubeStatus> extends ResourceWithMetadata {
   apiVersion: string
   kind: string
   metadata?: KubeMetadata
@@ -114,13 +113,13 @@ export interface KubeResource<Status = KubeStatus> extends Models.ResourceWithMe
 }
 
 /** is the command response a Kubernetes resource? note: excluding any ones we simulate in kubeui */
-export function isKubeResource(entity: Commands.Response): entity is KubeResource {
+export function isKubeResource(entity: ResourceWithMetadata): entity is KubeResource {
   const kube = entity as KubeResource
   return kube.apiVersion !== undefined && kube.apiVersion !== kubeuiApiVersion && kube.kind !== undefined
 }
 
 /** is the command response a kube resource that can responds to "kubectl delete", etc.? */
-export function isCrudableKubeResource(entity: Commands.Response): entity is KubeResource {
+export function isCrudableKubeResource(entity: ResourceWithMetadata): entity is KubeResource {
   return isKubeResource(entity) && !(entity as KubeResource).isSimulacrum
 }
 

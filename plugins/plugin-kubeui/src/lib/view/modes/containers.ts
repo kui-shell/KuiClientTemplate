@@ -155,7 +155,7 @@ async function renderContainers(tab: Tab, resource: KubeResource): Promise<Table
   debug('issuing command', fetchPod)
 
   try {
-    const podResource = await tab.REPL.rexec<KubeResource>(fetchPod)
+    const podResource = await tab.REPL.qexec<KubeResource>(fetchPod, undefined, undefined, { raw: true })
     debug('renderContainers.response', podResource)
 
     return {

@@ -82,11 +82,15 @@ const addClickHandlers = (table: Table, { REPL }: Commands.Arguments, execOption
 const listContexts = (args: Commands.Arguments): Promise<Table | MultiTable> => {
   const execOptions = Object.assign({}, args.execOptions, { render: false })
 
-  return args.REPL.qexec<Table | MultiTable>(`kubectl config get-contexts`, undefined, undefined, execOptions).then(
-    (contexts: Table | MultiTable) =>
-      isMultiTable(contexts)
-        ? { tables: contexts.tables.map(context => addClickHandlers(context, args, execOptions)) }
-        : addClickHandlers(contexts, args, execOptions)
+  return args.REPL.qexec<Table | MultiTable>(
+    `kubectl config get-contexts`,
+    undefined,
+    undefined,
+    execOptions
+  ).then((contexts: Table | MultiTable) =>
+    isMultiTable(contexts)
+      ? { tables: contexts.tables.map(context => addClickHandlers(context, args, execOptions)) }
+      : addClickHandlers(contexts, args, execOptions)
   )
 }
 
@@ -100,7 +104,7 @@ export default (commandTree: Commands.Registrar) => {
   commandTree.listen(
     `/${commandPrefix}/context`,
     async ({ REPL }) => {
-      return (await REPL.rexec<string>('kubectl config current-context')).trim()
+      return (await REPL.qexec<string>('kubectl config current-context', undefined, undefined, { raw: true })).trim()
     },
     Object.assign(
       {

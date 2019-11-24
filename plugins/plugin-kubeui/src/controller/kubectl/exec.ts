@@ -94,7 +94,7 @@ function doHelp<O extends KubeOptions>(args: Commands.Arguments<O>, response: Ra
  * Execute the given command using a pty
  *
  */
-export async function doExecWithPty<Response extends Commands.Response, O extends KubeOptions>(
+export async function doExecWithPty<Response extends Commands.Response<any>, O extends KubeOptions>(
   args: Commands.Arguments<O>,
   prepare: Prepare<O> = NoPrepare
 ): Promise<string | Response> {
