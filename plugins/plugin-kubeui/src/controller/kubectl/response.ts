@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import Models from '@kui-shell/core/api/models'
+import { ResourceWithMetadata } from '@kui-shell/core/api/models'
 
 export interface RawOutput {
   code: number
@@ -23,5 +23,5 @@ export interface RawOutput {
   wasSentToPty: boolean
 }
 
-export type RawResponse = Models.ResourceWithMetadata<RawOutput>
+export type RawResponse = ResourceWithMetadata<RawOutput>
 export default RawResponse
