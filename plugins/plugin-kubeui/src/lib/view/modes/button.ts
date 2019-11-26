@@ -26,41 +26,19 @@ interface BaseInfo {
   balloon?: string
 }
 
-type Renderer = (resource: KubeResource) => KubeResource
+export const renderButton = (mode: string) => (tab: Tab, resource: KubeResource) => {
+  const { kind, metadata } = resource
+  const namespace = metadata.namespace
 
-export const renderButton = async (tab: Tab, overrides: BaseInfo, fn: Renderer, args?): Promise<KubeResource> => {
-  const resource = args.resource || args
-  const { prettyType, kind = prettyType || '-f', metadata, name, resourceName, namespace: ns } = resource
-
-  const namespace = (metadata && metadata.namespace) || ns
-  const commandToExec = `kubectl ${overrides.mode} ${kind} ${resourceName || name || (metadata && metadata.name)} ${
-    namespace ? '-n ' + namespace : ''
-  }`
-  const response: KubeResource = await tab.REPL.qexec(
-    `confirm ${tab.REPL.encodeComponent(commandToExec)}`,
-    undefined,
-    undefined,
-    {
-      noStatus: !!fn,
-      tab
-    }
-  )
-  return fn ? fn(response) : response
+  return `kubectl ${mode} ${kind} ${metadata.name} ${namespace ? '-n ' + namespace : ''}`
 }
 
-const makeButton = (overrides: BaseInfo, fn?: Renderer) =>
-  Object.assign(
-    {},
-    {
-      direct: (tab: Tab, args) => renderButton(tab, overrides, fn, args),
-      echo: true,
-      noHistory: false,
-      replSilence: false,
-      balloonLength: 'medium',
-      actAsButton: true,
-      flush: 'right'
-    },
-    overrides
-  )
+const makeButton = (overrides: BaseInfo) => ({
+  mode: overrides.mode,
+  label: overrides.label,
+  kind: 'drilldown' as const,
+  command: renderButton(overrides.mode),
+  confirm: true
+})
 
 export default makeButton
