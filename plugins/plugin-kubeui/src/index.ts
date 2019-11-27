@@ -32,6 +32,8 @@ export {
   Resource
 } from './lib/model/resource'
 
+export { default as apiVersion } from './controller/kubectl/apiVersion'
+
 export { doExecWithPty, doExecWithStdout, doExecWithStatus, doExecWithTable } from './controller/kubectl/exec'
 
 export { doExecRaw } from './controller/kubectl/raw'
@@ -41,3 +43,5 @@ export { default as defaultFlags } from './controller/kubectl/flags'
 export { KubeOptions, getNamespace, getNamespaceForArgv } from './controller/kubectl/options'
 
 export { default as parseName } from './lib/util/name'
+
+export { formatTable, preprocessTable } from './lib/view/formatTable'

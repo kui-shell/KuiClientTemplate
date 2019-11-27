@@ -15,8 +15,8 @@
  */
 
 import { isHeadless, inBrowser } from '@kui-shell/core/api/capabilities'
-import Commands from '@kui-shell/core/api/commands'
-import Errors from '@kui-shell/core/api/errors'
+import { Arguments, KResponse } from '@kui-shell/core/api/commands'
+import { CodedError } from '@kui-shell/core/api/errors'
 import { i18n } from '@kui-shell/core/api/i18n'
 import { Table, MultiTable } from '@kui-shell/core/api/table-models'
 
@@ -31,16 +31,16 @@ import { stringToTable, KubeTableResponse } from '../../lib/view/formatTable'
 const strings = i18n('plugin-kubeui')
 
 /** Optional argument prepartion */
-export type Prepare<O extends KubeOptions> = (args: Commands.Arguments<O>) => string
+export type Prepare<O extends KubeOptions> = (args: Arguments<O>) => string
 
 /** No-op argument preparation */
-const NoPrepare = <O extends KubeOptions>(args: Commands.Arguments<O>) => args.command
+const NoPrepare = <O extends KubeOptions>(args: Arguments<O>) => args.command
 
 /** Special case preparation for status */
-export type PrepareForStatus<O extends KubeOptions> = (cmd: string, args: Commands.Arguments<O>) => string
+export type PrepareForStatus<O extends KubeOptions> = (cmd: string, args: Arguments<O>) => string
 
 /** Standard status preparation */
-function DefaultPrepareForStatus<O extends KubeOptions>(cmd: string, args: Commands.Arguments<O>) {
+function DefaultPrepareForStatus<O extends KubeOptions>(cmd: string, args: Arguments<O>) {
   const rest = args.argvNoOptions.slice(args.argvNoOptions.indexOf(cmd) + 1).join(' ')
   return `${args.parsedOptions.f || args.parsedOptions.filename || ''} ${rest}`
 }
@@ -52,7 +52,7 @@ function DefaultPrepareForStatus<O extends KubeOptions>(cmd: string, args: Comma
  *
  */
 function doExecWithoutPty<O extends KubeOptions>(
-  args: Commands.Arguments<O>,
+  args: Arguments<O>,
   prepare: Prepare<O> = NoPrepare
 ): Promise<RawResponse> {
   const command = prepare(args)
@@ -69,23 +69,22 @@ function doExecWithoutPty<O extends KubeOptions>(
  *
  */
 export function doExecWithStdout<O extends KubeOptions>(
-  args: Commands.Arguments<O>,
+  args: Arguments<O>,
   prepare: Prepare<O> = NoPrepare
 ): Promise<string> {
   return doExecWithoutPty(args, prepare).then(_ => _.content.stdout)
 }
 
 /** is the given string `str` the `kubectl` command? */
-const isKubectl = (args: Commands.Arguments<KubeOptions>) =>
+const isKubectl = (args: Arguments<KubeOptions>) =>
   (args.argvNoOptions.length === 1 && /^k(ubectl)?$/.test(args.argvNoOptions[0])) ||
   (args.argvNoOptions.length === 2 &&
     args.argvNoOptions[0] === commandPrefix &&
     /^k(ubectl)?$/.test(args.argvNoOptions[1]))
 
-const isUsage = (args: Commands.Arguments<KubeOptions>) =>
-  args.parsedOptions.help || args.parsedOptions.h || isKubectl(args)
+const isUsage = (args: Arguments<KubeOptions>) => args.parsedOptions.help || args.parsedOptions.h || isKubectl(args)
 
-function doHelp<O extends KubeOptions>(args: Commands.Arguments<O>, response: RawResponse): void {
+function doHelp<O extends KubeOptions>(args: Arguments<O>, response: RawResponse): void {
   const verb = args.argvNoOptions.length >= 2 ? args.argvNoOptions[1] : ''
   throw renderHelp(response.content.stdout, 'kubectl', verb, response.content.code)
 }
@@ -94,8 +93,8 @@ function doHelp<O extends KubeOptions>(args: Commands.Arguments<O>, response: Ra
  * Execute the given command using a pty
  *
  */
-export async function doExecWithPty<Response extends Commands.KResponse<any>, O extends KubeOptions>(
-  args: Commands.Arguments<O>,
+export async function doExecWithPty<Response extends KResponse<any>, O extends KubeOptions>(
+  args: Arguments<O>,
   prepare: Prepare<O> = NoPrepare
 ): Promise<string | Response> {
   if (isHeadless() || (!inBrowser() && args.execOptions.raw)) {
@@ -125,7 +124,7 @@ export async function doExecWithPty<Response extends Commands.KResponse<any>, O 
  *
  */
 export async function exec<O extends KubeOptions>(
-  args: Commands.Arguments<O>,
+  args: Arguments<O>,
   prepare: Prepare<O> = NoPrepare
 ): Promise<RawResponse> {
   if (args.argvNoOptions.includes('|')) {
@@ -153,7 +152,7 @@ export async function exec<O extends KubeOptions>(
  *
  */
 export async function doExecWithTable<O extends KubeOptions>(
-  args: Commands.Arguments<O>,
+  args: Arguments<O>,
   prepare: Prepare<O> = NoPrepare
 ): Promise<Table | MultiTable> {
   const response = await doExecWithoutPty(args, prepare)
@@ -176,11 +175,11 @@ export const doExecWithStatus = <O extends KubeOptions>(
   finalState: FinalState,
   prepareForExec: Prepare<O> = NoPrepare,
   prepareForStatus: PrepareForStatus<O> = DefaultPrepareForStatus
-) => async (args: Commands.Arguments<O>): Promise<KubeTableResponse> => {
+) => async (args: Arguments<O>): Promise<KubeTableResponse> => {
   const response = await exec<O>(args, prepareForExec)
 
   if (response.content.code !== 0) {
-    const err: Errors.CodedError = new Error(response.content.stderr)
+    const err: CodedError = new Error(response.content.stderr)
     err.code = response.content.code
     throw err
   } else if (isHeadless()) {

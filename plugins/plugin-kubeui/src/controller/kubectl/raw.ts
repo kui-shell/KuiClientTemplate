@@ -14,12 +14,13 @@
  * limitations under the License.
  */
 
-import * as Debug from 'debug'
+import Debug from 'debug'
 import { spawn } from 'child_process'
 
 import { inBrowser } from '@kui-shell/core/api/capabilities'
-import Commands from '@kui-shell/core/api/commands'
-import Errors from '@kui-shell/core/api/errors'
+import Commands, { ExecOptions, Registrar } from '@kui-shell/core/api/commands'
+
+import { CodedError } from '@kui-shell/core/api/errors'
 import { split } from '@kui-shell/core/api/repl-util'
 
 import flags from './flags'
@@ -32,7 +33,7 @@ const debug = Debug('plugin-kubeui/controller/kubectl/raw')
 interface Arguments {
   command: string
   argv: string[]
-  execOptions: Commands.ExecOptions
+  execOptions: ExecOptions.ExecOptions
 }
 
 const doRaw = (args: Arguments): Promise<RawResponse> =>
@@ -40,7 +41,8 @@ const doRaw = (args: Arguments): Promise<RawResponse> =>
     const env = Object.assign({}, !inBrowser() ? process.env : {}, args.execOptions.env)
     delete env.DEBUG
 
-    const child = spawn('kubectl', args.argv.slice(1), { env })
+    const executable = args.argv[0].replace(/^_/, '')
+    const child = spawn(executable, args.argv.slice(1), { env })
 
     // this is needed e.g. to handle ENOENT; otherwise the kui process may die with an uncaught exception
     child.on('error', (err: Error) => {
@@ -83,7 +85,7 @@ const doRaw = (args: Arguments): Promise<RawResponse> =>
         if (args.execOptions.failWithUsage) {
           reject(new Error(undefined))
         } else {
-          const error: Errors.CodedError = new Error(message)
+          const error: CodedError = new Error(message)
           error.statusCode = code
           error.code = codeForREPL
           reject(error)
@@ -103,12 +105,12 @@ const doRaw = (args: Arguments): Promise<RawResponse> =>
 
 export async function doExecRaw(
   command: string,
-  execOptions: Commands.ExecOptions = new Commands.DefaultExecOptions()
+  execOptions: ExecOptions.ExecOptions = new Commands.DefaultExecOptions()
 ): Promise<string> {
   return (await doRaw({ command, argv: split(command), execOptions })).content.stdout
 }
 
-export default async (commandTree: Commands.Registrar) => {
+export default async (commandTree: Registrar) => {
   commandTree.listen(
     `/${commandPrefix}/_kubectl`,
     doRaw,
