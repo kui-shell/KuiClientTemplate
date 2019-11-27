@@ -14,8 +14,8 @@
  * limitations under the License.
  */
 
-import Commands from '@kui-shell/core/api/commands'
-import Errors from '@kui-shell/core/api/errors'
+import { Arguments, Registrar } from '@kui-shell/core/api/commands'
+import { CodedError } from '@kui-shell/core/api/errors'
 import Tables from '@kui-shell/core/api/tables'
 import { Table } from '@kui-shell/core/api/table-models'
 
@@ -32,7 +32,7 @@ import { stringToTable, KubeTableResponse, isKubeTableResponse } from '../../lib
  * For now, we handle watch ourselves, so strip these options off the command line
  *
  */
-function prepareArgsForGet(args: Commands.Arguments<KubeOptions>) {
+function prepareArgsForGet(args: Arguments<KubeOptions>) {
   const stripThese = ['-w=true', '--watch=true', '--watch-only=true', '-w', '--watch', '--watch-only']
 
   const idx = args.command.indexOf(' get ') + ' get '.length
@@ -45,7 +45,7 @@ function prepareArgsForGet(args: Commands.Arguments<KubeOptions>) {
  * kubectl get as table response
  *
  */
-function doGetTable(args: Commands.Arguments<KubeOptions>, response: RawResponse): KubeTableResponse {
+function doGetTable(args: Arguments<KubeOptions>, response: RawResponse): KubeTableResponse {
   const {
     content: { stderr, stdout }
   } = response
@@ -71,7 +71,7 @@ function doGetTable(args: Commands.Arguments<KubeOptions>, response: RawResponse
  * nothing yet to display
  *
  */
-function doGetEmptyTable(args: Commands.Arguments<KubeOptions>): KubeTableResponse {
+function doGetEmptyTable(args: Arguments<KubeOptions>): KubeTableResponse {
   return Tables.formatWatchableTable(new Table({ body: [] }), {
     refreshCommand: args.command.replace(/--watch=true|-w=true|--watch-only=true|--watch|-w|--watch-only/g, ''),
     watchByDefault: true
@@ -82,7 +82,7 @@ function doGetEmptyTable(args: Commands.Arguments<KubeOptions>): KubeTableRespon
  * kubectl get as entity response
  *
  */
-export async function doGetEntity(args: Commands.Arguments<KubeOptions>, response: RawResponse): Promise<KubeResource> {
+export async function doGetEntity(args: Arguments<KubeOptions>, response: RawResponse): Promise<KubeResource> {
   try {
     // this is the raw data string we get from `kubectl`
     const data = response.content.stdout
@@ -111,7 +111,7 @@ export async function doGetEntity(args: Commands.Arguments<KubeOptions>, respons
  * kubectl get as custom response
  *
  */
-async function doGetCustom(args: Commands.Arguments<KubeOptions>, response: RawResponse): Promise<string> {
+async function doGetCustom(args: Arguments<KubeOptions>, response: RawResponse): Promise<string> {
   return response.content.stdout
 }
 
@@ -121,9 +121,9 @@ async function doGetCustom(args: Commands.Arguments<KubeOptions>, response: RawR
  * get-as-entity, or get-as-custom, depending on the `-o` flag.
  *
  */
-async function doGet(args: Commands.Arguments<KubeOptions>): Promise<string | KubeResource | KubeTableResponse> {
+async function doGet(args: Arguments<KubeOptions>): Promise<string | KubeResource | KubeTableResponse> {
   // first, we do the raw exec of the given command
-  const response = await exec(args, prepareArgsForGet).catch((err: Errors.CodedError) => {
+  const response = await exec(args, prepareArgsForGet).catch((err: CodedError) => {
     if (err.statusCode === 0 && err.code === 404 && isTableWatchRequest(args)) {
       // Notes:
       // err.statusCode === 0 means this was "normal error" (i.e. kubectl didn't bail)
@@ -150,7 +150,7 @@ async function doGet(args: Commands.Arguments<KubeOptions>): Promise<string | Ku
       // not yet anything to display
       return doGetEmptyTable(args)
     } else {
-      const err: Errors.CodedError = new Error(response.content.stderr)
+      const err: CodedError = new Error(response.content.stderr)
       err.code = response.content.code
       throw err
     }
@@ -168,7 +168,7 @@ async function doGet(args: Commands.Arguments<KubeOptions>): Promise<string | Ku
   }
 }
 
-export default (commandTree: Commands.Registrar) => {
+export default (commandTree: Registrar) => {
   commandTree.listen(`/${commandPrefix}/kubectl/get`, doGet, flags)
   commandTree.listen(`/${commandPrefix}/k/get`, doGet, flags)
 }
