@@ -24,7 +24,7 @@ jobs:
       script: npm run test k8s2
       env: STAGE=k8s2 MOCHA_RUN_TARGET=electron
     - stage: release
-      script: npm run build:electron:mac && npm run build:electron:linux && cd tools/release && npm ci && npm run release
+      script: npm install -g release-it@12.4.3 && release-it
       if: tag =~ /^v([0-9]{1,3}).([0-9]{1,3}).([0-9]{1,3})$/
 
 env:

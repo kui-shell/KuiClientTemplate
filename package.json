@@ -89,5 +89,19 @@
       "eslint --fix",
       "git add"
     ]
+  },
+  "release-it": {
+    "git": false,
+    "npm": false,
+    "github": {
+      "release": true,
+      "assets": [
+        "./dist/electron/Kui-darwin-x64.tar.bz2",
+        "./dist/electron/Kui-linux-x64.zip"
+      ]
+    },
+    "hooks": {
+      "before:init": "npm run build:electron:mac && npm run build:electron:linux"
+    }
   }
 }
