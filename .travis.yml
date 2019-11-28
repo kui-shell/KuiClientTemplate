@@ -15,7 +15,7 @@ install:
 jobs:
   include:
     - stage: test
-      script: npm run test k8s
+      script: echo "TAG------------------------ $TRAVIS_TAG"; npm run test k8s
       env: STAGE=k8s MOCHA_RUN_TARGET=electron
     - stage: test
       script: npm run test k8s1
@@ -25,7 +25,7 @@ jobs:
       env: STAGE=k8s2 MOCHA_RUN_TARGET=electron
     - stage: release
       script: npm run build:electron:mac && npm run build:electron:linux && cd tools/release && npm ci && npm run release
-      if: branch = master AND repo = kui-shell/plugin-kubeui AND tag =~ /^v([0-9]{1,3}).([0-9]{1,3}).([0-9]{1,3})$/
+      if: branch = master AND tag =~ /^v([0-9]{1,3}).([0-9]{1,3}).([0-9]{1,3})$/
 
 env:
   global:
