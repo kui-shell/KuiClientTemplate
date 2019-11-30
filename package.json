@@ -91,10 +91,17 @@
     ]
   },
   "release-it": {
-    "git": false,
-    "npm": false,
+    "git": {
+      "commit": false,
+      "tag": false,
+      "push": false
+    },
+    "npm": {
+      "publish": false
+    },
     "github": {
       "release": true,
+      "releaseNotes": "git log --pretty=format:\"* %s (%h)\" ${latestTag}...HEAD",
       "assets": [
         "./dist/electron/Kui-darwin-x64.tar.bz2",
         "./dist/electron/Kui-linux-x64.zip"
