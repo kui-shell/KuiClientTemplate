@@ -102,7 +102,7 @@
     },
     "github": {
       "release": true,
-      "releaseNotes": "git log --pretty=format:\"* %s (%h)\" ${latestTag}...HEAD",
+      "releaseNotes": "git log --pretty=format:\"* %s (%h)\" v${latestVersion}...HEAD",
       "assets": [
         "./dist/electron/Kui-darwin-x64.tar.bz2",
         "./dist/electron/Kui-linux-x64.zip"
