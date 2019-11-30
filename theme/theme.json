@@ -22,7 +22,7 @@
   "defaultTheme": "Dark",
   "defaultContext": ["kubeui"],
   "contentSecurityPolicy": "default-src * 'nonce-kuiDefaultNonce' 'unsafe-eval'; img-src * data:; style-src * 'unsafe-inline'; connect-src 'self'",
-  "about": [{ "mode": "contexts", "label": "Contexts", "direct": "about --mode contexts --content contexts" }],
+  "about": [{ "mode": "contexts", "label": "Contexts", "contentFrom": "about --mode contexts --content contexts" }],
   "themes": [
     {
       "name": "Light",

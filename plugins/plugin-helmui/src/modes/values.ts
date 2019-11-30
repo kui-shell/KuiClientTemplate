@@ -27,7 +27,7 @@ export default {
     content: (_, resource: HelmRelease) => {
       return {
         contentFrom: `helm get values ${resource.metadata.name}`,
-        contentType: 'json'
+        contentType: 'json' as const
       }
     }
   }

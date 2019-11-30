@@ -108,10 +108,9 @@ export const format = async (options: KubeOptions, response: string, execOptions
       }
     })
 
-  const tables = Array.isArray(resourcesOut) ? { tables: resourcesOut } : resourcesOut
   if (execOptions.nested) {
-    debug('returning tables for nested call', tables)
-    return tables
+    debug('returning tables for nested call', resourcesOut)
+    return resourcesOut
   } else {
     const result: MixedResponse = []
 
@@ -120,7 +119,11 @@ export const format = async (options: KubeOptions, response: string, execOptions
       result.push(await headerString)
     }
 
-    result.push(await tables)
+    if (Array.isArray(resourcesOut)) {
+      resourcesOut.forEach(_ => result.push(_))
+    } else {
+      result.push(resourcesOut)
+    }
 
     // helm status sometimes emits a "Notes" section after the tables
     if (notesString) {

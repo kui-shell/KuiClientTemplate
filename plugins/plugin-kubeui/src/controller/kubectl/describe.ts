@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import Commands from '@kui-shell/core/api/commands'
+import { Arguments, Registrar } from '@kui-shell/core/api/commands'
 
 import flags from './flags'
 import { exec } from './exec'
@@ -29,18 +29,18 @@ import { KubeOptions } from './options'
  * describe -> get
  *
  */
-function prepareArgsForDescribe(args: Commands.Arguments<KubeOptions>) {
+function prepareArgsForDescribe(args: Arguments<KubeOptions>) {
   return `${args.command.replace(/(k|kubectl)(\s+)describe(\s+)/, '$1$2get$3')} -o yaml`
 }
 
-async function doDescribe(args: Commands.Arguments<KubeOptions>): Promise<KubeResource> {
+async function doDescribe(args: Arguments<KubeOptions>): Promise<KubeResource> {
   // first, we do the raw exec of the given command
   const response = await exec(args, prepareArgsForDescribe)
 
   return doGetEntity(args, response)
 }
 
-export default (commandTree: Commands.Registrar) => {
-  commandTree.listen(`/${commandPrefix}/kubectl/describe`, doDescribe, flags)
-  commandTree.listen(`/${commandPrefix}/k/describe`, doDescribe, flags)
+export default (registrar: Registrar) => {
+  registrar.listen(`/${commandPrefix}/kubectl/describe`, doDescribe, flags)
+  registrar.listen(`/${commandPrefix}/k/describe`, doDescribe, flags)
 }

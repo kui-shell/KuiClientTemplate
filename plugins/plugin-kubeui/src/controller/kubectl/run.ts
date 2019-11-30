@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import Commands from '@kui-shell/core/api/commands'
+import { Arguments, Registrar } from '@kui-shell/core/api/commands'
 
 import flags from './flags'
 import { doExecWithStatus } from './exec'
@@ -27,14 +27,14 @@ import { FinalState } from '../../lib/model/states'
  * To get the status of a `run`, we look for the corresponding `deployment`
  *
  */
-function prepareArgsForStatus(cmd: string, args: Commands.Arguments<KubeOptions>) {
+function prepareArgsForStatus(cmd: string, args: Arguments<KubeOptions>) {
   const name = args.argvNoOptions[args.argvNoOptions.indexOf(cmd) + 1]
   return `deployment ${name}`
 }
 
-export default (commandTree: Commands.Registrar) => {
+export default (registrar: Registrar) => {
   const doRun = doExecWithStatus('run', FinalState.OnlineLike, undefined, prepareArgsForStatus)
 
-  commandTree.listen(`/${commandPrefix}/kubectl/run`, doRun, flags)
-  commandTree.listen(`/${commandPrefix}/k/run`, doRun, flags)
+  registrar.listen(`/${commandPrefix}/kubectl/run`, doRun, flags)
+  registrar.listen(`/${commandPrefix}/k/run`, doRun, flags)
 }

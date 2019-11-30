@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import Commands from '@kui-shell/core/api/commands'
+import { Arguments, Registrar } from '@kui-shell/core/api/commands'
 import { i18n } from '@kui-shell/core/api/i18n'
 import { MultiModalResponse } from '@kui-shell/core/api/ui-lite'
 
@@ -39,7 +39,7 @@ interface LogOptions extends KubeOptions {
  * don't fetch too many log entries
  *
  */
-function prepareArgs(args: Commands.Arguments<LogOptions>) {
+function prepareArgs(args: Arguments<LogOptions>) {
   //
   // the default log limit is... unlimited? let's make sure we don't
   // cause chaos here by requesting too many log lines
@@ -54,7 +54,7 @@ function prepareArgs(args: Commands.Arguments<LogOptions>) {
   return command
 }
 
-function prepareArgsForLogs(args: Commands.Arguments<LogOptions>) {
+function prepareArgsForLogs(args: Arguments<LogOptions>) {
   const prepared = prepareArgs(args)
   if (!args.parsedOptions.previous) {
     return prepared
@@ -62,7 +62,7 @@ function prepareArgsForLogs(args: Commands.Arguments<LogOptions>) {
     return prepared.replace(/--previous/, '')
   }
 }
-function prepareArgsForPrevious(args: Commands.Arguments<LogOptions>) {
+function prepareArgsForPrevious(args: Arguments<LogOptions>) {
   const prepared = prepareArgs(args)
   if (args.parsedOptions.previous) {
     return prepared
@@ -71,11 +71,11 @@ function prepareArgsForPrevious(args: Commands.Arguments<LogOptions>) {
   }
 }
 
-const getLogContent = (args: Commands.Arguments<LogOptions>, prepare: Prepare<LogOptions>) => {
+const getLogContent = (args: Arguments<LogOptions>, prepare: Prepare<LogOptions>) => {
   return doExecWithStdout(args, prepare)
 }
 
-async function doGetLogsAsMMR(args: Commands.Arguments<LogOptions>): Promise<MultiModalResponse> {
+async function doGetLogsAsMMR(args: Arguments<LogOptions>): Promise<MultiModalResponse> {
   const name = args.argvNoOptions[args.argvNoOptions.indexOf('logs') + 1]
   const namespace = getNamespace(args)
   const containerName = args.argvNoOptions[args.argvNoOptions.indexOf('logs') + 2]
@@ -131,9 +131,7 @@ async function doGetLogsAsMMR(args: Commands.Arguments<LogOptions>): Promise<Mul
   return response
 }
 
-function doLogs(
-  args: Commands.Arguments<LogOptions>
-): Promise<string | KubeResourceWithInvolvedObject | MultiModalResponse> {
+function doLogs(args: Arguments<LogOptions>): Promise<string | KubeResourceWithInvolvedObject | MultiModalResponse> {
   const streamed = args.parsedOptions.follow || args.parsedOptions.f
   const hasSelector = args.parsedOptions.selector || args.parsedOptions.l
   const resourePos = args.argvNoOptions[0] === commandPrefix ? 4 : 3
@@ -146,7 +144,7 @@ function doLogs(
   }
 }
 
-export default (commandTree: Commands.Registrar) => {
-  commandTree.listen(`/${commandPrefix}/kubectl/logs`, doLogs, flags)
-  commandTree.listen(`/${commandPrefix}/k/logs`, doLogs, flags)
+export default (registrar: Registrar) => {
+  registrar.listen(`/${commandPrefix}/kubectl/logs`, doLogs, flags)
+  registrar.listen(`/${commandPrefix}/k/logs`, doLogs, flags)
 }

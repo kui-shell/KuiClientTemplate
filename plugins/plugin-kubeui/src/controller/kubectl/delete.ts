@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import Commands from '@kui-shell/core/api/commands'
+import { Arguments, Registrar } from '@kui-shell/core/api/commands'
 
 import flags from './flags'
 import { KubeOptions } from './options'
@@ -29,7 +29,7 @@ import { FinalState } from '../../lib/model/states'
  * true
  *
  */
-function prepareArgsForDelete(args: Commands.Arguments<KubeOptions>) {
+function prepareArgsForDelete(args: Arguments<KubeOptions>) {
   if (!Object.prototype.hasOwnProperty.call(args.parsedOptions, 'wait')) {
     return args.command + ' --wait=false'
   } else {
@@ -37,9 +37,9 @@ function prepareArgsForDelete(args: Commands.Arguments<KubeOptions>) {
   }
 }
 
-export default (commandTree: Commands.Registrar) => {
+export default (registrar: Registrar) => {
   const doDelete = doExecWithStatus('delete', FinalState.OfflineLike, prepareArgsForDelete)
 
-  commandTree.listen(`/${commandPrefix}/kubectl/delete`, doDelete, flags)
-  commandTree.listen(`/${commandPrefix}/k/delete`, doDelete, flags)
+  registrar.listen(`/${commandPrefix}/kubectl/delete`, doDelete, flags)
+  registrar.listen(`/${commandPrefix}/k/delete`, doDelete, flags)
 }

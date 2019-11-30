@@ -15,10 +15,10 @@
  */
 
 import { isHeadless, inBrowser } from '@kui-shell/core/api/capabilities'
-import { Arguments, KResponse } from '@kui-shell/core/api/commands'
+import { Arguments, MixedResponse, KResponse } from '@kui-shell/core/api/commands'
 import { CodedError } from '@kui-shell/core/api/errors'
 import { i18n } from '@kui-shell/core/api/i18n'
-import { Table, MultiTable } from '@kui-shell/core/api/table-models'
+import { Table } from '@kui-shell/core/api/table-models'
 
 import RawResponse from './response'
 import commandPrefix from '../command-prefix'
@@ -154,7 +154,7 @@ export async function exec<O extends KubeOptions>(
 export async function doExecWithTable<O extends KubeOptions>(
   args: Arguments<O>,
   prepare: Prepare<O> = NoPrepare
-): Promise<Table | MultiTable> {
+): Promise<Table | MixedResponse> {
   const response = await doExecWithoutPty(args, prepare)
 
   const table = stringToTable(response.content.stdout, response.content.stderr, args)

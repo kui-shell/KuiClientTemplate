@@ -26,7 +26,7 @@ export default {
     label: strings('Notes'),
     content: (_, resource: HelmRelease) => ({
       contentFrom: `helm get notes ${resource.metadata.name}`,
-      contentType: 'text/markdown'
+      contentType: 'text/markdown' as const
     })
   }
 }

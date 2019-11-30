@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import Commands from '@kui-shell/core/api/commands'
+import { Registrar } from '@kui-shell/core/api/commands'
 
 import flags from './flags'
 import { doExecWithStatus } from './exec'
@@ -24,11 +24,11 @@ import { FinalState } from '../../lib/model/states'
 
 const verbs = ['create', 'apply']
 
-export default (commandTree: Commands.Registrar) => {
+export default (registrar: Registrar) => {
   verbs.forEach(verb => {
     const doCreate = doExecWithStatus(verb, FinalState.OnlineLike)
 
-    commandTree.listen(`/${commandPrefix}/kubectl/${verb}`, doCreate, flags)
-    commandTree.listen(`/${commandPrefix}/k/${verb}`, doCreate, flags)
+    registrar.listen(`/${commandPrefix}/kubectl/${verb}`, doCreate, flags)
+    registrar.listen(`/${commandPrefix}/k/${verb}`, doCreate, flags)
   })
 }
