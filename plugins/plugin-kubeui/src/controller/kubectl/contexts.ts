@@ -14,10 +14,10 @@
  * limitations under the License.
  */
 
-import Commands from '@kui-shell/core/api/commands'
+import { Arguments, ExecOptions, Registrar } from '@kui-shell/core/api/commands'
 import { i18n } from '@kui-shell/core/api/i18n'
 import Errors from '@kui-shell/core/api/errors'
-import { Table, MultiTable, isMultiTable } from '@kui-shell/core/api/table-models'
+import { Table } from '@kui-shell/core/api/table-models'
 
 import flags from './flags'
 import commandPrefix from '../command-prefix'
@@ -44,7 +44,7 @@ const usage = {
  * Add click handlers to change context
  *
  */
-const addClickHandlers = (table: Table, { REPL }: Commands.Arguments, execOptions: Commands.ExecOptions): Table => {
+const addClickHandlers = (table: Table, { REPL }: Arguments, execOptions: ExecOptions.ExecOptions): Table => {
   const body = table.body.map(row => {
     const nameAttr = row.attributes.find(({ key }) => key === 'NAME')
     const { value: contextName } = nameAttr
@@ -79,18 +79,11 @@ const addClickHandlers = (table: Table, { REPL }: Commands.Arguments, execOption
  * List contets command handler
  *
  */
-const listContexts = (args: Commands.Arguments): Promise<Table | MultiTable> => {
+const listContexts = (args: Arguments): Promise<Table> => {
   const execOptions = Object.assign({}, args.execOptions, { render: false })
 
-  return args.REPL.qexec<Table | MultiTable>(
-    `kubectl config get-contexts`,
-    undefined,
-    undefined,
-    execOptions
-  ).then((contexts: Table | MultiTable) =>
-    isMultiTable(contexts)
-      ? { tables: contexts.tables.map(context => addClickHandlers(context, args, execOptions)) }
-      : addClickHandlers(contexts, args, execOptions)
+  return args.REPL.qexec<Table>(`kubectl config get-contexts`, undefined, undefined, execOptions).then(contexts =>
+    addClickHandlers(contexts, args, execOptions)
   )
 }
 
@@ -98,7 +91,7 @@ const listContexts = (args: Commands.Arguments): Promise<Table | MultiTable> => 
  * Register the commands
  *
  */
-export default (commandTree: Commands.Registrar) => {
+export default (commandTree: Registrar) => {
   commandTree.listen(`/${commandPrefix}/kubectl/config/get-contexts`, doExecWithTable, flags)
 
   commandTree.listen(

@@ -14,9 +14,9 @@
  * limitations under the License.
  */
 
-import Commands from '@kui-shell/core/api/commands'
+import { Arguments, MixedResponse } from '@kui-shell/core/api/commands'
 import { encodeComponent } from '@kui-shell/core/api/repl-util'
-import { Table, MultiTable, Row, Cell, isTable, isMultiTable } from '@kui-shell/core/api/table-models'
+import { Table, Row, Cell, isTable } from '@kui-shell/core/api/table-models'
 
 import KubeOptions from '../../controller/kubectl/options'
 import { RawResponse } from '../../controller/kubectl/response'
@@ -292,10 +292,14 @@ export const formatTable = <O extends KubeOptions>(
   }
 }
 
-export type KubeTableResponse = Table | MultiTable | string
+export type KubeTableResponse = Table | MixedResponse | string
 
 export function isKubeTableResponse(response: KubeTableResponse | RawResponse): response is KubeTableResponse {
-  return typeof response === 'string' || isTable(response) || isMultiTable(response)
+  return (
+    typeof response === 'string' ||
+    isTable(response) ||
+    (Array.isArray(response) && response.length > 0 && isTable(response[0]))
+  )
 }
 
 /**
@@ -305,7 +309,7 @@ export function isKubeTableResponse(response: KubeTableResponse | RawResponse): 
 export const stringToTable = <O extends KubeOptions>(
   decodedResult: string,
   stderr: string,
-  args: Commands.Arguments<O>,
+  args: Arguments<O>,
   command?: string,
   verb?: string,
   entityType?: string
@@ -327,15 +331,13 @@ export const stringToTable = <O extends KubeOptions>(
       }
       return T
     } else {
-      return {
-        tables: preTables.map(preTable => {
-          const T = formatTable(command, verb, entityType, args.parsedOptions, preTable)
-          if (args.execOptions.filter) {
-            T.body = args.execOptions.filter(T.body)
-          }
-          return T
-        })
-      }
+      return preTables.map(preTable => {
+        const T = formatTable(command, verb, entityType, args.parsedOptions, preTable)
+        if (args.execOptions.filter) {
+          T.body = args.execOptions.filter(T.body)
+        }
+        return T
+      })
     }
   } else {
     // otherwise, display the raw output

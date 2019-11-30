@@ -26,7 +26,7 @@ export default {
     label: strings('Hooks'),
     content: (_, resource: HelmRelease) => ({
       contentFrom: `helm get hooks ${resource.metadata.name}`,
-      contentType: 'yaml'
+      contentType: 'yaml' as const
     })
   }
 }

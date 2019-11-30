@@ -17,7 +17,7 @@
 import { Arguments, Registrar } from '@kui-shell/core/api/commands'
 import { CodedError } from '@kui-shell/core/api/errors'
 import Tables from '@kui-shell/core/api/tables'
-import { Table } from '@kui-shell/core/api/table-models'
+import { Table, isTable } from '@kui-shell/core/api/table-models'
 
 import flags from './flags'
 import { exec } from './exec'
@@ -56,7 +56,7 @@ function doGetTable(args: Arguments<KubeOptions>, response: RawResponse): KubeTa
 
   const table = stringToTable(stdout, stderr, args, command, verb, entityType)
 
-  if (isWatchRequest(args) && typeof table !== 'string') {
+  if (isWatchRequest(args) && isTable(table)) {
     Tables.formatWatchableTable(table, {
       refreshCommand: args.command.replace(/--watch=true|-w=true|--watch-only=true|--watch|-w|--watch-only/g, ''),
       watchByDefault: true

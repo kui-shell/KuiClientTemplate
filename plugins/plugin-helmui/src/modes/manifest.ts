@@ -26,7 +26,7 @@ export default {
     label: strings('Manifest'),
     content: (_, resource: HelmRelease) => ({
       contentFrom: `helm get manifest ${resource.metadata.name}`,
-      contentType: 'yaml'
+      contentType: 'yaml' as const
     })
   }
 }

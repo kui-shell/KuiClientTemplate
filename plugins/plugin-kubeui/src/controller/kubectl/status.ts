@@ -18,8 +18,8 @@ import Debug from 'debug'
 import { join } from 'path'
 
 import { isHeadless } from '@kui-shell/core/api/capabilities'
-import Commands from '@kui-shell/core/api/commands'
-import Errors from '@kui-shell/core/api/errors'
+import { Arguments, ExecOptions, Registrar } from '@kui-shell/core/api/commands'
+import { CodedError } from '@kui-shell/core/api/errors'
 import Tables from '@kui-shell/core/api/tables'
 import Util from '@kui-shell/core/api/util'
 
@@ -129,8 +129,8 @@ const headerRow = (kind: string): Tables.Row => {
  * In case of an error fetching the status of an entity, return something...
  *
  */
-const errorEntity = (execOptions: Commands.ExecOptions, base: KubeResource, backupNamespace?: string) => (
-  err: Errors.CodedError
+const errorEntity = (execOptions: ExecOptions.ExecOptions, base: KubeResource, backupNamespace?: string) => (
+  err: CodedError
 ) => {
   debug('creating error entity', err.code, base, backupNamespace, err)
 
@@ -188,7 +188,7 @@ const getDirectReferences = (command: string) => async ({
   argvNoOptions,
   parsedOptions,
   REPL
-}: Commands.Arguments<FinalStateOptions>): Promise<{
+}: Arguments<FinalStateOptions>): Promise<{
   kind: string
   resource: Promise<void | KubeResource | KubeResource[]>
 }> => {
@@ -351,7 +351,7 @@ const getDirectReferences = (command: string) => async ({
  *
  */
 export const status = (command: string) => async (
-  args: Commands.Arguments<FinalStateOptions>
+  args: Arguments<FinalStateOptions>
 ): Promise<true | string | KubeResource | Tables.Table> => {
   const { kind, resource } = await getDirectReferences(command)(args)
   const direct = await resource
@@ -368,7 +368,7 @@ export const status = (command: string) => async (
   if (!direct && args.parsedOptions['final-state'] === FinalState.OfflineLike) {
     if (args.parsedOptions.watching) {
       // this is part of the watching loop
-      const error: Errors.CodedError = new Error(args.parsedOptions.response || '')
+      const error: CodedError = new Error(args.parsedOptions.response || '')
       error.code = 404
       throw error
     } else {
@@ -402,7 +402,7 @@ export const status = (command: string) => async (
  * Register the commands
  *
  */
-export default (commandTree: Commands.Registrar) => {
+export default (commandTree: Registrar) => {
   const opts = Object.assign(
     {
       usage: usage('status')
