@@ -94,7 +94,8 @@
     "git": {
       "commit": false,
       "tag": false,
-      "push": false
+      "push": false,
+      "requireUpstream": false
     },
     "npm": {
       "publish": false
