@@ -18,7 +18,7 @@ import Debug from 'debug'
 import { spawn } from 'child_process'
 
 import { inBrowser } from '@kui-shell/core/api/capabilities'
-import Commands, { ExecOptions, Registrar } from '@kui-shell/core/api/commands'
+import { ExecOptions, Registrar } from '@kui-shell/core/api/commands'
 
 import { CodedError } from '@kui-shell/core/api/errors'
 import { split } from '@kui-shell/core/api/repl-util'
@@ -103,10 +103,7 @@ const doRaw = (args: Arguments): Promise<RawResponse> =>
     })
   })
 
-export async function doExecRaw(
-  command: string,
-  execOptions: ExecOptions.ExecOptions = new Commands.DefaultExecOptions()
-): Promise<string> {
+export async function doExecRaw(command: string, execOptions: ExecOptions.ExecOptions): Promise<string> {
   return (await doRaw({ command, argv: split(command), execOptions })).content.stdout
 }
 

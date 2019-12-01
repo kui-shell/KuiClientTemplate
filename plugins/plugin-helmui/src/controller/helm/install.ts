@@ -15,27 +15,30 @@
  */
 
 import { Arguments, Registrar } from '@kui-shell/core/api/commands'
-import { doExecRaw, preprocessTable, formatTable, KubeOptions } from '@kui-shell/plugin-kubeui'
+import { doExecRaw } from '@kui-shell/plugin-kubeui'
 
 import { doHelp, isUsage } from './help'
 import commandPrefix from '../command-prefix'
 
-async function doList(args: Arguments<KubeOptions>) {
+const name = /^NAME:\s+([\w-]+)/
+
+async function doInstall(args: Arguments) {
   const response = await doExecRaw(args.command, args.execOptions)
+
   if (isUsage(args)) {
     doHelp(response)
+  } else {
+    const releaseName = response.match(name)[1]
+    return args.REPL.qexec(`helm get ${args.REPL.encodeComponent(releaseName)}`).catch(err => {
+      // oops, we tried to be clever and failed; return the original response
+      console.error('error in helm get for helm install', err)
+      return response
+    })
   }
-
-  const preTables = preprocessTable(response.split(/^(?=LAST SEEN|NAMESPACE|NAME\s+)/m))
-  return formatTable('helm', 'get', undefined, args.parsedOptions, preTables[0])
 }
 
 export default (registrar: Registrar) => {
-  registrar.listen(`/${commandPrefix}/helm/list`, doList, {
-    inBrowserOk: true
-  })
-
-  registrar.listen(`/${commandPrefix}/helm/ls`, doList, {
+  registrar.listen(`/${commandPrefix}/helm/install`, doInstall, {
     inBrowserOk: true
   })
 }

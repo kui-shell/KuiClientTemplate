@@ -135,7 +135,7 @@ export const format = async (options: KubeOptions, response: string, execOptions
 }
 
 async function doStatus({ command, parsedOptions, execOptions }: Arguments<KubeOptions>) {
-  const response = await doExecRaw(command)
+  const response = await doExecRaw(command, execOptions)
   return format(parsedOptions, response, execOptions)
 }
 
