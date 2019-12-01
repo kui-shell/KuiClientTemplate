@@ -20,22 +20,30 @@ import { doExecRaw } from '@kui-shell/plugin-kubeui'
 
 import apiVersion from './apiVersion'
 import commandPrefix from '../command-prefix'
+import { doHelpIfRequested } from './help'
 import { HelmRelease } from '../../models/release'
 
-async function doGet({ command, argvNoOptions }: Arguments): Promise<string | MultiModalResponse<HelmRelease>> {
+async function doGet(args: Arguments): Promise<string | MultiModalResponse<HelmRelease>> {
+  const { command, argvNoOptions } = args
+
   const projIdx = argvNoOptions.indexOf('get') + 1
   const releaseIdx = argvNoOptions.length - 1
   const projection = projIdx < releaseIdx ? argvNoOptions[projIdx] : undefined
   const releaseName = argvNoOptions[releaseIdx]
 
   const basic = /REVISION:\s+(\S+)[\n\r]+RELEASED:\s+([^\n\r]+)[\n\r]+CHART:\s+(\S+)/
-  const response = await doExecRaw(command)
+  const response = await doExecRaw(command, args.execOptions)
 
   if (projection) {
     return response
   }
 
   const match = response.match(basic)
+  if (!match) {
+    // then this isn't of the form we expected; return the raw response
+    return doHelpIfRequested(args, response)
+  }
+
   const revision = match[1]
   const creationTimestamp = match[2]
   const chart = match[3]

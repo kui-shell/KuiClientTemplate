@@ -45,3 +45,5 @@ export { KubeOptions, getNamespace, getNamespaceForArgv } from './controller/kub
 export { default as parseName } from './lib/util/name'
 
 export { formatTable, preprocessTable } from './lib/view/formatTable'
+
+export { renderHelp } from './lib/util/help'

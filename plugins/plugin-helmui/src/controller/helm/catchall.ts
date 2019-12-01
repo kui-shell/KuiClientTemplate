@@ -16,12 +16,13 @@
 
 import Capabilities from '@kui-shell/core/api/capabilities'
 import { Registrar } from '@kui-shell/core/api/commands'
+import { doExecRaw } from '@kui-shell/plugin-kubeui'
 
-import { doExecWithPty } from './exec'
+import { doHelpIfRequested } from './help'
 import commandPrefix from '../command-prefix'
 
-/** is the given string `str` the `kubectl` command? */
-const isKubectl = (str: string) => /^k(ubectl)?$/.test(str)
+/** is the given string `str` the `helm` command? */
+const isHelm = (str: string) => /^helm$/.test(str)
 
 export default (registrar: Registrar) => {
   if (Capabilities.inBrowser() && !Capabilities.hasProxy()) {
@@ -35,9 +36,11 @@ export default (registrar: Registrar) => {
   //
   registrar.catchall(
     (argv: string[]) => {
-      return isKubectl(argv[0]) || (argv[0] === commandPrefix && isKubectl(argv[1]))
+      return isHelm(argv[0]) || (argv[0] === commandPrefix && isHelm(argv[1]))
     },
-    doExecWithPty,
+    async args => {
+      return doHelpIfRequested(args, await doExecRaw(args.command, args.execOptions))
+    },
     1, // priority
     { inBrowserOk: true }
   )

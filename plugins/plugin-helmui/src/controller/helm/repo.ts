@@ -20,22 +20,22 @@ import { doExecRaw, preprocessTable, formatTable, KubeOptions } from '@kui-shell
 import { doHelp, isUsage } from './help'
 import commandPrefix from '../command-prefix'
 
-async function doList(args: Arguments<KubeOptions>) {
+async function doRepoList(args: Arguments<KubeOptions>) {
   const response = await doExecRaw(args.command, args.execOptions)
   if (isUsage(args)) {
     doHelp(response)
   }
 
   const preTables = preprocessTable(response.split(/^(?=LAST SEEN|NAMESPACE|NAME\s+)/m))
-  return formatTable('helm', 'get', undefined, args.parsedOptions, preTables[0])
+  return formatTable('helm', undefined, undefined, args.parsedOptions, preTables[0])
 }
 
 export default (registrar: Registrar) => {
-  registrar.listen(`/${commandPrefix}/helm/list`, doList, {
+  registrar.listen(`/${commandPrefix}/helm/repo/list`, doRepoList, {
     inBrowserOk: true
   })
 
-  registrar.listen(`/${commandPrefix}/helm/ls`, doList, {
+  registrar.listen(`/${commandPrefix}/helm/repo/ls`, doRepoList, {
     inBrowserOk: true
   })
 }

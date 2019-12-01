@@ -109,12 +109,17 @@ export async function doExecWithPty<Response extends KResponse<any>, O extends K
       doHelp(args, response)
     } else {
       const commandToPTY = args.command.replace(/^k(\s)/, 'kubectl$1')
-      return args.REPL.qexec(
+      return args.REPL.qexec<string | Response>(
         `sendtopty ${commandToPTY}`,
         args.block,
         undefined,
         Object.assign({}, args.execOptions, { rawResponse: true })
-      )
+      ).catch((err: CodedError) => {
+        if (err.code === 1) {
+          err.code = 500
+        }
+        throw err
+      })
     }
   }
 }
