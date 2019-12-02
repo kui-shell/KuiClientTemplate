@@ -15,13 +15,14 @@
  */
 
 import { Arguments, Registrar } from '@kui-shell/core/api/commands'
-import { doExecRaw, preprocessTable, formatTable, KubeOptions } from '@kui-shell/plugin-kubeui'
+import { preprocessTable, formatTable, KubeOptions } from '@kui-shell/plugin-kubeui'
 
+import doExecWithStdout from './exec'
 import { doHelp, isUsage } from './help'
 import commandPrefix from '../command-prefix'
 
 async function doSearch(args: Arguments<KubeOptions>) {
-  const response = await doExecRaw(args.command, args.execOptions)
+  const response = await doExecWithStdout(args)
   if (isUsage(args)) {
     doHelp(response)
   }

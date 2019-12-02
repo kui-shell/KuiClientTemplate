@@ -15,15 +15,16 @@
  */
 
 import { Arguments, Registrar } from '@kui-shell/core/api/commands'
-import { doExecRaw } from '@kui-shell/plugin-kubeui'
+import { KubeOptions } from '@kui-shell/plugin-kubeui'
 
+import doExecWithStdout from './exec'
 import { doHelp, isUsage } from './help'
 import commandPrefix from '../command-prefix'
 
 const name = /^NAME:\s+([\w-]+)/
 
-async function doInstall(args: Arguments) {
-  const response = await doExecRaw(args.command, args.execOptions)
+async function doInstall(args: Arguments<KubeOptions>) {
+  const response = await doExecWithStdout(args)
 
   if (isUsage(args)) {
     doHelp(response)

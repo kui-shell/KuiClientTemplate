@@ -15,9 +15,10 @@
  */
 
 import Capabilities from '@kui-shell/core/api/capabilities'
-import { Registrar } from '@kui-shell/core/api/commands'
-import { doExecRaw } from '@kui-shell/plugin-kubeui'
+import { Arguments, Registrar } from '@kui-shell/core/api/commands'
+import { KubeOptions } from '@kui-shell/plugin-kubeui'
 
+import doExecWithStdout from './exec'
 import { doHelpIfRequested } from './help'
 import commandPrefix from '../command-prefix'
 
@@ -38,8 +39,8 @@ export default (registrar: Registrar) => {
     (argv: string[]) => {
       return isHelm(argv[0]) || (argv[0] === commandPrefix && isHelm(argv[1]))
     },
-    async args => {
-      return doHelpIfRequested(args, await doExecRaw(args.command, args.execOptions))
+    async (args: Arguments<KubeOptions>) => {
+      return doHelpIfRequested(args, await doExecWithStdout(args))
     },
     1, // priority
     { inBrowserOk: true }

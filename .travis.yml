@@ -9,23 +9,28 @@ install:
   - ./tools/travis/microk8s.sh &
   - k8s=$!
   - npm ci
-  - if [ "$MOCHA_RUN_TARGET"] == "webpack" ]; then (npm run proxy &); (npm run webpack &); fi
+  - ./tools/travis/waitForWebpack.sh
   - wait $k8s
+
+# below, the various stages will define S and T
+script: npm run test:$T $S
 
 jobs:
   include:
     - stage: test
-      script: npm run test k8s
-      env: STAGE=k8s MOCHA_RUN_TARGET=electron
+      env: S=k8s T=electron
     - stage: test
-      script: npm run test k8s1
-      env: STAGE=k8s1 MOCHA_RUN_TARGET=electron
+      env: S=k8s1 T=electron
     - stage: test
-      script: npm run test k8s2
-      env: STAGE=k8s2 MOCHA_RUN_TARGET=electron
+      env: S=k8s1 T=webpack
     - stage: test
-      script: npm run test helm
-      env: STAGE=helm MOCHA_RUN_TARGET=electron NEEDS_HELM=true
+      env: S=k8s2 T=electron
+    - stage: test
+      env: S=k8s2 T=webpack
+    - stage: test
+      env: S=helm T=electron NEEDS_HELM=true
+    - stage: test
+      env: S=helm T=webpack NEEDS_HELM=true
     - stage: release
       script: npm install -g release-it@12.4.3 && release-it
       if: tag =~ /^v([0-9]{1,3}).([0-9]{1,3}).([0-9]{1,3})$/
@@ -37,3 +42,5 @@ env:
     - WINDOW_WIDTH=1400
     - WINDOW_HEIGHT=1050
     - PATH=bin:$PATH
+    - WEBPACK_POLL_INTERVAL=200000 # no need to poll for updates while testing
+    - CSP_ALLOWED_HOSTS="https://raw.githubusercontent.com http://localhost:8081 ws://localhost:8081 http://localhost:9953"

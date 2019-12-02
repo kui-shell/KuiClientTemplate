@@ -16,14 +16,15 @@
 
 import { Arguments, Registrar } from '@kui-shell/core/api/commands'
 import { MultiModalResponse } from '@kui-shell/core/api/ui-lite'
-import { doExecRaw } from '@kui-shell/plugin-kubeui'
+import { KubeOptions } from '@kui-shell/plugin-kubeui'
 
+import doExecWithStdout from './exec'
 import apiVersion from './apiVersion'
 import commandPrefix from '../command-prefix'
 import { doHelpIfRequested } from './help'
 import { HelmRelease } from '../../models/release'
 
-async function doGet(args: Arguments): Promise<string | MultiModalResponse<HelmRelease>> {
+async function doGet(args: Arguments<KubeOptions>): Promise<string | MultiModalResponse<HelmRelease>> {
   const { command, argvNoOptions } = args
 
   const projIdx = argvNoOptions.indexOf('get') + 1
@@ -32,7 +33,7 @@ async function doGet(args: Arguments): Promise<string | MultiModalResponse<HelmR
   const releaseName = argvNoOptions[releaseIdx]
 
   const basic = /REVISION:\s+(\S+)[\n\r]+RELEASED:\s+([^\n\r]+)[\n\r]+CHART:\s+(\S+)/
-  const response = await doExecRaw(command, args.execOptions)
+  const response = await doExecWithStdout(args)
 
   if (projection) {
     return response

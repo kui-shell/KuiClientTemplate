@@ -62,7 +62,7 @@ describe(`kubectl create hpa HorizontalPodAutoscaler ${process.env.MOCHA_RUN_TAR
           .then(SidecarExpect.mode(defaultModeForGet))
           .then(SidecarExpect.showing('travelapp-hpa'))
       } catch (err) {
-        return Common.oops(this)(err)
+        return Common.oops(this, true)(err)
       }
     })
 
@@ -74,7 +74,7 @@ describe(`kubectl create hpa HorizontalPodAutoscaler ${process.env.MOCHA_RUN_TAR
           })
         )
         .then(selector => waitForRed(this.app, selector))
-        .catch(Common.oops(this))
+        .catch(Common.oops(this, true))
     })
 
     deleteNS(this, ns)

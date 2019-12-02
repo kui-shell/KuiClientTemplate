@@ -53,14 +53,22 @@ function DefaultPrepareForStatus<O extends KubeOptions>(cmd: string, args: Argum
  */
 function doExecWithoutPty<O extends KubeOptions>(
   args: Arguments<O>,
-  prepare: Prepare<O> = NoPrepare
+  prepare: Prepare<O> = NoPrepare,
+  exec = 'kubectl'
 ): Promise<RawResponse> {
+  const raw = `_${exec}$1`
   const command = prepare(args)
-    .replace(/^kubectl(\s)?/, '_kubectl$1')
-    .replace(/^k(\s)?/, '_kubectl$1')
+    .replace(new RegExp(`^${exec}(\\s)?`), raw)
+    .replace(/^k(\s)?/, raw)
 
-  const doubleCheck = /_kubectl(\s)?/.test(command) ? command : `_kubectl ${command}`
-  return args.REPL.qexec<RawResponse>(doubleCheck, undefined, undefined, args.execOptions)
+  const dbl = new RegExp(`_${exec}(\\s)?`)
+  const doubleCheck = dbl.test(command) ? command : `_${exec} ${command}`
+  return args.REPL.qexec<RawResponse>(doubleCheck, undefined, undefined, args.execOptions).catch((err: CodedError) => {
+    if (err.code === 500 || err.statusCode === 500) {
+      err.code = err.statusCode = 500
+    }
+    throw err
+  })
 }
 
 /**
@@ -70,9 +78,10 @@ function doExecWithoutPty<O extends KubeOptions>(
  */
 export function doExecWithStdout<O extends KubeOptions>(
   args: Arguments<O>,
-  prepare: Prepare<O> = NoPrepare
+  prepare: Prepare<O> = NoPrepare,
+  exec?: string
 ): Promise<string> {
-  return doExecWithoutPty(args, prepare).then(_ => _.content.stdout)
+  return doExecWithoutPty(args, prepare, exec).then(_ => _.content.stdout)
 }
 
 /** is the given string `str` the `kubectl` command? */
@@ -115,8 +124,8 @@ export async function doExecWithPty<Response extends KResponse<any>, O extends K
         undefined,
         Object.assign({}, args.execOptions, { rawResponse: true })
       ).catch((err: CodedError) => {
-        if (err.code === 1) {
-          err.code = 500
+        if (err.code === 500 || err.statusCode === 500) {
+          err.code = err.statusCode = 500
         }
         throw err
       })

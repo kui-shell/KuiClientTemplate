@@ -15,7 +15,6 @@
  */
 
 import Debug from 'debug'
-
 import { Capabilities, Errors, Util } from '@kui-shell/core'
 
 const debug = Debug('k8s/util/fetch-file')
@@ -33,7 +32,7 @@ async function needle(method: 'get', url: string): Promise<{ statusCode: number;
       xhr.addEventListener('load', () => {
         resolve({
           statusCode: xhr.status,
-          body: xhr.response.response
+          body: typeof xhr.response === 'string' ? xhr.response : xhr.response.response
         })
       })
       xhr.send()
@@ -88,7 +87,7 @@ async function needle(method: 'get', url: string): Promise<{ statusCode: number;
  * Either fetch a remote file or read a local one
  *
  */
-export const fetchFile = (url: string): Promise<(string | Buffer)[]> => {
+export function fetchFile(url: string): Promise<(string | Buffer)[]> {
   debug('fetchFile', url)
 
   const urls = url.split(/,/)
@@ -127,6 +126,7 @@ export const fetchFile = (url: string): Promise<(string | Buffer)[]> => {
 }
 
 /** same as fetchFile, but returning a string rather than a Buffer */
-export const fetchFileString = (url: string): Promise<string[]> => {
-  return fetchFile(url).then(_ => _.map(_ => _.toString()))
+export async function fetchFileString(url: string): Promise<string[]> {
+  const files = await fetchFile(url)
+  return files.map(_ => _.toString())
 }

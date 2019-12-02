@@ -323,10 +323,9 @@ const getDirectReferences = (command: string) => async ({
       // handle !spec
       const passedAsParameter = !isURL && filepath.match(/\/(!.*$)/)
 
-      const { fetchFileString } = await import('../../lib/util/fetch-file')
       const specs: KubeResource[] = (passedAsParameter
         ? parseYAML(execOptions.parameters[passedAsParameter[1].slice(1)]) // yaml given programatically
-        : Util.flatten((await fetchFileString(file)).map(_ => parseYAML(_)))
+        : Util.flatten((await REPL.qexec<string[]>(`_fetchfile ${REPL.encodeComponent(file)}`)).map(_ => parseYAML(_)))
       ).filter(_ => _) // in case there are empty paragraphs;
       // debug('specs', specs)
 
@@ -402,7 +401,7 @@ export const status = (command: string) => async (
  * Register the commands
  *
  */
-export default (commandTree: Registrar) => {
+export default (registrar: Registrar) => {
   const opts = Object.assign(
     {
       usage: usage('status')
@@ -410,9 +409,7 @@ export default (commandTree: Registrar) => {
     flags(['watching'])
   )
 
-  commandTree.listen(`/${commandPrefix}/status`, status('status'), opts)
-
-  commandTree.listen(`/${commandPrefix}/kubectl/status`, status('status'), opts)
-
-  commandTree.listen(`/${commandPrefix}/k/status`, status('status'), opts)
+  registrar.listen(`/${commandPrefix}/status`, status('status'), opts)
+  registrar.listen(`/${commandPrefix}/kubectl/status`, status('status'), opts)
+  registrar.listen(`/${commandPrefix}/k/status`, status('status'), opts)
 }
