@@ -36,7 +36,7 @@ export { default as apiVersion } from './controller/kubectl/apiVersion'
 
 export { doExecWithPty, doExecWithStdout, doExecWithStatus, doExecWithTable } from './controller/kubectl/exec'
 
-export { doExecRaw } from './controller/kubectl/raw'
+export { doExecRaw, doNativeExec } from './controller/kubectl/raw'
 
 export { default as defaultFlags } from './controller/kubectl/flags'
 

@@ -36,7 +36,12 @@ interface Arguments {
   execOptions: ExecOptions.ExecOptions
 }
 
-const doRaw = (args: Arguments): Promise<RawResponse> =>
+/**
+ * This is the final bottoming out of the exec/spawn of the native
+ * executable.
+ *
+ */
+export const doNativeExec = (args: Arguments): Promise<RawResponse> =>
   new Promise((resolve, reject) => {
     const env = Object.assign({}, !inBrowser() ? process.env : {}, args.execOptions.env)
     delete env.DEBUG
@@ -46,7 +51,7 @@ const doRaw = (args: Arguments): Promise<RawResponse> =>
 
     // this is needed e.g. to handle ENOENT; otherwise the kui process may die with an uncaught exception
     child.on('error', (err: Error) => {
-      console.error('error spawning kubectl', err)
+      console.error(`error spawning ${executable}`, err)
       reject(err)
     })
 
@@ -103,14 +108,19 @@ const doRaw = (args: Arguments): Promise<RawResponse> =>
     })
   })
 
+/**
+ * A convenience wrapper over `doNativeExec` that extracts only
+ * stdout, and discards the exit code and stderr.
+ *
+ */
 export async function doExecRaw(command: string, execOptions: ExecOptions.ExecOptions): Promise<string> {
-  return (await doRaw({ command, argv: split(command), execOptions })).content.stdout
+  return (await doNativeExec({ command, argv: split(command), execOptions })).content.stdout
 }
 
-export default async (commandTree: Registrar) => {
-  commandTree.listen(
+export default async (registrar: Registrar) => {
+  registrar.listen(
     `/${commandPrefix}/_kubectl`,
-    doRaw,
+    doNativeExec,
     Object.assign({}, flags, { requiresLocal: true, inBrowserOk: false })
   )
 }

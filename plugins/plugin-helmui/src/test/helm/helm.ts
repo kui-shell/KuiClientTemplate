@@ -32,13 +32,13 @@ describe(`helm commands ${process.env.MOCHA_RUN_TARGET || ''}`, function(this: C
 
   it('should show 500 error for helm help --tls', () => {
     return CLI.command('helm help --tls', this.app)
-      .then(ReplExpect.error(1, 'Error: unknown flag: --tls'))
+      .then(ReplExpect.error(500, 'Error: unknown flag: --tls'))
       .catch(Common.oops(this, true))
   })
 
   it('should show 500 error for helm get', () => {
     return CLI.command('helm get', this.app)
-      .then(ReplExpect.error(1, 'Error: release name is required'))
+      .then(ReplExpect.error(500, 'Error: release name is required'))
       .catch(Common.oops(this, true))
   })
 
@@ -50,19 +50,19 @@ describe(`helm commands ${process.env.MOCHA_RUN_TARGET || ''}`, function(this: C
 
   it('should show 500 error for helm create', () => {
     return CLI.command('helm create', this.app)
-      .then(ReplExpect.error(1, 'Error:'))
+      .then(ReplExpect.error(500, 'Error:'))
       .catch(Common.oops(this, true))
   })
 
   it('should show 500 error for helm install', () => {
     return CLI.command('helm install', this.app)
-      .then(ReplExpect.error(1, 'Error:'))
+      .then(ReplExpect.error(500, 'Error:'))
       .catch(Common.oops(this, true))
   })
 
   it('should show 500 error for helm delete', () => {
     return CLI.command('helm delete', this.app)
-      .then(ReplExpect.error(1, 'Error:'))
+      .then(ReplExpect.error(500, 'Error:'))
       .catch(Common.oops(this, true))
   })
 

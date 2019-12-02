@@ -27,7 +27,7 @@ describe(`kubectl watch error handler ${process.env.MOCHA_RUN_TARGET}`, function
     it(`should error out when watching a non-existent ${resourceType}`, () => {
       return CLI.command(watchCmd, this.app)
         .then(ReplExpect.error(404, errorMessage))
-        .catch(Common.oops(this))
+        .catch(Common.oops(this, true))
     })
   }
 
@@ -35,7 +35,7 @@ describe(`kubectl watch error handler ${process.env.MOCHA_RUN_TARGET}`, function
     it(`should error out with wrong command ${watchCmd}`, () => {
       return CLI.command(watchCmd, this.app)
         .then(errMessage ? ReplExpect.error(code, errMessage) : ReplExpect.error(code))
-        .catch(Common.oops(this))
+        .catch(Common.oops(this, true))
     })
   }
 

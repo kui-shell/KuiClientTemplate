@@ -25,6 +25,7 @@ import logs from './controller/kubectl/logs'
 import status from './controller/kubectl/status'
 import raw from './controller/kubectl/raw'
 import run from './controller/kubectl/run'
+import fetchFile from './controller/fetch-file'
 import catchall from './controller/kubectl/catchall'
 
 export default async (registrar: Registrar) => {
@@ -37,5 +38,6 @@ export default async (registrar: Registrar) => {
   raw(registrar)
   run(registrar)
   status(registrar)
+  fetchFile(registrar)
   catchall(registrar)
 }

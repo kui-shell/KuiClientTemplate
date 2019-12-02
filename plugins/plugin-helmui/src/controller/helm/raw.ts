@@ -15,25 +15,14 @@
  */
 
 import { Registrar } from '@kui-shell/core/api/commands'
+import { doNativeExec, defaultFlags } from '@kui-shell/plugin-kubeui'
 
-import get from './controller/helm/get'
-import raw from './controller/helm/raw'
-import list from './controller/helm/list'
-import repo from './controller/helm/repo'
-import search from './controller/helm/search'
-import status from './controller/helm/status'
-import install from './controller/helm/install'
-import history from './controller/helm/history'
-import catchall from './controller/helm/catchall'
+import commandPrefix from '../command-prefix'
 
 export default async (registrar: Registrar) => {
-  get(registrar)
-  raw(registrar)
-  list(registrar)
-  repo(registrar)
-  search(registrar)
-  status(registrar)
-  install(registrar)
-  history(registrar)
-  catchall(registrar)
+  registrar.listen(
+    `/${commandPrefix}/_helm`,
+    doNativeExec,
+    Object.assign({}, defaultFlags, { requiresLocal: true, inBrowserOk: false })
+  )
 }

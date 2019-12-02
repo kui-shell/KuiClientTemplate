@@ -16,8 +16,9 @@
 
 import Debug from 'debug'
 import { Arguments, ExecOptions, MixedResponse, Registrar } from '@kui-shell/core/api/commands'
-import { doExecRaw, preprocessTable, formatTable, KubeOptions } from '@kui-shell/plugin-kubeui'
+import { preprocessTable, formatTable, KubeOptions } from '@kui-shell/plugin-kubeui'
 
+import doExecWithStdout from './exec'
 import commandPrefix from '../command-prefix'
 
 const debug = Debug('k8s/view/helm-status')
@@ -134,9 +135,9 @@ export const format = async (options: KubeOptions, response: string, execOptions
   }
 }
 
-async function doStatus({ command, parsedOptions, execOptions }: Arguments<KubeOptions>) {
-  const response = await doExecRaw(command, execOptions)
-  return format(parsedOptions, response, execOptions)
+async function doStatus(args: Arguments<KubeOptions>) {
+  const response = await doExecWithStdout(args)
+  return format(args.parsedOptions, response, args.execOptions)
 }
 
 export default (registrar: Registrar) => {
