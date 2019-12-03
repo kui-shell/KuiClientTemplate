@@ -20,17 +20,25 @@ jobs:
     - stage: test
       env: S=k8s T=electron
     - stage: test
-      env: S=k8s1 T=electron
+      env: S="k8s1" T=electron
     - stage: test
-      env: S=k8s1 T=webpack
+      env: S="k8s1" T=webpack
     - stage: test
-      env: S=k8s2 T=electron
+      env: S="k8s2" T=electron
     - stage: test
-      env: S=k8s2 T=webpack
+      env: S="k8s2" T=webpack
     - stage: test
-      env: S=helm T=electron NEEDS_HELM=true
+      env: S="k8s3" T=electron
     - stage: test
-      env: S=helm T=webpack NEEDS_HELM=true
+      env: S="k8s3" T=webpack
+    - stage: test
+      env: S="k8s4" T=electron
+    - stage: test
+      env: S="k8s4" T=webpack
+    - stage: test
+      env: S="helm" T=electron NEEDS_HELM=true
+    - stage: test
+      env: S="helm" T=webpack NEEDS_HELM=true
     - stage: release
       script: npm install -g release-it@12.4.3 && release-it
       if: tag =~ /^v([0-9]{1,3}).([0-9]{1,3}).([0-9]{1,3})$/
