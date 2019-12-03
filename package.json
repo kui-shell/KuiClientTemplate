@@ -24,6 +24,10 @@
     "postinstall": "npm run -s compile && npm run -s pty:electron",
     "start": "npm run -s postinstall && electron . shell"
   },
+  "engines": {
+    "node": ">=8.15.0",
+    "npm": ">=5.7.1"
+  },
   "repository": {
     "type": "git",
     "url": "git@github.com:kui-shell/plugin-kubeui.git"
