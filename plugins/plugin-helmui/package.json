@@ -26,7 +26,7 @@
   },
   "main": "dist/index.js",
   "dependencies": {
-    "@kui-shell/core": "5.5.7",
+    "@kui-shell/core": "5.5.8",
     "debug": "4.1.1"
   },
   "krew": {
