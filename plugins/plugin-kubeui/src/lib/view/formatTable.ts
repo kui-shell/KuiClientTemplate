@@ -95,15 +95,6 @@ interface Pair {
   value: string
 }
 
-const split = (str: string, splits: number[], headerCells?: string[]): Pair[] => {
-  return splits.map((splitIndex, idx) => {
-    return {
-      key: headerCells && headerCells[idx],
-      value: str.substring(splitIndex, splits[idx + 1] || str.length).trim()
-    }
-  })
-}
-
 /**
  * Replace tab characters with a sequence of whitespaces
  *
@@ -122,25 +113,34 @@ export const preprocessTable = (raw: string[]) => {
       .map(x => x && x.trim())
       .filter(x => x)
 
-    const columnStarts: number[] = []
-    for (let idx = 0, jdx = 0; idx < headerCells.length; idx++) {
-      const { offset, prefix } = idx === 0 ? { offset: 0, prefix: '' } : { offset: 1, prefix: ' ' }
-
-      const newJdx = header.indexOf(prefix + headerCells[idx] + ' ', jdx)
-      if (newJdx < 0) {
-        // last column
-        jdx = header.indexOf(' ' + headerCells[idx], jdx)
-      } else {
-        jdx = newJdx
-      }
-      columnStarts.push(jdx + offset)
-    }
-
     return table
       .split(/\n/)
       .filter(x => x)
       .map(detabbify)
-      .map(line => split(line, columnStarts, headerCells))
+      .map(line => {
+        const cells = line.split(/(\s\s)+\s?/).filter(x => !new RegExp(/\s\s/).test(x))
+
+        const columnStarts: number[] = []
+        for (let idx = 0, jdx = 0; idx < cells.length; idx++) {
+          const { offset, prefix } = idx === 0 ? { offset: 0, prefix: '' } : { offset: 1, prefix: ' ' }
+
+          const newJdx = line.indexOf(prefix + cells[idx] + ' ', jdx + 1)
+          if (newJdx < 0) {
+            // last column
+            jdx = line.indexOf(' ' + cells[idx], jdx)
+          } else {
+            jdx = newJdx
+          }
+          columnStarts.push(jdx + offset)
+        }
+
+        return columnStarts.map((splitIndex, idx) => {
+          return {
+            key: headerCells && headerCells[idx],
+            value: line.substring(splitIndex, columnStarts[idx + 1] || line.length).trim()
+          }
+        })
+      })
   })
 }
 

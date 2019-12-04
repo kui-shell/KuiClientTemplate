@@ -13,11 +13,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import { v4 as uuidgen } from 'uuid'
+import stripClean = require('strip-ansi')
 
-import { Arguments, Registrar } from '@kui-shell/core/api/commands'
+import Commands, { Arguments, Registrar } from '@kui-shell/core/api/commands'
 import { CodedError } from '@kui-shell/core/api/errors'
 import Tables from '@kui-shell/core/api/tables'
-import { Table, isTable } from '@kui-shell/core/api/table-models'
+import { Watchable } from '@kui-shell/core/api/models'
+import { Table, isTable, Row } from '@kui-shell/core/api/table-models'
+import { WatchableJob } from '@kui-shell/core/core/job'
+
+import { getSessionForTab } from '@kui-shell/plugin-bash-like'
 
 import flags from './flags'
 import { exec } from './exec'
@@ -42,6 +48,57 @@ function prepareArgsForGet(args: Arguments<KubeOptions>) {
 }
 
 /**
+ * register a watchable job
+ *
+ */
+const registerWatcher = (
+  rowKey: string,
+  refreshCommand: string,
+  offline: (rowKey: string) => void,
+  pendingPollers: Record<string, boolean>,
+  args: Commands.Arguments<KubeOptions>,
+  watchLimit = 100000
+) => {
+  let job: WatchableJob // eslint-disable-line prefer-const
+
+  // execute the refresh command and apply the result
+  const refreshTable = async () => {
+    console.error(`refresh with ${refreshCommand}`)
+    try {
+      await args.REPL.qexec<Table>(refreshCommand)
+    } catch (err) {
+      if (err.code === 404) {
+        offline(rowKey)
+        job.abort()
+        delete pendingPollers[rowKey]
+      } else {
+        job.abort()
+        throw err
+      }
+    }
+  }
+
+  // timer handler
+  const watchIt = () => {
+    if (--watchLimit < 0) {
+      console.error('watchLimit exceeded')
+      job.abort()
+    } else {
+      try {
+        Promise.resolve(refreshTable())
+      } catch (err) {
+        console.error('Error refreshing table', err)
+        job.abort()
+      }
+    }
+  }
+
+  // establish the inital watchable job
+  job = new WatchableJob(args.tab, watchIt, 500 + ~~(100 * Math.random()))
+  job.start()
+}
+
+/**
  * kubectl get as table response
  *
  */
@@ -56,11 +113,64 @@ function doGetTable(args: Arguments<KubeOptions>, response: RawResponse): KubeTa
 
   const table = stringToTable(stdout, stderr, args, command, verb, entityType)
 
-  if (isWatchRequest(args) && isTable(table)) {
-    Tables.formatWatchableTable(table, {
-      refreshCommand: args.command.replace(/--watch=true|-w=true|--watch-only=true|--watch|-w|--watch-only/g, ''),
-      watchByDefault: true
-    })
+  if (isWatchRequest(args) && typeof table !== 'string') {
+    const watch: Watchable = {
+      watch: {
+        init: async (update: (response: Row) => void, offline: (rowKey: string) => void) => {
+          const channel = await getSessionForTab(args.tab)
+          const uuid = uuidgen()
+          const cmdline = args.command
+            .replace(/^k(\s)/, 'kubectl$1')
+            .replace(/--watch=true|-w=true|--watch|-w/g, '--watch-only')
+
+          const msg = {
+            type: 'exec',
+            cmdline,
+            uuid,
+            cwd: process.env.PWD
+          }
+
+          console.error('delegating to websocket channel', msg)
+
+          channel.send(JSON.stringify(msg))
+
+          let pendingTable = ''
+          const pendingPollers: Record<string, boolean> = {}
+
+          const onMessage = (data: string) => {
+            const response: { uuid: string; data: string; type: string } = JSON.parse(data)
+
+            if (response.uuid === uuid && response.type === 'data' && response.data) {
+              const out = pendingTable + stripClean(response.data.toString())
+              const table = stringToTable(out, undefined, args, command, verb, entityType)
+
+              if (isTable(table) && table.body.length !== 0) {
+                pendingTable += stripClean(response.data.toString())
+
+                const row = table.body[table.body.length - 1]
+
+                // update the existing table
+                update(row)
+
+                // poll for the terminator
+                if (
+                  row.attributes.some(_ => _.value === 'Terminating') &&
+                  (!pendingPollers || !pendingPollers[row.name]) &&
+                  row.onclick
+                ) {
+                  pendingPollers[row.name] = true
+                  registerWatcher(row.name, row.onclick, offline, pendingPollers, args)
+                }
+              }
+            }
+          }
+
+          channel.on('message', onMessage)
+        }
+      }
+    }
+
+    return Object.assign({}, table, watch)
   }
 
   return table

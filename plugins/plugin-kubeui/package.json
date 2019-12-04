@@ -37,6 +37,7 @@
     "parse-duration": "0.1.1",
     "semver": "6.3.0",
     "tmp": "0.1.0",
+    "strip-ansi": "6.0.0",
     "uuid": "3.3.3"
   },
   "krew": {
