@@ -13,15 +13,15 @@
     "watch": "tsc --build . --watch",
     "webpack": "if [ -z \"$TRAVIS_JOB_ID\" ]; then npm ci && npm run -s pty:nodejs; fi; CSP_ALLOWED_HOSTS=\"https://raw.githubusercontent.com http://localhost:8081 ws://localhost:8081 http://localhost:9953\" kui-watch-webpack",
     "proxy": "if [ -z \"$TRAVIS_JOB_ID\" ]; then npm run -s pty:nodejs; fi; kui-run-proxy",
-    "pty:rebuild": "if [ -d node_modules/node-pty-prebuilt-multiarch ]; then cd node_modules/node-pty-prebuilt-multiarch && npm run install; fi",
-    "pty:electron": "if [ -d node_modules/node-pty-prebuilt-multiarch ]; then if [ ! -e node_modules/node-pty-prebuilt-multiarch/.npmrc ]; then cp node_modules/@kui-shell/builder/npmrc node_modules/node-pty-prebuilt-multiarch/.npmrc && npm run pty:rebuild; fi; fi",
-    "pty:nodejs": "if [ -e node_modules/node-pty-prebuilt-multiarch/.npmrc ]; then rm -f node_modules/node-pty-prebuilt-multiarch/.npmrc; npm run pty:rebuild; fi",
+    "pty:rebuild": "kui-pty-rebuild",
+    "pty:electron": "npm run pty:rebuild electron",
+    "pty:nodejs": "npm run pty:rebuild node",
     "test:electron": "KUI=$(echo \"$(pwd)/bin/kubectl-kui\") kui-test",
     "test:webpack": "KUI_USE_PROXY=true MOCHA_RUN_TARGET=webpack WEBPACK_CLIENT_URL=http://localhost:9080 kui-test",
     "test": "npm run -s test:electron",
     "lint": "eslint '**/*.{js,ts}'",
     "format": "prettier --write '**/*.{css,html,js,json,md,ts}'",
-    "postinstall": "npm run -s compile && npm run -s pty:electron",
+    "postinstall": "npm run -s compile && npm run pty:electron",
     "start": "npm run -s postinstall && electron . shell"
   },
   "engines": {
@@ -45,15 +45,15 @@
   ],
   "license": "Apache-2.0",
   "devDependencies": {
-    "@kui-shell/builder": "5.5.7",
-    "@kui-shell/core": "5.5.7",
-    "@kui-shell/plugin-bash-like": "5.5.7",
+    "@kui-shell/builder": "5.5.8",
+    "@kui-shell/core": "5.5.8",
+    "@kui-shell/plugin-bash-like": "5.5.8",
     "@kui-shell/plugin-core-support": "5.5.7",
-    "@kui-shell/plugin-editor": "5.5.7",
-    "@kui-shell/plugin-proxy-support": "5.5.7",
-    "@kui-shell/proxy": "5.5.7",
-    "@kui-shell/test": "5.5.7",
-    "@kui-shell/webpack": "5.5.7",
+    "@kui-shell/plugin-editor": "5.5.8",
+    "@kui-shell/plugin-proxy-support": "5.5.8",
+    "@kui-shell/proxy": "5.5.8",
+    "@kui-shell/test": "5.5.8",
+    "@kui-shell/webpack": "5.5.8",
     "@types/mocha": "5.2.7",
     "@types/node": "12.12.14",
     "@types/uuid": "3.4.6",
@@ -73,7 +73,7 @@
     "mocha": "6.2.2",
     "prettier": "1.19.1",
     "spectron": "8.0.0",
-    "typescript": "3.7.2"
+    "typescript": "3.7.3"
   },
   "dependencies": {
     "@kui-shell/plugin-kubeui": "file:plugins/plugin-kubeui",
@@ -114,7 +114,7 @@
       ]
     },
     "hooks": {
-      "before:init": "npm run build:electron:mac && npm run build:electron:linux"
+      "before:init": "npm run build:electron:all"
     }
   }
 }
