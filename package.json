@@ -110,7 +110,8 @@
       "releaseNotes": "git log --pretty=format:\"* %s (%h)\" v${latestVersion}...HEAD",
       "assets": [
         "./dist/electron/Kui-darwin-x64.tar.bz2",
-        "./dist/electron/Kui-linux-x64.zip"
+        "./dist/electron/Kui-linux-x64.zip",
+        "./dist/electron/Kui-win32-x64.zip"
       ]
     },
     "hooks": {
