@@ -16,8 +16,15 @@
 
 const uuid = require('uuid/v4')
 const assert = require('assert')
+const { dirname, join } = require('path')
 
 const { Common, CLI, ReplExpect, Selectors } = require('@kui-shell/test')
+const { makeCLI } = require('@kui-shell/core/tests/lib/headless')
+
+const ROOT = process.env.TEST_ROOT
+
+/** should contain kubectl-kui */
+const bindir = process.env.KUI ? dirname(process.env.KUI) : join(ROOT, '../../bin')
 
 /** the default tab we expect to see on "get" */
 exports.defaultModeForGet = 'summary'
@@ -193,3 +200,9 @@ exports.typeSlowly = async (app, txt) => {
   }
   await new Promise(resolve => setTimeout(resolve, 20))
 }
+
+/** kubectl kui impl */
+exports.kubectl = makeCLI('kubectl kui', bindir)
+
+/** kubectl kui --ui impl */
+// exports.kubectlElectron = make CLI('kubectl kui', bindir, true) // the last true requests teeToFile mode

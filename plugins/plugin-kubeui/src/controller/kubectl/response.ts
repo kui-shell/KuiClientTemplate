@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import { ResourceWithMetadata } from '@kui-shell/core/api/models'
+import { ResourceWithMetadata } from '@kui-shell/core'
 
 export interface RawOutput {
   code: number

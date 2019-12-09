@@ -85,3 +85,6 @@ declare function assertTableTitleMatches(self: Common.ISuite, tableSelector: str
  *
  */
 declare function typeSlowly(app: Application, txt: string): Promise<void>
+
+/** kubectl kui headless impl */
+declare var kubectl: headless

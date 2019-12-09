@@ -14,17 +14,15 @@
  * limitations under the License.
  */
 
-import Commands from '@kui-shell/core/api/commands'
-
+import { Tab, CommandLine } from '@kui-shell/core'
 import { registerTabCompletionEnumerator, TabCompletionSpec } from '@kui-shell/plugin-core-support'
 
 /**
  * Invoke an enumeration command and return the filtered list of matching strings
  *
  */
-async function getMatchingStrings(cmd: string, spec: TabCompletionSpec): Promise<string[]> {
-  const { REPL } = await import('@kui-shell/core/api/repl')
-  const completions: string = await REPL.qexec(cmd, undefined, undefined, { raw: true })
+async function getMatchingStrings(tab: Tab, cmd: string, spec: TabCompletionSpec): Promise<string[]> {
+  const completions: string = await tab.REPL.qexec(cmd, undefined, undefined, { raw: true })
   const list: string[] = completions.split(/[\n\r]/).map(_ => _.replace(/^\w+\//, ''))
 
   return list.filter(name => name.startsWith(spec.toBeCompleted))
@@ -34,7 +32,7 @@ async function getMatchingStrings(cmd: string, spec: TabCompletionSpec): Promise
  * Strip off the ParsedOptions in a way that lets us make an enumeration query safely
  *
  */
-function optionals(commandLine: Commands.CommandLine, filter: (key: string) => boolean = () => true) {
+function optionals(commandLine: CommandLine, filter: (key: string) => boolean = () => true) {
   const options = commandLine.parsedOptions
 
   return Object.keys(options)
@@ -48,7 +46,7 @@ function optionals(commandLine: Commands.CommandLine, filter: (key: string) => b
  * Tab completion of kube resource names
  *
  */
-async function completeResourceNames(commandLine: Commands.CommandLine, spec: TabCompletionSpec): Promise<string[]> {
+async function completeResourceNames(tab: Tab, commandLine: CommandLine, spec: TabCompletionSpec): Promise<string[]> {
   const { argvNoOptions, argv, parsedOptions } = commandLine
 
   // index of the arg just before the one to be completed
@@ -58,7 +56,7 @@ async function completeResourceNames(commandLine: Commands.CommandLine, spec: Ta
     // then we are being asked to complete a namespace
     //
     const cmd = `kubectl get ns ${optionals(commandLine, _ => _ !== '-n' && _ !== '--namespace')} -o name`
-    return getMatchingStrings(cmd, spec)
+    return getMatchingStrings(tab, cmd, spec)
   } else if (
     (argvNoOptions[0] === 'kubectl' || argvNoOptions[0] === 'k') &&
     (argvNoOptions[1] === 'get' ||
@@ -73,7 +71,7 @@ async function completeResourceNames(commandLine: Commands.CommandLine, spec: Ta
     const entityType = argvNoOptions[2]
 
     const cmd = `kubectl get ${entityType} ${optionals(commandLine)} -o name`
-    return getMatchingStrings(cmd, spec)
+    return getMatchingStrings(tab, cmd, spec)
   }
 }
 

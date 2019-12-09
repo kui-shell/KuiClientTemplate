@@ -14,9 +14,7 @@
  * limitations under the License.
  */
 
-import { Tab } from '@kui-shell/core/api/ui-lite'
-import { BadgeRegistration, ModeRegistration } from '@kui-shell/core/api/registrars'
-import { i18n } from '@kui-shell/core/api/i18n'
+import { i18n, Tab, BadgeRegistration, ModeRegistration } from '@kui-shell/core'
 
 import cssForValue from '../css-for-value'
 import { Event, isEvent, KubeResource, isCrudableKubeResource } from '../../model/resource'

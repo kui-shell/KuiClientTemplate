@@ -14,10 +14,10 @@
  * limitations under the License.
  */
 
-import { Commands } from '@kui-shell/core'
+import { Registrar } from '@kui-shell/core'
 
 import olm from './controller/olm'
 
-export default async (commandTree: Commands.Registrar) => {
-  return Promise.all([olm(commandTree)])
+export default async (registrar: Registrar) => {
+  return Promise.all([olm(registrar)])
 }

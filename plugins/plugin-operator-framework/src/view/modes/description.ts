@@ -16,8 +16,7 @@
 
 import * as marked from 'marked'
 
-import { Tab } from '@kui-shell/core/api/ui-lite'
-import { ModeRegistration } from '@kui-shell/core/api/registrars'
+import { Tab, ModeRegistration } from '@kui-shell/core'
 import { KubeResource } from '@kui-shell/plugin-kubeui'
 
 /**

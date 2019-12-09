@@ -25,8 +25,9 @@
     "url": "git+https://github.com/kui-shell/plugin-kubeui.git"
   },
   "main": "dist/index.js",
+  "module": "mdist/index.js",
   "dependencies": {
-    "@kui-shell/core": "5.5.9",
+    "@kui-shell/core": "5.6.4",
     "debug": "4.1.1"
   },
   "krew": {

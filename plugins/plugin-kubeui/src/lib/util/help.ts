@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import Errors from '@kui-shell/core/api/errors'
+import { UsageError } from '@kui-shell/core'
 
 /**
  * Some of the kubectl doc strings try to be polite have form
@@ -165,7 +165,7 @@ export const renderHelp = (out: string, command: string, verb: string, exitCode:
       .filter(x => x)
   )
 
-  return new Errors.UsageError({
+  return new UsageError({
     exitCode,
     usage: {
       commandPrefix: command, // for onclick handlers, e.g. when clicking on "get", we want to exec "kubectl get"

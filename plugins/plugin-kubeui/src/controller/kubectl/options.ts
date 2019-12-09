@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import { Arguments, ParsedOptions } from '@kui-shell/core/api/commands'
+import { Arguments, ParsedOptions } from '@kui-shell/core'
 
 type EntityFormat = 'yaml' | 'json'
 type TableFormat = 'wide' | string // want: 'custom-columns-file=' | 'custom-columns='

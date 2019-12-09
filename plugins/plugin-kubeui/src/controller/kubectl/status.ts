@@ -17,11 +17,18 @@
 import Debug from 'debug'
 import { join } from 'path'
 
-import { isHeadless } from '@kui-shell/core/api/capabilities'
-import { Arguments, ExecOptions, Registrar } from '@kui-shell/core/api/commands'
-import { CodedError } from '@kui-shell/core/api/errors'
-import Tables from '@kui-shell/core/api/tables'
-import Util from '@kui-shell/core/api/util'
+import {
+  CodedError,
+  isHeadless,
+  Arguments,
+  ExecOptions,
+  Registrar,
+  Table,
+  Row,
+  formatWatchableTable,
+  findFile,
+  flatten
+} from '@kui-shell/core'
 
 import { flags } from './flags'
 import Options from './options'
@@ -90,7 +97,7 @@ const usage = (command: string) => ({
  * Make a Tables.Row model for the status table
  *
  */
-const headerRow = (kind: string): Tables.Row => {
+const headerRow = (kind: string): Row => {
   debug('headerRow', kind)
 
   const kindAttr = [{ value: 'KIND', outerCSS: 'header-cell not-too-wide entity-kind' }]
@@ -129,9 +136,7 @@ const headerRow = (kind: string): Tables.Row => {
  * In case of an error fetching the status of an entity, return something...
  *
  */
-const errorEntity = (execOptions: ExecOptions.ExecOptions, base: KubeResource, backupNamespace?: string) => (
-  err: CodedError
-) => {
+const errorEntity = (execOptions: ExecOptions, base: KubeResource, backupNamespace?: string) => (err: CodedError) => {
   debug('creating error entity', err.code, base, backupNamespace, err)
 
   if (!base) {
@@ -253,7 +258,7 @@ const getDirectReferences = (command: string) => async ({
       return { kind, resource: Promise.resolve(kubeEntity) }
     }
   } else {
-    const filepath = Util.findFile(file)
+    const filepath = findFile(file)
     const isURL = file.match(/^http[s]?:\/\//)
     const isDir = isURL ? false : await isDirectory(filepath)
 
@@ -325,7 +330,7 @@ const getDirectReferences = (command: string) => async ({
 
       const specs: KubeResource[] = (passedAsParameter
         ? parseYAML(execOptions.parameters[passedAsParameter[1].slice(1)]) // yaml given programatically
-        : Util.flatten((await REPL.qexec<string[]>(`_fetchfile ${REPL.encodeComponent(file)}`)).map(_ => parseYAML(_)))
+        : flatten((await REPL.qexec<string[]>(`_fetchfile ${REPL.encodeComponent(file)}`)).map(_ => parseYAML(_)))
       ).filter(_ => _) // in case there are empty paragraphs;
       // debug('specs', specs)
 
@@ -351,7 +356,7 @@ const getDirectReferences = (command: string) => async ({
  */
 export const status = (command: string) => async (
   args: Arguments<FinalStateOptions>
-): Promise<true | string | KubeResource | Tables.Table> => {
+): Promise<true | string | KubeResource | Table> => {
   const { kind, resource } = await getDirectReferences(command)(args)
   const direct = await resource
   // debug('getDirectReferences', direct)
@@ -376,10 +381,10 @@ export const status = (command: string) => async (
   }
 
   const body = Array.isArray(direct)
-    ? await Promise.all(direct.map(formatEntity(args.parsedOptions)))
-    : [await formatEntity(args.parsedOptions)(direct)]
+    ? await Promise.all(direct.map(formatEntity(args.tab, args.parsedOptions)))
+    : [await formatEntity(args.tab, args.parsedOptions)(direct)]
 
-  const table = new Tables.Table({
+  const table = new Table({
     body,
     header: headerRow(kind),
     noSort: true
@@ -390,7 +395,7 @@ export const status = (command: string) => async (
     return table
   } else {
     const refreshCommand = `${args.command.replace('--watch', '').replace('-w', '')} --watching`
-    return Tables.formatWatchableTable(table, {
+    return formatWatchableTable(table, {
       refreshCommand,
       watchByDefault: true
     })

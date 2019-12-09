@@ -14,10 +14,7 @@
  * limitations under the License.
  */
 
-import { Tab } from '@kui-shell/core/api/ui-lite'
-import { ModeRegistration } from '@kui-shell/core/api/registrars'
-import { encodeComponent } from '@kui-shell/core/api/repl-util'
-import { i18n } from '@kui-shell/core/api/i18n'
+import { i18n, encodeComponent, Tab, ModeRegistration } from '@kui-shell/core'
 
 import { hasInvolvedObject, KubeResourceWithInvolvedObject } from '../../model/resource'
 

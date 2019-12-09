@@ -14,8 +14,7 @@
  * limitations under the License.
  */
 
-import Capabilities from '@kui-shell/core/api/capabilities'
-import { Arguments, Registrar } from '@kui-shell/core/api/commands'
+import { inBrowser, hasProxy, Arguments, Registrar } from '@kui-shell/core'
 import { KubeOptions } from '@kui-shell/plugin-kubeui'
 
 import doExecWithStdout from './exec'
@@ -26,7 +25,7 @@ import commandPrefix from '../command-prefix'
 const isHelm = (str: string) => /^helm$/.test(str)
 
 export default (registrar: Registrar) => {
-  if (Capabilities.inBrowser() && !Capabilities.hasProxy()) {
+  if (inBrowser() && !hasProxy()) {
     // skipping catchall registration: in browser and no remote proxy to support it
     return
   }

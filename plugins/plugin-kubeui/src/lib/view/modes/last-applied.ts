@@ -14,8 +14,7 @@
  * limitations under the License.
  */
 
-import { i18n } from '@kui-shell/core/api/i18n'
-import { Tab } from '@kui-shell/core/api/ui-lite'
+import { i18n, Tab } from '@kui-shell/core'
 
 import { KubeResource } from '../../model/resource'
 

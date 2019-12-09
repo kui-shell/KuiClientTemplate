@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import { Arguments, Registrar } from '@kui-shell/core/api/commands'
+import { Arguments, Registrar } from '@kui-shell/core'
 
 import flags from './flags'
 import { exec } from './exec'

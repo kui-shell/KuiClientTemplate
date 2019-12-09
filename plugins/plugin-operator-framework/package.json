@@ -20,6 +20,7 @@
     "operators"
   ],
   "main": "dist/index.js",
+  "module": "mdist/index.js",
   "dependencies": {
     "debug": "4.1.1",
     "marked": "0.7.0"

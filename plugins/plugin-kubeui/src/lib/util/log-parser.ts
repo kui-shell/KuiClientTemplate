@@ -16,8 +16,7 @@
 
 import Debug from 'debug'
 
-import Commands from '@kui-shell/core/api/commands'
-import { prettyPrintTime } from '@kui-shell/core/api/pretty-print'
+import { ExecOptions, withLanguage, prettyPrintTime } from '@kui-shell/core'
 
 const debug = Debug('k8s/util/log-parser')
 
@@ -347,7 +346,7 @@ const parseZapr = (raw: string): ZaprEntry[] => {
  */
 const parseCloudLens = <T extends OutputType, O extends Options<T>>(
   raw: string,
-  execOptions: Commands.ExecOptions,
+  execOptions: ExecOptions,
   options: O
 ): ZaprEntry[] => {
   const pattern = /^(?=[IEF][0-9]+)/m
@@ -365,7 +364,7 @@ const parseCloudLens = <T extends OutputType, O extends Options<T>>(
  * Parser for istio logs
  *
  */
-const parseIstio = (raw: string, execOptions: Commands.ExecOptions): ZaprEntry[] => {
+const parseIstio = (raw: string, execOptions: ExecOptions): ZaprEntry[] => {
   let prevTimestamp: string
 
   return raw
@@ -379,7 +378,7 @@ const parseIstio = (raw: string, execOptions: Commands.ExecOptions): ZaprEntry[]
 
         const zapr: ZaprEntry = {
           timestamp: timestamp
-            ? prettyPrintTime(timestamp, timestampFormat, prevTimestamp, Commands.withLanguage(execOptions))
+            ? prettyPrintTime(timestamp, timestampFormat, prevTimestamp, withLanguage(execOptions))
             : '',
           rawTimestamp: timestamp,
           logType,
@@ -434,8 +433,7 @@ const parseIstio = (raw: string, execOptions: Commands.ExecOptions): ZaprEntry[]
         const rest = (match && match[restIndex]) || line
 
         const zapr: ZaprEntry = {
-          timestamp:
-            timestamp && prettyPrintTime(timestamp, timestampFormat, prevTimestamp, Commands.withLanguage(execOptions)),
+          timestamp: timestamp && prettyPrintTime(timestamp, timestampFormat, prevTimestamp, withLanguage(execOptions)),
           rawTimestamp: timestamp,
           logType,
           provider,
@@ -477,14 +475,10 @@ const parseIstio = (raw: string, execOptions: Commands.ExecOptions): ZaprEntry[]
  * Format the kubectl access logs
  *
  */
-export const processLogs = (
-  raw: string,
-  execOptions: Commands.ExecOptions,
-  options: Output = new AsHTML()
-): ZaprEntry[] => {
+export const processLogs = (raw: string, execOptions: ExecOptions, options: Output = new AsHTML()): ZaprEntry[] => {
   return parseZapr(raw) || parseIstio(raw, execOptions) || parseCloudLens(raw, execOptions, options)
 }
 
-export function formatLogs(raw: string, execOptions: Commands.ExecOptions) {
+export function formatLogs(raw: string, execOptions: ExecOptions) {
   return new AsHTML().format(processLogs(raw, execOptions))
 }

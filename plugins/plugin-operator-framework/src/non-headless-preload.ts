@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import { PreloadRegistrar } from '@kui-shell/core/api/registrars'
+import { PreloadRegistrar } from '@kui-shell/core'
 
 import crds from './view/modes/crds'
 import packages from './view/modes/packages'

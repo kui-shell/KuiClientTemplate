@@ -16,7 +16,7 @@
 
 import Debug from 'debug'
 
-import eventBus from '@kui-shell/core/api/events'
+import { Tab, eventBus } from '@kui-shell/core'
 
 import { toOpenWhiskFQN } from '../util/util'
 import { FinalState, watchStatus, rendering as stateRendering } from '../model/states'
@@ -42,7 +42,7 @@ export const formatContextAttr = (context: string, extraCSS?: string) => {
  *
  */
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-export const formatEntity = (parsedOptions: Record<string, any>, context?: string) => async kubeEntity => {
+export const formatEntity = (tab: Tab, parsedOptions: Record<string, any>, context?: string) => async kubeEntity => {
   // debug('formatEntity', kubeEntity)
 
   if (!kubeEntity.metadata) {
@@ -110,7 +110,7 @@ export const formatEntity = (parsedOptions: Record<string, any>, context?: strin
           }
         ]
 
-  const status = await watchStatus(watch, finalState)
+  const status = await watchStatus(tab, watch, finalState)
 
   const statusAttrs = parsedOptions['no-status']
     ? []

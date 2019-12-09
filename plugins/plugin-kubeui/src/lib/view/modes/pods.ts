@@ -14,9 +14,7 @@
  * limitations under the License.
  */
 
-import { Tab } from '@kui-shell/core/api/ui-lite'
-import { ModeRegistration } from '@kui-shell/core/api/registrars'
-import { Table } from '@kui-shell/core/api/table-models'
+import { Tab, ModeRegistration, Table } from '@kui-shell/core'
 
 import { selectorToString } from '../../util/selectors'
 import { KubeResource } from '../../model/resource'

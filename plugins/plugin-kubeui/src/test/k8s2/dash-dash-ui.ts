@@ -15,7 +15,7 @@
  */
 
 import { Common } from '@kui-shell/test'
-import { cli as kui, kubectlElectron, kuiElectron, CLI } from '@kui-shell/core/tests/lib/headless'
+import { cli as kui, kuiElectron, CLI } from '@kui-shell/core/tests/lib/headless'
 import { createNS } from '@kui-shell/plugin-kubeui/tests/lib/k8s/utils'
 
 import { dirname } from 'path'
@@ -61,6 +61,6 @@ Common.localDescribe('k8s with electron via bin/kui', function(this: Common.ISui
   doTests(this, kuiElectron)
 })
 
-Common.localDescribe('k8s with electron via kubectl kui', function(this: Common.ISuite) {
+/* Common.localDescribe('k8s with electron via kubectl kui', function(this: Common.ISuite) {
   doTests(this, kubectlElectron)
-})
+}) */

@@ -1,0 +1,8 @@
+{
+  "extends": "./node_modules/@kui-shell/builder/tsconfig-base.json",
+  "references": [
+    { "path": "./plugins/plugin-kubeui/tsconfig-es6.json" },
+    { "path": "./plugins/plugin-helmui/tsconfig-es6.json" },
+    { "path": "./plugins/plugin-operator-framework/tsconfig-es6.json" }
+  ]
+}

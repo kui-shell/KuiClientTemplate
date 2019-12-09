@@ -14,23 +14,20 @@
  * limitations under the License.
  */
 
-import { Table } from '@kui-shell/core/api/table-models'
+import { Table } from '@kui-shell/core'
 
 /**
  * Turn a one-row Table into a Map
  *
  */
 export default function toMap(table: Table): Record<string, string> {
-  return table.body.reduce(
-    (map, row) => {
-      map[row.key] = row.name
+  return table.body.reduce((map, row) => {
+    map[row.key] = row.name
 
-      row.attributes.forEach(({ key, value }) => {
-        map[key] = value
-      })
+    row.attributes.forEach(({ key, value }) => {
+      map[key] = value
+    })
 
-      return map
-    },
-    {} as Record<string, string>
-  )
+    return map
+  }, {} as Record<string, string>)
 }

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import { ResourceWithMetadata } from '@kui-shell/core/api/models'
+import { ResourceWithMetadata } from '@kui-shell/core'
 import { KubeResourceWithSummary } from '@kui-shell/plugin-kubeui'
 
 import apiVersion from '../controller/helm/apiVersion'
