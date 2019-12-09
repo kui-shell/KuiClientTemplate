@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import { i18n } from '@kui-shell/core/api/i18n'
+import { i18n } from '@kui-shell/core'
 import { HelmRelease, isHelmRelease } from '../models/release'
 
 const strings = i18n('plugin-helmui')

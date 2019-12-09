@@ -14,11 +14,7 @@
  * limitations under the License.
  */
 
-import { isHeadless, inBrowser } from '@kui-shell/core/api/capabilities'
-import { Arguments, MixedResponse, KResponse } from '@kui-shell/core/api/commands'
-import { CodedError } from '@kui-shell/core/api/errors'
-import { i18n } from '@kui-shell/core/api/i18n'
-import { Table } from '@kui-shell/core/api/table-models'
+import { CodedError, i18n, Table, isHeadless, inBrowser, Arguments, MixedResponse, KResponse } from '@kui-shell/core'
 
 import RawResponse from './response'
 import commandPrefix from '../command-prefix'
@@ -102,10 +98,11 @@ function doHelp<O extends KubeOptions>(args: Arguments<O>, response: RawResponse
  * Execute the given command using a pty
  *
  */
-export async function doExecWithPty<Response extends KResponse<any>, O extends KubeOptions>(
-  args: Arguments<O>,
-  prepare: Prepare<O> = NoPrepare
-): Promise<string | Response> {
+export async function doExecWithPty<
+  Content = void,
+  Response extends KResponse<Content> = KResponse<Content>,
+  O extends KubeOptions = KubeOptions
+>(args: Arguments<O>, prepare: Prepare<O> = NoPrepare): Promise<string | Response> {
   if (isHeadless() || (!inBrowser() && args.execOptions.raw)) {
     return doExecWithStdout(args, prepare)
   } else {

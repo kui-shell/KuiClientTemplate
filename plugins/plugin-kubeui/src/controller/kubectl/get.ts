@@ -14,10 +14,7 @@
  * limitations under the License.
  */
 
-import { Arguments, Registrar } from '@kui-shell/core/api/commands'
-import { CodedError } from '@kui-shell/core/api/errors'
-import Tables from '@kui-shell/core/api/tables'
-import { Table, isTable } from '@kui-shell/core/api/table-models'
+import { Table, isTable, CodedError, Arguments, Registrar, formatWatchableTable } from '@kui-shell/core'
 
 import flags from './flags'
 import { exec } from './exec'
@@ -57,7 +54,7 @@ function doGetTable(args: Arguments<KubeOptions>, response: RawResponse): KubeTa
   const table = stringToTable(stdout, stderr, args, command, verb, entityType)
 
   if (isWatchRequest(args) && isTable(table)) {
-    Tables.formatWatchableTable(table, {
+    formatWatchableTable(table, {
       refreshCommand: args.command.replace(/--watch=true|-w=true|--watch-only=true|--watch|-w|--watch-only/g, ''),
       watchByDefault: true
     })
@@ -72,7 +69,7 @@ function doGetTable(args: Arguments<KubeOptions>, response: RawResponse): KubeTa
  *
  */
 function doGetEmptyTable(args: Arguments<KubeOptions>): KubeTableResponse {
-  return Tables.formatWatchableTable(new Table({ body: [] }), {
+  return formatWatchableTable(new Table({ body: [] }), {
     refreshCommand: args.command.replace(/--watch=true|-w=true|--watch-only=true|--watch|-w|--watch-only/g, ''),
     watchByDefault: true
   })

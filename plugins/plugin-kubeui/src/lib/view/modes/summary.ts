@@ -14,10 +14,7 @@
  * limitations under the License.
  */
 
-import { i18n } from '@kui-shell/core/api/i18n'
-import { Tab } from '@kui-shell/core/api/ui-lite'
-import { Table } from '@kui-shell/core/api/table-models'
-import { ModeRegistration } from '@kui-shell/core/api/registrars'
+import { i18n, Tab, Table, ModeRegistration } from '@kui-shell/core'
 
 import toMap from './table-to-map'
 import { KubeResource, isKubeResource, isKubeResourceWithItsOwnSummary } from '../../model/resource'

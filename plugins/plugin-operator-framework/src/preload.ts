@@ -14,8 +14,7 @@
  * limitations under the License.
  */
 
-import { PreloadRegistrar } from '@kui-shell/core/api/registrars'
-import { isHeadless } from '@kui-shell/core/api/capabilities'
+import { isHeadless, PreloadRegistrar } from '@kui-shell/core'
 
 /**
  * This is the module

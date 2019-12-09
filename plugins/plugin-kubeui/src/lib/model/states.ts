@@ -16,10 +16,10 @@
 
 import Debug from 'debug'
 
+import { Tab, encodeComponent } from '@kui-shell/core'
+
 import { KubeResource, KubeStatus } from './resource'
 import { maybeAsDate, TryLaterError } from '../util/util'
-
-import { encodeComponent } from '@kui-shell/core/api/repl-util'
 
 const debug = Debug('k8s/states')
 
@@ -277,6 +277,7 @@ const getStatusOfDeployment = (kubeEntity: KubeResource, desiredFinalState: Fina
  *
  */
 const getStatus = async (
+  tab: Tab,
   desiredFinalState: FinalState,
   apiVersion: string,
   kind: string,
@@ -289,8 +290,7 @@ const getStatus = async (
       namespace
     )} -o json`
     // debug('getStatus', cmd);
-    const { REPL } = await import('@kui-shell/core/api/repl')
-    const response = await REPL.qexec<KubeResource>(cmd, undefined, undefined, { raw: true })
+    const response = await tab.REPL.qexec<KubeResource>(cmd, undefined, undefined, { raw: true })
 
     if (
       !response.status || // resource does not define a status; consider it Online
@@ -387,7 +387,7 @@ interface Watch {
  * Watch a resource for its deployment status
  *
  */
-export const watchStatus = async (watch: Watch, finalStateStr: string | FinalState, count = 120) => {
+export const watchStatus = async (tab: Tab, watch: Watch, finalStateStr: string | FinalState, count = 120) => {
   const finalState: FinalState = typeof finalStateStr === 'string' ? FinalState[finalStateStr] : finalStateStr
 
   const { kind, name, namespace, context } = watch
@@ -396,7 +396,7 @@ export const watchStatus = async (watch: Watch, finalStateStr: string | FinalSta
   try {
     // const [ status, detail ] = await Promise.all([
     const [status] = await Promise.all([
-      getStatus(finalState, watch.apiVersion, kind, name, namespace, context)
+      getStatus(tab, finalState, watch.apiVersion, kind, name, namespace, context)
       // type !== 'unknown' ? getOpenWhiskStatus(type, fqn) : undefined
     ])
     // debug('watchStatus status', type, status, /*detail,*/ kind, name);

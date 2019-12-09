@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import { PreloadRegistrar } from '@kui-shell/core/api/registrars'
+import { PreloadRegistrar } from '@kui-shell/core'
 
 import hooks from './modes/hooks'
 import manifest from './modes/manifest'

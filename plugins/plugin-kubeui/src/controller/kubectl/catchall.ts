@@ -14,8 +14,7 @@
  * limitations under the License.
  */
 
-import Capabilities from '@kui-shell/core/api/capabilities'
-import { Registrar } from '@kui-shell/core/api/commands'
+import { inBrowser, hasProxy, Registrar } from '@kui-shell/core'
 
 import { doExecWithPty } from './exec'
 import commandPrefix from '../command-prefix'
@@ -24,7 +23,7 @@ import commandPrefix from '../command-prefix'
 const isKubectl = (str: string) => /^k(ubectl)?$/.test(str)
 
 export default (registrar: Registrar) => {
-  if (Capabilities.inBrowser() && !Capabilities.hasProxy()) {
+  if (inBrowser() && !hasProxy()) {
     // skipping catchall registration: in browser and no remote proxy to support it
     return
   }

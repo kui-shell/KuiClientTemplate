@@ -16,11 +16,7 @@
 
 import Debug from 'debug'
 
-import { Tab } from '@kui-shell/core/api/ui-lite'
-import { ModeRegistration } from '@kui-shell/core/api/registrars'
-import { Row, Table } from '@kui-shell/core/api/table-models'
-import { i18n } from '@kui-shell/core/api/i18n'
-import { encodeComponent } from '@kui-shell/core/api/repl-util'
+import { encodeComponent, i18n, Tab, Row, Table, ModeRegistration } from '@kui-shell/core'
 
 import { KubeResource } from '../../model/resource'
 import { TrafficLight } from '../../model/states'

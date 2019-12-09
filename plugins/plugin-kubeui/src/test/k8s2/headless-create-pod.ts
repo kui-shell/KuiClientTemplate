@@ -15,8 +15,8 @@
  */
 
 import { Common } from '@kui-shell/test'
-import { kubectl, CLI } from '@kui-shell/core/tests/lib/headless'
-import { createNS, waitTillNone } from '@kui-shell/plugin-kubeui/tests/lib/k8s/utils'
+import { CLI } from '@kui-shell/core/tests/lib/headless'
+import { kubectl, createNS, waitTillNone } from '@kui-shell/plugin-kubeui/tests/lib/k8s/utils'
 
 import { dirname } from 'path'
 const ROOT = dirname(require.resolve('@kui-shell/plugin-kubeui/tests/package.json'))

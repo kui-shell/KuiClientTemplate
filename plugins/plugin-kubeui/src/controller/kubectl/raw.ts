@@ -17,11 +17,7 @@
 import Debug from 'debug'
 import { spawn } from 'child_process'
 
-import { inBrowser } from '@kui-shell/core/api/capabilities'
-import { ExecOptions, Registrar } from '@kui-shell/core/api/commands'
-
-import { CodedError } from '@kui-shell/core/api/errors'
-import { split } from '@kui-shell/core/api/repl-util'
+import { split, CodedError, inBrowser, ExecOptions, Registrar } from '@kui-shell/core'
 
 import flags from './flags'
 import RawResponse from './response'
@@ -33,7 +29,7 @@ const debug = Debug('plugin-kubeui/controller/kubectl/raw')
 interface Arguments {
   command: string
   argv: string[]
-  execOptions: ExecOptions.ExecOptions
+  execOptions: ExecOptions
 }
 
 /**
@@ -113,7 +109,7 @@ export const doNativeExec = (args: Arguments): Promise<RawResponse> =>
  * stdout, and discards the exit code and stderr.
  *
  */
-export async function doExecRaw(command: string, execOptions: ExecOptions.ExecOptions): Promise<string> {
+export async function doExecRaw(command: string, execOptions: ExecOptions): Promise<string> {
   return (await doNativeExec({ command, argv: split(command), execOptions })).content.stdout
 }
 

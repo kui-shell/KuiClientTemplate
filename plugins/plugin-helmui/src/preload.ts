@@ -18,14 +18,13 @@ import Debug from 'debug'
 const debug = Debug('plugins/kubeui/preload')
 debug('loading')
 
-import { Capabilities, isHeadless } from '@kui-shell/core/api/capabilities'
-import { PreloadRegistrar } from '@kui-shell/core/api/registrars'
+import { PreloadRegistrar, isHeadless } from '@kui-shell/core'
 
 /**
  * This is the capabilities registraion
  *
  */
-export const registerCapability: Capabilities.Registration = async () => {}
+// export const registerCapability: CapabilityRegistration = async () => {}
 
 /**
  * This is the module

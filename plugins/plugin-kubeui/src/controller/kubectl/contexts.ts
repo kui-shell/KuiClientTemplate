@@ -14,10 +14,7 @@
  * limitations under the License.
  */
 
-import { Arguments, ExecOptions, Registrar } from '@kui-shell/core/api/commands'
-import { i18n } from '@kui-shell/core/api/i18n'
-import Errors from '@kui-shell/core/api/errors'
-import { Table } from '@kui-shell/core/api/table-models'
+import { i18n, Table, Arguments, ExecOptions, Registrar, UsageModel } from '@kui-shell/core'
 
 import flags from './flags'
 import commandPrefix from '../command-prefix'
@@ -26,13 +23,13 @@ import { doExecWithTable } from './exec'
 const strings = i18n('plugin-kubeui')
 
 const usage = {
-  context: (command: string): Errors.UsageModel => ({
+  context: (command: string): UsageModel => ({
     command,
     strict: command,
     docs: 'Print your current kubernetes context',
     example: 'kubectl context'
   }),
-  contexts: (command: string): Errors.UsageModel => ({
+  contexts: (command: string): UsageModel => ({
     command,
     strict: command,
     docs: 'List your available kubernetes contexts',
@@ -44,7 +41,7 @@ const usage = {
  * Add click handlers to change context
  *
  */
-const addClickHandlers = (table: Table, { REPL }: Arguments, execOptions: ExecOptions.ExecOptions): Table => {
+const addClickHandlers = (table: Table, { REPL }: Arguments, execOptions: ExecOptions): Table => {
   const body = table.body.map(row => {
     const nameAttr = row.attributes.find(({ key }) => key === 'NAME')
     const { value: contextName } = nameAttr

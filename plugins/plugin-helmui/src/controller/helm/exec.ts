@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import { Arguments } from '@kui-shell/core/api/commands'
+import { Arguments } from '@kui-shell/core'
 import { doExecWithStdout, KubeOptions } from '@kui-shell/plugin-kubeui'
 
 export default function doExec<O extends KubeOptions>(args: Arguments<O>) {

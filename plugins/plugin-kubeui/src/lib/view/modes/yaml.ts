@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import { ModeRegistration } from '@kui-shell/core/api/registrars'
+import { ModeRegistration } from '@kui-shell/core'
 
 import { KubeResource, isKubeResource } from '../../model/resource'
 

@@ -15,12 +15,12 @@
  */
 
 import Debug from 'debug'
-import { Capabilities, Errors, Util } from '@kui-shell/core'
+import { inBrowser, isHeadless, CodedError, findFile, expandHomeDir } from '@kui-shell/core'
 
 const debug = Debug('k8s/util/fetch-file')
 
 async function needle(method: 'get', url: string): Promise<{ statusCode: number; body: string }> {
-  if (Capabilities.inBrowser()) {
+  if (inBrowser()) {
     debug('fetch via xhr')
     return new Promise((resolve, reject) => {
       const xhr = new XMLHttpRequest()
@@ -37,7 +37,7 @@ async function needle(method: 'get', url: string): Promise<{ statusCode: number;
       })
       xhr.send()
     })
-  } else if (Capabilities.isHeadless()) {
+  } else if (isHeadless()) {
     debug('fetch via needle')
     const needle = await import('needle')
     return needle(method, url, { follow_max: 10 }).then(_ => ({ statusCode: _.statusCode, body: _.body }))
@@ -66,7 +66,7 @@ async function needle(method: 'get', url: string): Promise<{ statusCode: number;
           if (response.statusCode < 300) {
             resolve({ statusCode, body })
           } else {
-            const error: Errors.CodedError = new Error(body)
+            const error: CodedError = new Error(body)
             error.statusCode = statusCode
             reject(error)
           }
@@ -119,7 +119,7 @@ export function fetchFile(url: string): Promise<(string | Buffer)[]> {
         // why the dynamic import? being browser friendly here
         const { readFile } = await import('fs-extra')
 
-        return readFile(Util.findFile(Util.expandHomeDir(url)))
+        return readFile(findFile(expandHomeDir(url)))
       }
     })
   )

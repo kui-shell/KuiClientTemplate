@@ -14,9 +14,7 @@
  * limitations under the License.
  */
 
-import { Arguments, Registrar } from '@kui-shell/core/api/commands'
-import { i18n } from '@kui-shell/core/api/i18n'
-import { MultiModalResponse } from '@kui-shell/core/api/ui-lite'
+import { i18n, Arguments, Registrar, MultiModalResponse } from '@kui-shell/core'
 
 import flags from './flags'
 import kubeuiApiVersion from './apiVersion'

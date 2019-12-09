@@ -15,7 +15,7 @@
  */
 
 import Debug from 'debug'
-import { Arguments, ExecOptions, MixedResponse, Registrar } from '@kui-shell/core/api/commands'
+import { Arguments, ExecOptions, MixedResponse, Registrar } from '@kui-shell/core'
 import { preprocessTable, formatTable, KubeOptions } from '@kui-shell/plugin-kubeui'
 
 import doExecWithStdout from './exec'
@@ -38,7 +38,7 @@ const width = (table: any[]): number => {
  * Format the output of a helm status command
  *
  */
-export const format = async (options: KubeOptions, response: string, execOptions: ExecOptions.ExecOptions) => {
+export const format = async (options: KubeOptions, response: string, execOptions: ExecOptions) => {
   const command = 'kubectl'
   const verb = 'get'
 

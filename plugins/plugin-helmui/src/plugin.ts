@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import { Registrar } from '@kui-shell/core/api/commands'
+import { Registrar } from '@kui-shell/core'
 
 import get from './controller/helm/get'
 import raw from './controller/helm/raw'

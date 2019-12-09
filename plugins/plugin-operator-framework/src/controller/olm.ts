@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import { Commands } from '@kui-shell/core'
+import { Registrar } from '@kui-shell/core'
 
 // const getSources = `oc get opsrc -o json --all-namespaces ${parsedOptions.config ? `--config ${parsedOptions.config}` : ''}`
 
@@ -40,8 +40,8 @@ const installed = {
   optional: config
 }
 
-export default async (commandTree: Commands.Registrar) => {
-  commandTree.subtree('/olm', {
+export default async (registrar: Registrar) => {
+  registrar.subtree('/olm', {
     usage: {
       command: 'olm',
       commandPrefix: 'olm',
@@ -49,7 +49,7 @@ export default async (commandTree: Commands.Registrar) => {
     }
   })
 
-  commandTree.listen(
+  registrar.listen(
     '/olm/catalog',
     async ({ block, parsedOptions, execOptions, REPL }) => {
       const namespace = parsedOptions.n || parsedOptions.namespace
@@ -67,7 +67,7 @@ export default async (commandTree: Commands.Registrar) => {
     }
   )
 
-  commandTree.listen(
+  registrar.listen(
     '/olm/installed',
     async ({ block, parsedOptions, execOptions, REPL }) => {
       const namespace = parsedOptions.n || parsedOptions.namespace

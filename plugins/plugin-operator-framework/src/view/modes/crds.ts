@@ -14,10 +14,8 @@
  * limitations under the License.
  */
 
-import { Tab } from '@kui-shell/core/api/ui-lite'
-import { ModeRegistration } from '@kui-shell/core/api/registrars'
-import { Table } from '@kui-shell/core/api/table-models'
-import { outerCSSForKey, cssForKey } from '@kui-shell/core/webapp/util/ascii-to-table'
+import { Tab, Table, ModeRegistration } from '@kui-shell/core'
+import { outerCSSForKey, cssForKey } from '@kui-shell/core/dist/webapp/util/ascii-to-table' // FIXME
 
 import { KubeResource } from '@kui-shell/plugin-kubeui'
 

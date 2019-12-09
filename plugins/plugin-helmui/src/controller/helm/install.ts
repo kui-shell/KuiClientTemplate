@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import { Arguments, Registrar } from '@kui-shell/core/api/commands'
+import { Arguments, Registrar } from '@kui-shell/core'
 import { KubeOptions } from '@kui-shell/plugin-kubeui'
 
 import doExecWithStdout from './exec'

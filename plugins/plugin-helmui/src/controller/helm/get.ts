@@ -14,8 +14,7 @@
  * limitations under the License.
  */
 
-import { Arguments, Registrar } from '@kui-shell/core/api/commands'
-import { MultiModalResponse } from '@kui-shell/core/api/ui-lite'
+import { Arguments, Registrar, MultiModalResponse } from '@kui-shell/core'
 import { KubeOptions } from '@kui-shell/plugin-kubeui'
 
 import doExecWithStdout from './exec'

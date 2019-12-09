@@ -14,8 +14,7 @@
  * limitations under the License.
  */
 
-import { Tab } from '@kui-shell/core/api/ui-lite'
-
+import { Tab } from '@kui-shell/core'
 import { KubeResource } from '../../model/resource'
 
 /** makeButton is passed a subset of SidecarMode */

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import { Arguments } from '@kui-shell/core/api/commands'
+import { Arguments } from '@kui-shell/core'
 import { renderHelp } from '@kui-shell/plugin-kubeui'
 
 import commandPrefix from '../command-prefix'

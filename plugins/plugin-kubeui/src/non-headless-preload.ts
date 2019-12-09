@@ -15,7 +15,7 @@
  */
 
 import Debug from 'debug'
-import { PreloadRegistrar } from '@kui-shell/core/api/registrars'
+import { PreloadRegistrar } from '@kui-shell/core'
 
 import podMode from './lib/view/modes/pods'
 import yamlMode from './lib/view/modes/yaml'

@@ -14,9 +14,7 @@
  * limitations under the License.
  */
 
-import { Arguments, MixedResponse } from '@kui-shell/core/api/commands'
-import { encodeComponent } from '@kui-shell/core/api/repl-util'
-import { Table, Row, Cell, isTable } from '@kui-shell/core/api/table-models'
+import { Table, Row, Cell, isTable, encodeComponent, Arguments, MixedResponse } from '@kui-shell/core'
 
 import KubeOptions from '../../controller/kubectl/options'
 import { RawResponse } from '../../controller/kubectl/response'

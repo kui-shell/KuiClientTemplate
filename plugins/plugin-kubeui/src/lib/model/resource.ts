@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import { ResourceWithMetadata } from '@kui-shell/core/api/models'
+import { ResourceWithMetadata } from '@kui-shell/core'
 
 import kubeuiApiVersion from '../../controller/kubectl/apiVersion'
 
