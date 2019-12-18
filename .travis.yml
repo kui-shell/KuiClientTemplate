@@ -9,7 +9,6 @@ install:
   - ./tools/travis/microk8s.sh &
   - k8s=$!
   - npm ci
-  - ./tools/travis/waitForWebpack.sh
   - wait $k8s
 
 # below, the various stages will define S and T
@@ -42,5 +41,4 @@ env:
     - WINDOW_WIDTH=1400
     - WINDOW_HEIGHT=1050
     - PATH=bin:$PATH
-    - WEBPACK_POLL_INTERVAL=200000 # no need to poll for updates while testing
-    - CSP_ALLOWED_HOSTS="https://raw.githubusercontent.com http://localhost:8081 ws://localhost:8081 http://localhost:9953"
+    - CSP_ALLOWED_HOSTS="https://raw.githubusercontent.com http://localhost:8081 ws://localhost:8081 http://localhost:9953 http://localhost:9080 ws://localhost:9080"

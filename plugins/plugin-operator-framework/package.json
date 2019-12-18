@@ -23,7 +23,7 @@
   "module": "mdist/index.js",
   "dependencies": {
     "debug": "4.1.1",
-    "marked": "0.7.0"
+    "marked": "0.8.0"
   },
   "devDependencies": {
     "@types/marked": "0.7.2"
