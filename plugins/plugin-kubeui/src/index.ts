@@ -21,6 +21,8 @@ export {
   isKubeResource,
   isCrudableKubeResource,
   KubeResourceWithSummary,
+  WithSummary,
+  WithRawData,
   InvolvedObject,
   KubeStatus,
   Pod,

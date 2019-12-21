@@ -14,30 +14,22 @@
  * limitations under the License.
  */
 
-import { ModeRegistration } from '@kui-shell/core'
+import { Tab, i18n, encodeComponent } from '@kui-shell/core'
+import { IBMCloudCluster, isIBMCloudCluster } from '../models/cluster'
 
-import { WithRawData, hasRawData } from '../../model/resource'
+const strings = i18n('plugin-ibmcloud/ks')
 
 /**
- * The YAML mode applies to all KubeResources, and simply extracts the
- * raw `data` field from the resource; note how we indicate that this
- * raw data has a yaml content type.
+ * Display resource version as a badge
  *
  */
-const yamlMode: ModeRegistration<WithRawData> = {
-  when: hasRawData,
+export default {
+  when: isIBMCloudCluster,
   mode: {
-    mode: 'raw',
-    label: 'YAML',
-
-    content: (_, resource: WithRawData) => ({
-      content: resource.data,
-      contentType: 'yaml'
-    }),
-
-    // traits:
-    order: 999 // we want this to be placed as the last tab
+    mode: 'show-workers',
+    label: strings('Show Workers'),
+    command: (tab: Tab, cluster: IBMCloudCluster) =>
+      `ibmcloud ks worker ls --cluster ${encodeComponent(cluster.metadata.name)}`,
+    kind: 'drilldown' as const
   }
 }
-
-export default yamlMode

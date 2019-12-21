@@ -95,22 +95,31 @@ interface RoleRef {
   name: string
 }
 
+export interface WithRawData<Content = void> extends ResourceWithMetadata<Content> {
+  data?: string // the raw data
+}
+
+export function hasRawData(resource: ResourceWithMetadata) {
+  const withData = resource as WithRawData
+  return typeof withData.data === 'string'
+}
+
 /**
  * The basic Kubernetes resource
  *
  */
-export interface KubeResource<Status = KubeStatus> extends ResourceWithMetadata {
-  apiVersion: string
-  kind: string
-  metadata?: KubeMetadata
-  status?: Status
-  spec?: any // eslint-disable-line @typescript-eslint/no-explicit-any
+export type KubeResource<Status = KubeStatus> = ResourceWithMetadata &
+  WithRawData & {
+    apiVersion: string
+    kind: string
+    metadata?: KubeMetadata
+    status?: Status
+    spec?: any // eslint-disable-line @typescript-eslint/no-explicit-any
 
-  // TODO we should factor these out into a trait
-  data?: string // the raw data
-  originatingCommand: string // the command that generated this raw data
-  isSimulacrum?: boolean // is this a manufactured resource that does not exist on the api server?
-}
+    // TODO we should factor these out into a trait
+    originatingCommand: string // the command that generated this raw data
+    isSimulacrum?: boolean // is this a manufactured resource that does not exist on the api server?
+  }
 
 /** is the command response a Kubernetes resource? note: excluding any ones we simulate in kubeui */
 export function isKubeResource(entity: ResourceWithMetadata): entity is KubeResource {
@@ -123,18 +132,20 @@ export function isCrudableKubeResource(entity: ResourceWithMetadata): entity is 
   return isKubeResource(entity) && !(entity as KubeResource).isSimulacrum
 }
 
+export interface WithSummary {
+  summary: {
+    content: string
+    contentType?: 'yaml' | 'text/markdown'
+  }
+}
+
 /**
  * `KubeResourceWithSummary` allows plugins to provide their own
  * Summary. Otherwise lib/views/modes/summary will try to fetch one
  * automatically.
  *
  */
-export interface KubeResourceWithSummary<Status = KubeStatus> extends KubeResource<Status> {
-  summary: {
-    content: string
-    contentType?: 'yaml' | 'text/markdown'
-  }
-}
+export type KubeResourceWithSummary<Status = KubeStatus> = KubeResource<Status> & WithSummary
 
 export function isKubeResourceWithItsOwnSummary(resource: KubeResource): resource is KubeResourceWithSummary {
   return resource !== undefined && (resource as KubeResourceWithSummary).summary !== undefined

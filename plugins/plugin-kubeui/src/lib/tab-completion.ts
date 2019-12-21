@@ -15,7 +15,7 @@
  */
 
 import { Tab, CommandLine } from '@kui-shell/core'
-import { registerTabCompletionEnumerator, TabCompletionSpec } from '@kui-shell/plugin-core-support'
+import { registerTabCompletionEnumerator, TabCompletionSpec } from '@kui-shell/plugin-core-support/tab-completion'
 
 /**
  * Invoke an enumeration command and return the filtered list of matching strings
