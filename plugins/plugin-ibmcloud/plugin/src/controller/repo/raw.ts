@@ -15,18 +15,16 @@
  */
 
 import { Arguments } from '@kui-shell/core'
-import { doExecWithStdout as doExec, KubeOptions } from '@kui-shell/plugin-kubeui'
+import { IBMCloudInstalledRepositoryRaw, IBMCloudInstalledRepositoriesRaw } from '../../models/repository'
 
-export function doExecWithStdout<O extends KubeOptions>(args: Arguments<O>) {
-  return doExec(args, undefined, 'ibmcloud')
+/**
+ * @return the installed plugin repositories for the current user
+ *
+ */
+export default async function getInstalledRepos({ REPL }: Arguments): Promise<IBMCloudInstalledRepositoryRaw[]> {
+  const config: IBMCloudInstalledRepositoriesRaw = JSON.parse(
+    (await REPL.rexec<{ data: string }>(`fstat ~/.bluemix/config.json --with-data`)).content.data
+  )
+
+  return config.PluginRepos
 }
-
-export function doJSONWithStdout<O extends KubeOptions>(args: Arguments<O>) {
-  args.command += ` --json`
-  args.argv.push('--json')
-  args.argvNoOptions.push('--json')
-
-  return doExecWithStdout(args)
-}
-
-export default doJSONWithStdout

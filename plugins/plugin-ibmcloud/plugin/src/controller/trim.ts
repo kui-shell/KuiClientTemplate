@@ -14,19 +14,22 @@
  * limitations under the License.
  */
 
-import { Arguments } from '@kui-shell/core'
-import { doExecWithStdout as doExec, KubeOptions } from '@kui-shell/plugin-kubeui'
-
-export function doExecWithStdout<O extends KubeOptions>(args: Arguments<O>) {
-  return doExec(args, undefined, 'ibmcloud')
+/**
+ * If the string has one dot, and it occurs at the end, trim that
+ * solitary trailing dot and return the resulting string.
+ *
+ */
+export function trimSolitaryTrailingDots(str: string): string {
+  const multipleDots =
+    str
+      .split(/\./)
+      .map(_ => _.trim())
+      .filter(_ => _).length > 1
+  if (multipleDots) {
+    return str
+  } else {
+    return str.replace(/\.\s*$/, '')
+  }
 }
 
-export function doJSONWithStdout<O extends KubeOptions>(args: Arguments<O>) {
-  args.command += ` --json`
-  args.argv.push('--json')
-  args.argvNoOptions.push('--json')
-
-  return doExecWithStdout(args)
-}
-
-export default doJSONWithStdout
+export default trimSolitaryTrailingDots

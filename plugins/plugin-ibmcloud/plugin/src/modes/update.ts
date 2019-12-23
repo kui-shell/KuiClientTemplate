@@ -14,19 +14,22 @@
  * limitations under the License.
  */
 
-import { Arguments } from '@kui-shell/core'
-import { doExecWithStdout as doExec, KubeOptions } from '@kui-shell/plugin-kubeui'
+import { Tab, i18n } from '@kui-shell/core'
+import { IBMCloudPlugin, isIBMCloudPluginWithAvailableUpdates } from '../models/plugin'
 
-export function doExecWithStdout<O extends KubeOptions>(args: Arguments<O>) {
-  return doExec(args, undefined, 'ibmcloud')
+const strings = i18n('plugin-ibmcloud/plugin')
+
+/**
+ * Display resource version as a badge
+ *
+ */
+export default {
+  when: isIBMCloudPluginWithAvailableUpdates,
+  mode: {
+    mode: 'update',
+    label: strings('Update Plugin'),
+    command: (tab: Tab, plugin: IBMCloudPlugin) => `ibmcloud plugin update ${plugin.metadata.name}`,
+    confirm: true,
+    kind: 'drilldown' as const
+  }
 }
-
-export function doJSONWithStdout<O extends KubeOptions>(args: Arguments<O>) {
-  args.command += ` --json`
-  args.argv.push('--json')
-  args.argvNoOptions.push('--json')
-
-  return doExecWithStdout(args)
-}
-
-export default doJSONWithStdout

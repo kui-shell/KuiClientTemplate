@@ -14,19 +14,11 @@
  * limitations under the License.
  */
 
-import { Arguments } from '@kui-shell/core'
-import { doExecWithStdout as doExec, KubeOptions } from '@kui-shell/plugin-kubeui'
+import { AvailablePluginRaw } from '../models/plugin'
 
-export function doExecWithStdout<O extends KubeOptions>(args: Arguments<O>) {
-  return doExec(args, undefined, 'ibmcloud')
+/** e.g. "[Deprecated] Manage Activity Tracker service." */
+export const isDeprecatedPattern = /\[Deprecated\]\s+/i
+
+export function isDeprecated(available: AvailablePluginRaw) {
+  return isDeprecatedPattern.test(available.description)
 }
-
-export function doJSONWithStdout<O extends KubeOptions>(args: Arguments<O>) {
-  args.command += ` --json`
-  args.argv.push('--json')
-  args.argvNoOptions.push('--json')
-
-  return doExecWithStdout(args)
-}
-
-export default doJSONWithStdout

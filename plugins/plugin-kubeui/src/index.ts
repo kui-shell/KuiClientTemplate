@@ -49,3 +49,5 @@ export { default as parseName } from './lib/util/name'
 export { formatTable, preprocessTable } from './lib/view/formatTable'
 
 export { renderHelp } from './lib/util/help'
+
+export { fetchFileString } from './lib/util/fetch-file'

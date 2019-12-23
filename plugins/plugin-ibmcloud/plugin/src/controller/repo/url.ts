@@ -14,19 +14,23 @@
  * limitations under the License.
  */
 
-import { Arguments } from '@kui-shell/core'
-import { doExecWithStdout as doExec, KubeOptions } from '@kui-shell/plugin-kubeui'
+import { Arguments, CodedError, i18n } from '@kui-shell/core'
 
-export function doExecWithStdout<O extends KubeOptions>(args: Arguments<O>) {
-  return doExec(args, undefined, 'ibmcloud')
+const strings = i18n('plugin-ibmcloud/plugin')
+
+/**
+ * @return the repo URL for the given repo name
+ *
+ */
+export default async function getRepoURL(args: Arguments, repoName: string): Promise<string> {
+  const repos = await (await import('./raw')).default(args)
+  const repo = repos.find(_ => _.Name === repoName)
+
+  if (!repo) {
+    const err: CodedError = new Error(strings('Repository not installed'))
+    err.code = 404
+    throw err
+  } else {
+    return repo.URL
+  }
 }
-
-export function doJSONWithStdout<O extends KubeOptions>(args: Arguments<O>) {
-  args.command += ` --json`
-  args.argv.push('--json')
-  args.argvNoOptions.push('--json')
-
-  return doExecWithStdout(args)
-}
-
-export default doJSONWithStdout
