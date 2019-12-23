@@ -1,12 +1,11 @@
 {
-  "name": "@kui-shell/plugin-helmui",
+  "name": "@kui-shell/plugin-ibmcloud-ks",
   "version": "0.0.10",
-  "description": "Kubernetes visualization plugin for helm",
+  "description": "ibmcloud kubernetes service kui plugin",
   "license": "Apache-2.0",
   "keywords": [
     "kubernetes",
     "kubectl",
-    "helm",
     "cli",
     "ui",
     "kui",
@@ -25,16 +24,5 @@
     "url": "git+https://github.com/kui-shell/plugin-kubeui.git"
   },
   "main": "dist/index.js",
-  "module": "mdist/index.js",
-  "dependencies": {
-    "@kui-shell/core": "5.7.8",
-    "debug": "4.1.1"
-  },
-  "krew": {
-    "commandPrefix": "kubeui"
-  },
-  "publishConfig": {
-    "access": "public"
-  },
-  "gitHead": "89de9f78e8a1a2bdd29d2e17d7c608ab006c6d32"
+  "module": "mdist/index.js"
 }

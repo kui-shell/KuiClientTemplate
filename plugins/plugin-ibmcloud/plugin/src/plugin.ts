@@ -14,19 +14,22 @@
  * limitations under the License.
  */
 
-import { Arguments } from '@kui-shell/core'
-import { doExecWithStdout as doExec, KubeOptions } from '@kui-shell/plugin-kubeui'
+import { Registrar } from '@kui-shell/core'
 
-export function doExecWithStdout<O extends KubeOptions>(args: Arguments<O>) {
-  return doExec(args, undefined, 'ibmcloud')
+import pluginGet from './controller/get'
+import pluginList from './controller/list'
+import commandGet from './controller/command/get'
+import commandList from './controller/command/list'
+import repoGet from './controller/repo/get'
+import repoList from './controller/repo/list'
+import repoPlugins from './controller/repo/available'
+
+export default async (registrar: Registrar) => {
+  pluginGet(registrar)
+  pluginList(registrar)
+  commandGet(registrar)
+  commandList(registrar)
+  repoGet(registrar)
+  repoList(registrar)
+  repoPlugins(registrar)
 }
-
-export function doJSONWithStdout<O extends KubeOptions>(args: Arguments<O>) {
-  args.command += ` --json`
-  args.argv.push('--json')
-  args.argvNoOptions.push('--json')
-
-  return doExecWithStdout(args)
-}
-
-export default doJSONWithStdout

@@ -14,19 +14,4 @@
  * limitations under the License.
  */
 
-import { Arguments } from '@kui-shell/core'
-import { doExecWithStdout as doExec, KubeOptions } from '@kui-shell/plugin-kubeui'
-
-export function doExecWithStdout<O extends KubeOptions>(args: Arguments<O>) {
-  return doExec(args, undefined, 'ibmcloud')
-}
-
-export function doJSONWithStdout<O extends KubeOptions>(args: Arguments<O>) {
-  args.command += ` --json`
-  args.argv.push('--json')
-  args.argvNoOptions.push('--json')
-
-  return doExecWithStdout(args)
-}
-
-export default doJSONWithStdout
+export default 'ks.ibm.com/v1'

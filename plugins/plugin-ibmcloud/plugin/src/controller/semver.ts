@@ -14,19 +14,12 @@
  * limitations under the License.
  */
 
-import { Arguments } from '@kui-shell/core'
-import { doExecWithStdout as doExec, KubeOptions } from '@kui-shell/plugin-kubeui'
+import { SemVer } from '../models/plugin'
 
-export function doExecWithStdout<O extends KubeOptions>(args: Arguments<O>) {
-  return doExec(args, undefined, 'ibmcloud')
+/**
+ * @return a formatted dot-notation form of a SemVer
+ *
+ */
+export default function semver({ Major, Minor, Build }: SemVer): string {
+  return `${Major}.${Minor}.${Build}`
 }
-
-export function doJSONWithStdout<O extends KubeOptions>(args: Arguments<O>) {
-  args.command += ` --json`
-  args.argv.push('--json')
-  args.argvNoOptions.push('--json')
-
-  return doExecWithStdout(args)
-}
-
-export default doJSONWithStdout
