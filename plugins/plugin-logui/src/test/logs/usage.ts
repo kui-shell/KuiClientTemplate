@@ -20,26 +20,14 @@ describe('k8s usage', function(this: Common.ISuite) {
   before(Common.before(this))
   after(Common.after(this))
 
-  it('should give help for known outer command: kubectl', () =>
-    CLI.command('kubectl', this.app)
-      .then(ReplExpect.errorWithPassthrough(500))
-      .then(N =>
-        Promise.all([
-          this.app.client.waitForExist(`${Selectors.OUTPUT_N(N)} h4.usage-error-title[data-title="Usage"]`),
-          this.app.client.waitForExist(
-            `${Selectors.OUTPUT_N(N)} .bx--breadcrumb-item .bx--no-link[data-label="kubectl"]`
-          )
-        ])
-      )
-      .catch(Common.oops(this)))
-
-  it('should give help for known outer command: kubectl get -h', () =>
-    CLI.command('kubectl get -h', this.app)
+  it('should give help for known outer command: kubectl logs -h', () =>
+    CLI.command('kubectl logs -h', this.app)
       .then(ReplExpect.errorWithPassthrough(500))
       .then(N =>
         Promise.all([
           this.app.client.waitForExist(`${Selectors.OUTPUT_N(N)} h4.usage-error-title[data-title="Options:"]`),
-          this.app.client.waitForExist(`${Selectors.OUTPUT_N(N)} .bx--breadcrumb-item .bx--no-link[data-label="get"]`),
+          this.app.client.waitForExist(`${Selectors.OUTPUT_N(N)} h4.usage-error-title[data-title="Examples"]`),
+          this.app.client.waitForExist(`${Selectors.OUTPUT_N(N)} .bx--breadcrumb-item .bx--no-link[data-label="logs"]`),
           this.app.client.waitForExist(`${Selectors.OUTPUT_N(N)} .bx--breadcrumb-item .bx--link[data-label="kubectl"]`)
         ])
       )

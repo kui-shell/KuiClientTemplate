@@ -3,6 +3,7 @@
   "references": [
     { "path": "./plugins/plugin-kubeui" },
     { "path": "./plugins/plugin-helmui" },
+    { "path": "./plugins/plugin-logui" },
     { "path": "./plugins/plugin-ibmcloud" },
     { "path": "./plugins/plugin-operator-framework" }
   ]

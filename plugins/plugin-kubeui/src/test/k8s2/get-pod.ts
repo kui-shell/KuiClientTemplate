@@ -61,7 +61,7 @@ describe(`kubectl get pod ${process.env.MOCHA_RUN_TARGET || ''}`, function(this:
       )
     }
 
-    const testLogTabs = async () => {
+    /* const testLogTabs = async () => {
       const container = `${Selectors.SIDECAR} .bx--data-table .entity[data-name="nginx"] .entity-name`
       await this.app.client.waitForVisible(container)
       await this.app.client.click(container)
@@ -76,7 +76,7 @@ describe(`kubectl get pod ${process.env.MOCHA_RUN_TARGET || ''}`, function(this:
       await this.app.client.click(Selectors.SIDECAR_BACK_BUTTON) // transition back to the previous view
 
       await this.app.client.waitForVisible(Selectors.SIDECAR_MODE_BUTTON_SELECTED('containers'))
-    }
+    } */
 
     const ns: string = createNS()
     const inNamespace = `-n ${ns}`
@@ -187,10 +187,10 @@ describe(`kubectl get pod ${process.env.MOCHA_RUN_TARGET || ''}`, function(this:
           .then(SidecarExpect.showing('nginx'))
 
         await testContainersTab()
-        await testLogTabs()
-        await testContainersTab(false) // testing back button, don't click the container tab
-        await testLogTabs()
-        await testContainersTab(false) // testing back button, don't click the container tab
+        // await testLogTabs()
+        // await testContainersTab(false) // testing back button, don't click the container tab
+        // await testLogTabs()
+        // await testContainersTab(false) // testing back button, don't click the container tab
       } catch (err) {
         return Common.oops(this)(err)
       }
@@ -255,11 +255,9 @@ describe(`kubectl get pod ${process.env.MOCHA_RUN_TARGET || ''}`, function(this:
 
     it(`should click on containers sidecar tab and show containers table`, testContainersTab)
 
-    it('should drill down to log when container is clicked', testLogTabs)
-
-    it('should transition back from log and see containers table', testContainersTab.bind(this, false)) // testing back button, do not click the Container tab
-
-    it('should drill down to log when container is clicked', testLogTabs)
+    // it('should drill down to log when container is clicked', testLogTabs)
+    // it('should transition back from log and see containers table', testContainersTab.bind(this, false)) // testing back button, do not click the Container tab
+    // it('should drill down to log when container is clicked', testLogTabs)
 
     it('should transition back from log and see containers table', testContainersTab.bind(this, false)) // testing back button, do not click the Container tab
 
