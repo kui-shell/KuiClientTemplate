@@ -15,27 +15,8 @@
  */
 
 import { Registrar } from '@kui-shell/core'
-
-import contexts from './controller/kubectl/contexts'
-import create from './controller/kubectl/create'
-import kdelete from './controller/kubectl/delete'
-import describe from './controller/kubectl/describe'
-import kget from './controller/kubectl/get'
-import status from './controller/kubectl/status'
-import raw from './controller/kubectl/raw'
-import run from './controller/kubectl/run'
-import fetchFile from './controller/fetch-file'
-import catchall from './controller/kubectl/catchall'
+import logs from './controller/kubectl/logs'
 
 export default async (registrar: Registrar) => {
-  contexts(registrar)
-  create(registrar)
-  kdelete(registrar)
-  describe(registrar)
-  kget(registrar)
-  raw(registrar)
-  run(registrar)
-  status(registrar)
-  fetchFile(registrar)
-  catchall(registrar)
+  await logs(registrar)
 }

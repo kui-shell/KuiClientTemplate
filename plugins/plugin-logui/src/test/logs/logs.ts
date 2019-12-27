@@ -14,7 +14,8 @@
  * limitations under the License.
  */
 
-import { Common, CLI, ReplExpect, SidecarExpect, Selectors } from '@kui-shell/test'
+import * as assert from 'assert'
+import { Common, CLI, ReplExpect, Selectors } from '@kui-shell/test'
 import { waitForGreen, createNS, allocateNS, deleteNS } from '@kui-shell/plugin-kubeui/tests/lib/k8s/utils'
 
 import { readFileSync } from 'fs'
@@ -23,7 +24,7 @@ const ROOT = dirname(require.resolve('@kui-shell/plugin-kubeui/tests/package.jso
 const inputBuffer = readFileSync(join(ROOT, 'data/k8s/kubectl-exec.yaml'))
 const inputEncoded = inputBuffer.toString('base64')
 
-describe(`kubectl logs get ${process.env.MOCHA_RUN_TARGET || ''}`, function(this: Common.ISuite) {
+describe(`kubectl logs getty ${process.env.MOCHA_RUN_TARGET || ''}`, function(this: Common.ISuite) {
   before(Common.before(this))
   after(Common.after(this))
 
@@ -33,12 +34,14 @@ describe(`kubectl logs get ${process.env.MOCHA_RUN_TARGET || ''}`, function(this
     {
       podName: 'vim',
       containerName: 'alpine',
+      hasLogs: true,
       cmdline: `echo ${inputEncoded} | base64 --decode | kubectl create -f - -n ${ns}`
     },
     {
       podName: 'nginx',
       containerName: 'nginx',
       label: 'name=nginx',
+      hasLogs: false,
       cmdline: `kubectl create -f https://raw.githubusercontent.com/kubernetes/examples/master/staging/pod -n ${ns}`
     }
   ]
@@ -60,22 +63,29 @@ describe(`kubectl logs get ${process.env.MOCHA_RUN_TARGET || ''}`, function(this
     })
   }
 
-  const showLogs = (podName: string, containerName: string, label: string) => {
+  const showLogs = (podName: string, containerName: string, label: string, hasLogs: boolean) => {
+    const checkLogs = async (res: ReplExpect.AppAndCount) => {
+      if (hasLogs) {
+        await Promise.resolve(res)
+          .then(ReplExpect.okWithCustom({ passthrough: true }))
+          .then(N => this.app.client.elements(Selectors.LIST_RESULTS_BY_NAME_N(N)))
+          .then(rows => rows.value.length)
+          .then(nRows => assert.ok(nRows > 0))
+      } else {
+        await Promise.resolve(res).then(ReplExpect.justOK)
+      }
+    }
+
     it(`should show logs for pod ${podName} container ${containerName}`, () => {
       return CLI.command(`kubectl logs ${podName} ${containerName} -n ${ns}`, this.app)
-        .then(ReplExpect.justOK)
-        .then(SidecarExpect.open)
-        .then(SidecarExpect.showing(containerName))
-        .then(SidecarExpect.mode('logs'))
+        .then(checkLogs)
         .catch(Common.oops(this, true))
     })
 
     if (label) {
       it(`should show logs for label selector ${label}`, () => {
         return CLI.command(`kubectl logs -l${label} -n ${ns}`, this.app)
-          .then(ReplExpect.justOK)
-          .then(SidecarExpect.open)
-          .then(SidecarExpect.mode('logs'))
+          .then(checkLogs)
           .catch(Common.oops(this, true))
       })
     }
@@ -85,10 +95,10 @@ describe(`kubectl logs get ${process.env.MOCHA_RUN_TARGET || ''}`, function(this
   inputs.forEach(_ => {
     createPod(_.podName, _.cmdline)
     waitForPod(_.podName)
-    showLogs(_.podName, _.containerName, _.label)
+    showLogs(_.podName, _.containerName, _.label, _.hasLogs)
   })
   inputs.forEach(_ => {
-    showLogs(_.podName, _.containerName, _.label)
+    showLogs(_.podName, _.containerName, _.label, _.hasLogs)
   })
   deleteNS(this, ns)
 })
