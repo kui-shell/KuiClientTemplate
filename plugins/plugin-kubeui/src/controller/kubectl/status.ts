@@ -218,7 +218,7 @@ const getDirectReferences = (command: string) => async ({
 
   const { safeLoadAll: parseYAML } = await import('js-yaml')
 
-  if (file.charAt(0) === '!') {
+  if (file && file.charAt(0) === '!') {
     const resources: KubeResource[] = parseYAML(execOptions.parameters[file.slice(1)])
     debug('status by programmatic parameter', resources)
     return {

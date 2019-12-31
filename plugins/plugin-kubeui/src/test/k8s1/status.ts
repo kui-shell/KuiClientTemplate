@@ -25,6 +25,13 @@ const doHeadless = (ctx: Common.ISuite, impl: CLI) => {
   before(Common.before(ctx, { noApp: true }))
   const ns = createNS()
 
+  it('should respond with please specify a file', () => {
+    return impl
+      .command('kubectl status --all')
+      .then(impl.expectError(1, 'Please specify a file'))
+      .catch(Common.oops(ctx))
+  })
+
   it(`should create namespace ${ns} via kubectl`, () => {
     return impl
       .command(`kubectl create namespace ${ns}`, ctx.app)
