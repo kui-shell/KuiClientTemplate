@@ -216,6 +216,15 @@ describe(`kubectl get pod ${process.env.MOCHA_RUN_TARGET || ''}`, function(this:
         .catch(Common.oops(this))
     })
 
+    // this test ensures that having '-n myNamespace' *before* the
+    // 'pod nginx' part works properly
+    it(`should get the pod with ${kubectl} ${inNamespace} pod`, () => {
+      return CLI.command(`${kubectl} get ${inNamespace} pod nginx`, this.app)
+        .then(ReplExpect.okWithCustom({ selector: Selectors.BY_NAME('nginx') }))
+        .then((selector: string) => waitForGreen(this.app, selector))
+        .catch(Common.oops(this))
+    })
+
     it(`should list pods via ${kubectl} then click`, async () => {
       try {
         const selector: string = await CLI.command(`${kubectl} get pods ${inNamespace}`, this.app).then(
