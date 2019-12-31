@@ -19,14 +19,19 @@ stages:
   - name: release
     if: tag =~ /^v([0-9]{1,3}).([0-9]{1,3}).([0-9]{1,3})$/
 
+# re: dashboard below, see plugin-kubeui/src/test/k8s2/top.ts, which
+# relies on kubectl top if you see this error: "the server could not
+# find the requested resource (get services http:heapster:)", then the
+# required services (for top) were not properly enabled
+
 jobs:
   include:
     - env: S=logs T=electron
     - env: S=k8s T=electron
     - env: S=k8s1 T=electron
     - env: S=k8s1 T=webpack
-    - env: S=k8s2 T=electron
-    - env: S=k8s2 T=webpack
+    - env: S=k8s2 T=electron NEEDS_TOP=true
+    - env: S=k8s2 T=webpack NEEDS_TOP=true
     - env: S=helm T=electron NEEDS_HELM=true
     - env: S=helm T=webpack NEEDS_HELM=true
     - stage: release

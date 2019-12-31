@@ -18,24 +18,28 @@ import { Registrar } from '@kui-shell/core'
 
 import contexts from './controller/kubectl/contexts'
 import create from './controller/kubectl/create'
-import kdelete from './controller/kubectl/delete'
 import describe from './controller/kubectl/describe'
+import kdelete from './controller/kubectl/delete'
 import kget from './controller/kubectl/get'
-import status from './controller/kubectl/status'
 import raw from './controller/kubectl/raw'
 import run from './controller/kubectl/run'
+import status from './controller/kubectl/status'
+import top from './controller/kubectl/top'
+
 import fetchFile from './controller/fetch-file'
 import catchall from './controller/kubectl/catchall'
 
 export default async (registrar: Registrar) => {
   contexts(registrar)
   create(registrar)
-  kdelete(registrar)
   describe(registrar)
+  kdelete(registrar)
   kget(registrar)
   raw(registrar)
   run(registrar)
   status(registrar)
+  top(registrar)
+
   fetchFile(registrar)
   catchall(registrar)
 }
