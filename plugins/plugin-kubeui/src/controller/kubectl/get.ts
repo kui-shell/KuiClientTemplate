@@ -42,13 +42,12 @@ function prepareArgsForGet(args: Arguments<KubeOptions>) {
  * kubectl get as table response
  *
  */
-function doGetTable(args: Arguments<KubeOptions>, response: RawResponse): KubeTableResponse {
+export function doGetTable(args: Arguments<KubeOptions>, response: RawResponse, verb = 'get'): KubeTableResponse {
   const {
     content: { stderr, stdout }
   } = response
 
   const command = 'kubectl'
-  const verb = 'get'
   const entityType = args.argvNoOptions[args.argvNoOptions.indexOf(verb) + 1]
 
   const table = stringToTable(stdout, stderr, args, command, verb, entityType)

@@ -161,7 +161,7 @@ export const formatTable = <O extends KubeOptions>(
   const drilldownCommand = isHelmStatus ? 'kubectl' : command
 
   const drilldownVerb =
-    (verb === 'get'
+    (verb === 'get' || verb === 'top'
       ? 'get'
       : command === 'helm' && (verb === 'list' || verb === 'ls')
       ? 'get'
