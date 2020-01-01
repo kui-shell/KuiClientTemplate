@@ -14,7 +14,16 @@
  * limitations under the License.
  */
 
-import { Table, isTable, CodedError, Arguments, Registrar, formatWatchableTable } from '@kui-shell/core'
+import {
+  Table,
+  isTable,
+  CodedError,
+  Arguments,
+  ExecType,
+  Registrar,
+  formatWatchableTable,
+  MultiModalResponse
+} from '@kui-shell/core'
 
 import flags from './flags'
 import { exec } from './exec'
@@ -22,7 +31,15 @@ import { RawResponse } from './response'
 import commandPrefix from '../command-prefix'
 import extractAppAndName from '../../lib/util/name'
 import { KubeResource } from '../../lib/model/resource'
-import { KubeOptions, isEntityRequest, isTableRequest, formatOf, isWatchRequest, isTableWatchRequest } from './options'
+import {
+  KubeOptions,
+  isEntityRequest,
+  isTableRequest,
+  formatOf,
+  isWatchRequest,
+  isTableWatchRequest,
+  getNamespace
+} from './options'
 import { stringToTable, KubeTableResponse, isKubeTableResponse } from '../../lib/view/formatTable'
 
 /**
@@ -78,7 +95,10 @@ function doGetEmptyTable(args: Arguments<KubeOptions>): KubeTableResponse {
  * kubectl get as entity response
  *
  */
-export async function doGetEntity(args: Arguments<KubeOptions>, response: RawResponse): Promise<KubeResource> {
+export async function doGetEntity(
+  args: Arguments<KubeOptions>,
+  response: RawResponse
+): Promise<MultiModalResponse<KubeResource>> {
   try {
     // this is the raw data string we get from `kubectl`
     const data = response.content.stdout
@@ -89,6 +109,22 @@ export async function doGetEntity(args: Arguments<KubeOptions>, response: RawRes
 
     // attempt to separate out the app and generated parts of the resource name
     const { name: prettyName, nameHash } = extractAppAndName(resource)
+
+    if (resource.kind === 'List' && args.execOptions.type === ExecType.TopLevel) {
+      // then this is a response to e.g. `kubectl get pods -o yaml`
+      return {
+        apiVersion: resource.apiVersion,
+        kind: resource.kind,
+        metadata: {
+          name: args.command,
+          namespace: getNamespace(args) || 'default'
+        },
+        isSimulacrum: true, // this is not a real crudable resource
+        originatingCommand: args.command,
+        modes: [],
+        data
+      }
+    }
 
     return Object.assign(resource, {
       prettyName,

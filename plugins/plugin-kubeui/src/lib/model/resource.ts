@@ -151,6 +151,14 @@ export function isKubeResourceWithItsOwnSummary(resource: KubeResource): resourc
   return resource !== undefined && (resource as KubeResourceWithSummary).summary !== undefined
 }
 
+/**
+ * This allows us to exclude certain resource kinds from auto-summarization
+ *
+ */
+export function isSummarizableKubeResource(resource: KubeResource): boolean {
+  return isKubeResourceWithItsOwnSummary(resource) || resource.kind !== 'List'
+}
+
 /** Role */
 interface Role extends KubeResource {
   rules: RoleRule[]
