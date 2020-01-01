@@ -87,21 +87,21 @@ describe(`kubectl get pod ${process.env.MOCHA_RUN_TARGET || ''}`, function(this:
       const noName = 'shouldNotExist'
       return CLI.command(`${kubectl} get pod ${noName}`, this.app)
         .then(ReplExpect.error(404, `Error from server (NotFound): pods "${noName}" not found`))
-        .catch(Common.oops(this))
+        .catch(Common.oops(this, true))
     })
 
     it('should error out when getting non-existent pod, with incorrect comment space', () => {
       const noName = 'shouldNotExist#comment'
       return CLI.command(`${kubectl} get pod ${noName}`, this.app)
         .then(ReplExpect.error(404, `Error from server (NotFound): pods "${noName}" not found`))
-        .catch(Common.oops(this))
+        .catch(Common.oops(this, true))
     })
 
     it('should error out when getting non-existent pod, with correct comment', () => {
       const noName = 'shouldNotExist'
       return CLI.command(`${kubectl} get pod ${noName} #comment`, this.app)
         .then(ReplExpect.error(404, `Error from server (NotFound): pods "${noName}" not found`))
-        .catch(Common.oops(this))
+        .catch(Common.oops(this, true))
     })
 
     /**
@@ -118,13 +118,13 @@ describe(`kubectl get pod ${process.env.MOCHA_RUN_TARGET || ''}`, function(this:
       const noName2 = 'shouldNotExist2'
       return CLI.command(`${kubectl} get pod ${noName1} ${noName2}`, this.app)
         .then(ReplExpect.error(404))
-        .catch(Common.oops(this))
+        .catch(Common.oops(this, true))
     })
 
     it('should error out when getting pods with incorrect comments', () => {
       return CLI.command(`${kubectl} get pod# comment #comment`, this.app)
         .then(ReplExpect.error(404, 'error: the server doesn\'t have a resource type "pod#"'))
-        .catch(Common.oops(this))
+        .catch(Common.oops(this, true))
     })
     /** error handling ends */
 
@@ -154,7 +154,7 @@ describe(`kubectl get pod ${process.env.MOCHA_RUN_TARGET || ''}`, function(this:
 
           await testContainersTab()
         } catch (err) {
-          return Common.oops(this)(err)
+          return Common.oops(this, true)(err)
         }
       })
 
@@ -166,7 +166,7 @@ describe(`kubectl get pod ${process.env.MOCHA_RUN_TARGET || ''}`, function(this:
           )
           .then(ReplExpect.okWithCustom({ selector: Selectors.BY_NAME('nginx') }))
           .then((selector: string) => waitForRed(this.app, selector))
-          .catch(Common.oops(this))
+          .catch(Common.oops(this, true))
       })
     }
     */
@@ -192,8 +192,18 @@ describe(`kubectl get pod ${process.env.MOCHA_RUN_TARGET || ''}`, function(this:
         // await testLogTabs()
         // await testContainersTab(false) // testing back button, don't click the container tab
       } catch (err) {
-        return Common.oops(this)(err)
+        return Common.oops(this, true)(err)
       }
+    })
+
+    const getListAsYAMLCommand = `${kubectl} get pods -o yaml ${inNamespace}`
+    it(`should get a list of pods in yaml form via ${getListAsYAMLCommand}`, () => {
+      return CLI.command(getListAsYAMLCommand, this.app)
+        .then(ReplExpect.justOK)
+        .then(SidecarExpect.open)
+        .then(SidecarExpect.mode('raw'))
+        .then(SidecarExpect.showing(getListAsYAMLCommand))
+        .catch(Common.oops(this, true))
     })
 
     it(`should delete the sample pod from URL via ${kubectl}`, () => {
@@ -203,7 +213,7 @@ describe(`kubectl get pod ${process.env.MOCHA_RUN_TARGET || ''}`, function(this:
       )
         .then(ReplExpect.okWithCustom({ selector: Selectors.BY_NAME('nginx') }))
         .then(selector => waitForRed(this.app, selector))
-        .catch(Common.oops(this))
+        .catch(Common.oops(this, true))
     })
 
     it(`should create sample pod from URL via ${kubectl}`, () => {
@@ -213,7 +223,7 @@ describe(`kubectl get pod ${process.env.MOCHA_RUN_TARGET || ''}`, function(this:
       )
         .then(ReplExpect.okWithCustom({ selector: Selectors.BY_NAME('nginx') }))
         .then((selector: string) => waitForGreen(this.app, selector))
-        .catch(Common.oops(this))
+        .catch(Common.oops(this, true))
     })
 
     // this test ensures that having '-n myNamespace' *before* the
@@ -222,7 +232,7 @@ describe(`kubectl get pod ${process.env.MOCHA_RUN_TARGET || ''}`, function(this:
       return CLI.command(`${kubectl} get ${inNamespace} pod nginx`, this.app)
         .then(ReplExpect.okWithCustom({ selector: Selectors.BY_NAME('nginx') }))
         .then((selector: string) => waitForGreen(this.app, selector))
-        .catch(Common.oops(this))
+        .catch(Common.oops(this, true))
     })
 
     it(`should list pods via ${kubectl} then click`, async () => {
@@ -240,7 +250,7 @@ describe(`kubectl get pod ${process.env.MOCHA_RUN_TARGET || ''}`, function(this:
           .then(SidecarExpect.mode(defaultModeForGet))
           .then(SidecarExpect.showing('nginx'))
       } catch (err) {
-        return Common.oops(this)(err)
+        return Common.oops(this, true)(err)
       }
     })
 
@@ -249,7 +259,7 @@ describe(`kubectl get pod ${process.env.MOCHA_RUN_TARGET || ''}`, function(this:
         await this.app.client.click(Selectors.SIDECAR_MAXIMIZE_BUTTON)
         await this.app.client.waitForExist(Selectors.SIDECAR_FULLSCREEN)
       } catch (err) {
-        return Common.oops(this)(err)
+        return Common.oops(this, true)(err)
       }
     })
 
@@ -258,7 +268,7 @@ describe(`kubectl get pod ${process.env.MOCHA_RUN_TARGET || ''}`, function(this:
         await this.app.client.click(Selectors.SIDECAR_MAXIMIZE_BUTTON)
         await this.app.client.waitForExist(Selectors.SIDECAR_FULLSCREEN, 20000, true)
       } catch (err) {
-        return Common.oops(this)(err)
+        return Common.oops(this, true)(err)
       }
     })
 
@@ -289,7 +299,7 @@ describe(`kubectl get pod ${process.env.MOCHA_RUN_TARGET || ''}`, function(this:
       )
         .then(ReplExpect.okWithCustom({ selector: Selectors.BY_NAME('nginx') }))
         .then((selector: string) => waitForRed(this.app, selector))
-        .catch(Common.oops(this))
+        .catch(Common.oops(this, true))
     })
 
     deleteNS(this, ns)

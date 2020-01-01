@@ -17,7 +17,7 @@
 import { i18n, Tab, Table, ModeRegistration } from '@kui-shell/core'
 
 import toMap from './table-to-map'
-import { KubeResource, isKubeResource, isKubeResourceWithItsOwnSummary } from '../../model/resource'
+import { KubeResource, isSummarizableKubeResource, isKubeResourceWithItsOwnSummary } from '../../model/resource'
 
 const strings = i18n('plugin-kubeui')
 
@@ -49,7 +49,7 @@ async function renderSummary(tab: Tab, resource: KubeResource) {
  *
  */
 const summaryMode: ModeRegistration<KubeResource> = {
-  when: isKubeResource,
+  when: isSummarizableKubeResource,
   mode: {
     mode: 'summary',
     label: strings('summary'),
