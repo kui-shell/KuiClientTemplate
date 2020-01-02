@@ -36,7 +36,10 @@ jobs:
     - env: S=helm T=webpack NEEDS_HELM=true
     - stage: release
       install: npm ci
-      script: npm install -g release-it@12.4.3 && release-it
+      script:
+        - npm install -g release-it@12.4.3
+        - echo "//registry.npmjs.org/:_authToken=$NPM_TOKEN" > .npmrc # see issue #182
+        - release-it
 
 env:
   global:
