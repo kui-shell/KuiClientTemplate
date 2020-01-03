@@ -20,6 +20,7 @@ import { PreloadRegistrar } from '@kui-shell/core'
 import podMode from './lib/view/modes/pods'
 import yamlMode from './lib/view/modes/yaml'
 import summaryMode from './lib/view/modes/summary'
+import conditionsMode from './lib/view/modes/conditions'
 import containersMode from './lib/view/modes/containers'
 import lastAppliedMode from './lib/view/modes/last-applied'
 import deleteResourceMode from './lib/view/modes/crud'
@@ -35,6 +36,7 @@ export default async (registrar: PreloadRegistrar) => {
     yamlMode,
     eventsMode,
     summaryMode,
+    conditionsMode,
     containersMode,
     lastAppliedMode,
     deleteResourceMode,
