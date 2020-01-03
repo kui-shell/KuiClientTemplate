@@ -153,54 +153,55 @@ async function doGetCustom(args: Arguments<KubeOptions>, response: RawResponse):
  * get-as-entity, or get-as-custom, depending on the `-o` flag.
  *
  */
-async function doGet(args: Arguments<KubeOptions>): Promise<string | KubeResource | KubeTableResponse> {
-  // first, we do the raw exec of the given command
-  const response = await exec(args, prepareArgsForGet).catch((err: CodedError) => {
-    if (err.statusCode === 0 && err.code === 404 && isTableWatchRequest(args)) {
-      // Notes:
-      // err.statusCode === 0 means this was "normal error" (i.e. kubectl didn't bail)
-      // err.code === 404 means that raw.ts thinks this error was "not found" related
-      // if those hold, and the user asked us to watch a table, then
-      // respond with an empty table, rather than with the error
-      return doGetEmptyTable(args)
-    } else {
-      // Notes: we are using statusCode internally to this plugin;
-      // delete it before rethrowing the error, because the core would
-      // otherwise interpret the statusCode as being meaningful to the
-      // outside world
-      delete err.statusCode
-      throw err
-    }
-  })
+export const doGet = (command: string) =>
+  async function doGet(args: Arguments<KubeOptions>): Promise<string | KubeResource | KubeTableResponse> {
+    // first, we do the raw exec of the given command
+    const response = await exec(args, prepareArgsForGet, command).catch((err: CodedError) => {
+      if (err.statusCode === 0 && err.code === 404 && isTableWatchRequest(args)) {
+        // Notes:
+        // err.statusCode === 0 means this was "normal error" (i.e. kubectl didn't bail)
+        // err.code === 404 means that raw.ts thinks this error was "not found" related
+        // if those hold, and the user asked us to watch a table, then
+        // respond with an empty table, rather than with the error
+        return doGetEmptyTable(args)
+      } else {
+        // Notes: we are using statusCode internally to this plugin;
+        // delete it before rethrowing the error, because the core would
+        // otherwise interpret the statusCode as being meaningful to the
+        // outside world
+        delete err.statusCode
+        throw err
+      }
+    })
 
-  if (isKubeTableResponse(response)) {
-    return response
-  } else if (response.content.code !== 0) {
-    // raw exec yielded an error!
-    if (isTableWatchRequest(args)) {
-      // special case: user requested a watchable table, and there is
-      // not yet anything to display
-      return doGetEmptyTable(args)
+    if (isKubeTableResponse(response)) {
+      return response
+    } else if (response.content.code !== 0) {
+      // raw exec yielded an error!
+      if (isTableWatchRequest(args)) {
+        // special case: user requested a watchable table, and there is
+        // not yet anything to display
+        return doGetEmptyTable(args)
+      } else {
+        const err: CodedError = new Error(response.content.stderr)
+        err.code = response.content.code
+        throw err
+      }
+    } else if (response.content.wasSentToPty) {
+      return response.content.stdout
+    } else if (isEntityRequest(args)) {
+      // case 1: get-as-entity
+      return doGetEntity(args, response)
+    } else if (isTableRequest(args)) {
+      // case 2: get-as-table
+      return doGetTable(args, response)
     } else {
-      const err: CodedError = new Error(response.content.stderr)
-      err.code = response.content.code
-      throw err
+      // case 3: get-as-custom
+      return doGetCustom(args, response)
     }
-  } else if (response.content.wasSentToPty) {
-    return response.content.stdout
-  } else if (isEntityRequest(args)) {
-    // case 1: get-as-entity
-    return doGetEntity(args, response)
-  } else if (isTableRequest(args)) {
-    // case 2: get-as-table
-    return doGetTable(args, response)
-  } else {
-    // case 3: get-as-custom
-    return doGetCustom(args, response)
   }
-}
 
 export default (commandTree: Registrar) => {
-  commandTree.listen(`/${commandPrefix}/kubectl/get`, doGet, flags)
-  commandTree.listen(`/${commandPrefix}/k/get`, doGet, flags)
+  commandTree.listen(`/${commandPrefix}/kubectl/get`, doGet('kubectl'), flags)
+  commandTree.listen(`/${commandPrefix}/k/get`, doGet('kubectl'), flags)
 }
