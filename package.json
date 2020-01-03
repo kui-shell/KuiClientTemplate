@@ -14,7 +14,7 @@
     "compile": "npm run compile:cjs && npm run compile:es6",
     "watch:source": "tsc --build tsconfig-es6.json --watch",
     "_watch": "CSP_EXTRA_ALLOWED_HOSTS=\"https://raw.githubusercontent.com\" kui-watch-webpack",
-    "watch:webpack": "npm run pty:nodejs && (DEBUG=* npm run proxy &) && npm run _watch",
+    "watch:webpack": "npm run pty:nodejs && (npm run proxy &) && npm run _watch",
     "watch:electron": "npm run pty:electron && TARGET=electron-renderer npm run _watch",
     "watch": "npm run kill && npm run compile && concurrently -n EJS,ES6,WEBPACK --kill-others 'tsc --build tsconfig.json --watch' 'npm run watch:source' 'npm run watch:electron'",
     "kill": "kill $(lsof -t -i:908${PORT_OFFSET-0}) > /dev/null 2> /dev/null || true",
