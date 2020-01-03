@@ -43,6 +43,8 @@ export { doExecWithPty, doExecWithStdout, doExecWithStatus, doExecWithTable } fr
 
 export { doExecRaw, doNativeExec } from './controller/kubectl/raw'
 
+export { default as commandPrefix } from './controller/command-prefix'
+
 export { default as defaultFlags } from './controller/kubectl/flags'
 
 export { KubeOptions, getNamespace, getNamespaceForArgv } from './controller/kubectl/options'
@@ -54,3 +56,14 @@ export { formatTable, preprocessTable } from './lib/view/formatTable'
 export { renderHelp } from './lib/util/help'
 
 export { fetchFileString } from './lib/util/fetch-file'
+
+/**
+ * Exports for future delegation; e.g. `oc get pods` is mostly just
+ * `kubectl get pods`
+ *
+ */
+export { doGet } from './controller/kubectl/get'
+export { doRun } from './controller/kubectl/run'
+export { doCreate } from './controller/kubectl/create'
+export { doDelete } from './controller/kubectl/delete'
+export { doDescribe } from './controller/kubectl/describe'

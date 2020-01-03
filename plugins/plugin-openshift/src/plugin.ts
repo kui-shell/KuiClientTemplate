@@ -16,20 +16,10 @@
 
 import { Registrar } from '@kui-shell/core'
 
-import flags from './flags'
-import { doExecWithStatus } from './exec'
-import commandPrefix from '../command-prefix'
-
-import { FinalState } from '../../lib/model/states'
-
-const verbs = ['create', 'apply']
-
-export const doCreate = (verb: string, command = 'kubectl') => doExecWithStatus(verb, FinalState.OnlineLike, command)
+import raw from './controller/raw'
+import delegates from './controller/kubectl/delegates'
 
 export default (registrar: Registrar) => {
-  verbs.forEach(verb => {
-    const handler = doCreate(verb)
-    registrar.listen(`/${commandPrefix}/kubectl/${verb}`, handler, flags)
-    registrar.listen(`/${commandPrefix}/k/${verb}`, handler, flags)
-  })
+  delegates(registrar)
+  raw(registrar)
 }

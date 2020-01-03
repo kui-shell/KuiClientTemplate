@@ -136,7 +136,8 @@ export async function doExecWithPty<
  */
 export async function exec<O extends KubeOptions>(
   args: Arguments<O>,
-  prepare: Prepare<O> = NoPrepare
+  prepare: Prepare<O> = NoPrepare,
+  exec = 'kubectl'
 ): Promise<RawResponse> {
   if (args.argvNoOptions.includes('|')) {
     return Promise.resolve({
@@ -148,7 +149,7 @@ export async function exec<O extends KubeOptions>(
       }
     })
   } else {
-    const response = await doExecWithoutPty(args, prepare)
+    const response = await doExecWithoutPty(args, prepare, exec)
     if (isUsage(args)) {
       doHelp(args, response)
     } else {
@@ -184,10 +185,11 @@ export async function doExecWithTable<O extends KubeOptions>(
 export const doExecWithStatus = <O extends KubeOptions>(
   cmd: string,
   finalState: FinalState,
+  command = 'kubectl',
   prepareForExec: Prepare<O> = NoPrepare,
   prepareForStatus: PrepareForStatus<O> = DefaultPrepareForStatus
 ) => async (args: Arguments<O>): Promise<KubeTableResponse> => {
-  const response = await exec<O>(args, prepareForExec)
+  const response = await exec<O>(args, prepareForExec, command)
 
   if (response.content.code !== 0) {
     const err: CodedError = new Error(response.content.stderr)

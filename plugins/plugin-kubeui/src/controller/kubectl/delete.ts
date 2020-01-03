@@ -37,9 +37,11 @@ function prepareArgsForDelete(args: Arguments<KubeOptions>) {
   }
 }
 
-export default (registrar: Registrar) => {
-  const doDelete = doExecWithStatus('delete', FinalState.OfflineLike, prepareArgsForDelete)
+export const doDelete = (command = 'kubectl') =>
+  doExecWithStatus('delete', FinalState.OfflineLike, command, prepareArgsForDelete)
 
-  registrar.listen(`/${commandPrefix}/kubectl/delete`, doDelete, flags)
-  registrar.listen(`/${commandPrefix}/k/delete`, doDelete, flags)
+export default (registrar: Registrar) => {
+  const handler = doDelete()
+  registrar.listen(`/${commandPrefix}/kubectl/delete`, handler, flags)
+  registrar.listen(`/${commandPrefix}/k/delete`, handler, flags)
 }

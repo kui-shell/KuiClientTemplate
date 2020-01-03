@@ -33,14 +33,16 @@ function prepareArgsForDescribe(args: Arguments<KubeOptions>) {
   return `${args.command.replace(/(k|kubectl)(\s+)describe(\s+)/, '$1$2get$3')} -o yaml`
 }
 
-async function doDescribe(args: Arguments<KubeOptions>): Promise<KubeResource> {
-  // first, we do the raw exec of the given command
-  const response = await exec(args, prepareArgsForDescribe)
+export const doDescribe = (command = 'kubectl') =>
+  async function(args: Arguments<KubeOptions>): Promise<KubeResource> {
+    // first, we do the raw exec of the given command
+    const response = await exec(args, prepareArgsForDescribe, command)
 
-  return doGetEntity(args, response)
-}
+    return doGetEntity(args, response)
+  }
 
 export default (registrar: Registrar) => {
-  registrar.listen(`/${commandPrefix}/kubectl/describe`, doDescribe, flags)
-  registrar.listen(`/${commandPrefix}/k/describe`, doDescribe, flags)
+  const handler = doDescribe()
+  registrar.listen(`/${commandPrefix}/kubectl/describe`, handler, flags)
+  registrar.listen(`/${commandPrefix}/k/describe`, handler, flags)
 }

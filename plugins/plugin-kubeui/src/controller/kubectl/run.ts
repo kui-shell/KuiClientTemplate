@@ -32,9 +32,11 @@ function prepareArgsForStatus(cmd: string, args: Arguments<KubeOptions>) {
   return `deployment ${name}`
 }
 
-export default (registrar: Registrar) => {
-  const doRun = doExecWithStatus('run', FinalState.OnlineLike, undefined, prepareArgsForStatus)
+export const doRun = (command = 'kubectl') =>
+  doExecWithStatus('run', FinalState.OnlineLike, command, undefined, prepareArgsForStatus)
 
-  registrar.listen(`/${commandPrefix}/kubectl/run`, doRun, flags)
-  registrar.listen(`/${commandPrefix}/k/run`, doRun, flags)
+export default (registrar: Registrar) => {
+  const handler = doRun()
+  registrar.listen(`/${commandPrefix}/kubectl/run`, handler, flags)
+  registrar.listen(`/${commandPrefix}/k/run`, handler, flags)
 }

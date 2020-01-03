@@ -16,21 +16,21 @@
     "_watch": "CSP_EXTRA_ALLOWED_HOSTS=\"https://raw.githubusercontent.com\" kui-watch-webpack",
     "watch:webpack": "npm run pty:nodejs && (npm run proxy &) && npm run _watch",
     "watch:electron": "npm run pty:electron && TARGET=electron-renderer npm run _watch",
-    "watch": "npm run kill && npm run compile && concurrently -n EJS,ES6,WEBPACK --kill-others 'tsc --build tsconfig.json --watch' 'npm run watch:source' 'npm run watch:electron'",
+    "watch": "npm run kill; npm run compile && concurrently -n EJS,ES6,WEBPACK --kill-others 'tsc --build tsconfig.json --watch' 'npm run watch:source' 'npm run watch:electron'",
     "kill": "kill $(lsof -t -i:908${PORT_OFFSET-0}) > /dev/null 2> /dev/null || true",
     "proxy": "if [ -z \"$TRAVIS_JOB_ID\" ]; then npm run -s pty:nodejs; fi; kui-run-proxy",
     "pty:rebuild": "kui-pty-rebuild",
     "pty:electron": "npm run pty:rebuild electron",
     "pty:nodejs": "npm run pty:rebuild node",
-    "test:electron": "npm run kill && npm run watch:electron && KUI=$(echo \"$(pwd)/bin/kubectl-kui\") kui-test",
-    "test:webpack": "npm run kill && npm run watch:webpack && KUI_USE_PROXY=true MOCHA_RUN_TARGET=webpack WEBPACK_CLIENT_URL=http://localhost:9080 kui-test",
+    "test:electron": "npm run kill; npm run watch:electron && KUI=$(echo \"$(pwd)/bin/kubectl-kui\") kui-test",
+    "test:webpack": "npm run kill; npm run watch:webpack && KUI_USE_PROXY=true MOCHA_RUN_TARGET=webpack WEBPACK_CLIENT_URL=http://localhost:9080 kui-test",
     "test": "npm run -s test:electron",
     "lint": "eslint '**/*.{js,ts}'",
     "format": "prettier --write '**/*.{css,html,js,json,md,ts}'",
     "postinstall": "npm run -s compile && npm run pty:electron",
     "open": "electron . shell",
-    "start:web": "npm run kill && npm run watch:webpack && open http://localhost:908${PORT_OFFSET-0}",
-    "start": "npm run kill && npm run watch:electron && npm run open"
+    "start:web": "npm run kill; npm run watch:webpack && open http://localhost:908${PORT_OFFSET-0}",
+    "start": "npm run kill; npm run watch:electron && npm run open"
   },
   "engines": {
     "node": ">=8.15.0",
@@ -92,6 +92,7 @@
     "@kui-shell/plugin-logui": "file:plugins/plugin-logui",
     "@kui-shell/plugin-ibmcloud": "file:plugins/plugin-ibmcloud",
     "@kui-shell/plugin-tekton": "file:plugins/plugin-tekton",
+    "@kui-shell/plugin-openshift": "file:plugins/plugin-openshift",
     "@kui-shell/plugin-operator-framework": "file:plugins/plugin-operator-framework"
   },
   "husky": {

@@ -1,11 +1,13 @@
 {
-  "name": "@kui-shell/plugin-logui",
+  "name": "@kui-shell/plugin-openshift",
   "version": "0.0.1",
-  "description": "Kui kubernetes log visualization support",
+  "description": "Kui OpenShift support",
   "license": "Apache-2.0",
   "keywords": [
     "kubernetes",
     "kubectl",
+    "openshift",
+    "redhat",
     "cli",
     "ui",
     "kui",
@@ -25,14 +27,7 @@
   },
   "main": "dist/index.js",
   "module": "mdist/index.js",
-  "dependencies": {
-    "@kui-shell/core": "5.7.22",
-    "@kui-shell/plugin-bash-like": "5.7.22",
-    "@kui-shell/plugin-core-support": "5.7.22",
-    "@kui-shell/plugin-editor": "5.7.22",
-    "debug": "4.1.1",
-    "js-yaml": "3.13.1"
-  },
+  "dependencies": {},
   "krew": {
     "commandPrefix": "kubeui"
   },
