@@ -91,6 +91,7 @@
     "@kui-shell/plugin-helmui": "file:plugins/plugin-helmui",
     "@kui-shell/plugin-logui": "file:plugins/plugin-logui",
     "@kui-shell/plugin-ibmcloud": "file:plugins/plugin-ibmcloud",
+    "@kui-shell/plugin-tekton": "file:plugins/plugin-tekton",
     "@kui-shell/plugin-operator-framework": "file:plugins/plugin-operator-framework"
   },
   "husky": {

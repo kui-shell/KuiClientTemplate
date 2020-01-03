@@ -1,0 +1,37 @@
+{
+  "name": "@kui-shell/plugin-tekton",
+  "version": "5.0.0",
+  "description": "Visualizations for Tekton Pipelines",
+  "license": "Apache-2.0",
+  "author": "Nick Mitchell",
+  "homepage": "https://github.com/kui-shell/plugin-tekton#readme",
+  "bugs": {
+    "url": "https://github.com/kui-shell/plugin-tekton/issues/new"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/kui-shell/plugin-tekton.git"
+  },
+  "keywords": [
+    "kui",
+    "plugin",
+    "OpenWhisk",
+    "Tekton",
+    "visualization",
+    "flow",
+    "wskflow"
+  ],
+  "main": "dist/index.js",
+  "dependencies": {
+    "@kui-shell/core": "5.7.22",
+    "@kui-shell/plugin-wskflow": "5.7.22",
+    "debug": "4.1.1",
+    "js-yaml": "3.13.1"
+  },
+  "kui": {
+    "headless": false
+  },
+  "publishConfig": {
+    "access": "public"
+  }
+}

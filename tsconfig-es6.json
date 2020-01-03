@@ -5,6 +5,7 @@
     { "path": "./plugins/plugin-helmui/tsconfig-es6.json" },
     { "path": "./plugins/plugin-logui/tsconfig-es6.json" },
     { "path": "./plugins/plugin-ibmcloud/tsconfig-es6.json" },
+    { "path": "./plugins/plugin-tekton/tsconfig-es6.json" },
     { "path": "./plugins/plugin-operator-framework/tsconfig-es6.json" }
   ]
 }
