@@ -317,10 +317,14 @@ export function isEvent(resource: KubeResource): resource is Event {
  * e.g. `kubectl get pods -o json` will return a kind: items
  *
  */
-export interface KubeItems extends KubeResource {
+export interface KubeItems<Item extends KubeResource = KubeResource> extends KubeResource {
   apiVersion: 'v1'
   kind: 'List'
-  items: KubeResource[]
+  items: Item[]
+}
+
+export function isKubeItems(resource: KubeResource): resource is KubeItems {
+  return resource.apiVersion === 'v1' && resource.kind === 'List'
 }
 
 export interface Resource<T = KubeResource> {

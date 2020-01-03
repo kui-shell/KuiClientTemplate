@@ -25,10 +25,13 @@ export {
   WithRawData,
   InvolvedObject,
   KubeStatus,
+  KubeStatusCondition,
   Pod,
   isPod,
   Deployment,
   isDeployment,
+  KubeItems,
+  isKubeItems,
   Job,
   isJob,
   Resource
