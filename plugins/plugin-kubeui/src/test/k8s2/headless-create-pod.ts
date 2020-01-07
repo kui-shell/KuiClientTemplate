@@ -16,7 +16,7 @@
 
 import { Common } from '@kui-shell/test'
 import { CLI } from '@kui-shell/core/tests/lib/headless'
-import { kubectl, createNS, waitTillNone } from '@kui-shell/plugin-kubeui/tests/lib/k8s/utils'
+import { kubectl, createNS } from '@kui-shell/plugin-kubeui/tests/lib/k8s/utils'
 
 import { dirname } from 'path'
 const ROOT = dirname(require.resolve('@kui-shell/plugin-kubeui/tests/package.json'))
@@ -37,28 +37,28 @@ const doHeadless = (ctx: Common.ISuite, impl: CLI) => {
         .catch(Common.oops(ctx, true))
     })
 
-    it(`should create sample pod from local file via ${kubectl}`, () => {
+    it(`should create sample pod from local file via ${kubectl} ${inNamespace}`, () => {
       return impl
         .command(`${kubectl} create -f ${ROOT}/data/k8s/headless/pod.yaml ${inNamespace}`, ctx.app)
         .then(impl.expectOK('nginx'))
         .catch(Common.oops(ctx, true))
     })
 
-    it(`should list the new pod via ${kubectl}`, () => {
+    it(`should list the new pod via ${kubectl} ${inNamespace}`, () => {
       return impl
         .command(`${kubectl} get pods ${inNamespace}`, ctx.app)
         .then(impl.expectOK('nginx'))
         .catch(Common.oops(ctx, true))
     })
 
-    it(`should get the new pod via ${kubectl}`, () => {
+    it(`should get the new pod via ${kubectl} ${inNamespace}`, () => {
       return impl
         .command(`${kubectl} get pod nginx ${inNamespace}`, ctx.app)
         .then(impl.expectOK('nginx'))
         .catch(Common.oops(ctx, true))
     })
 
-    it(`should get the new pod as JSON via ${kubectl}`, () => {
+    it(`should get the new pod as JSON via ${kubectl} ${inNamespace}`, () => {
       return impl
         .command(`${kubectl} get pod nginx -o json ${inNamespace}`, ctx.app)
         .then(
@@ -72,15 +72,14 @@ const doHeadless = (ctx: Common.ISuite, impl: CLI) => {
         .catch(Common.oops(ctx, true))
     })
 
-    it(`should delete the new pod by yaml via ${kubectl}`, () => {
+    it(`should delete the new pod by yaml via ${kubectl} ${inNamespace}`, () => {
       return impl
         .command(`${kubectl} delete -f ${ROOT}/data/k8s/headless/pod.yaml ${inNamespace}`, ctx.app)
         .then(impl.expectOK('pod "nginx" deleted'))
-        .then(() => waitTillNone('pods', impl, 'nginx', undefined, inNamespace)(ctx.app))
         .catch(Common.oops(ctx, true))
     })
 
-    it(`should create sample pod from local file via ${kubectl}`, () => {
+    it(`should create sample pod from local file via ${kubectl} ${inNamespace}`, () => {
       return impl
         .command(`${kubectl} create -f ${ROOT}/data/k8s/headless/pod2.yaml ${inNamespace}`, ctx.app)
         .then(impl.expectOK('nginx2'))
@@ -96,7 +95,7 @@ const doHeadless = (ctx: Common.ISuite, impl: CLI) => {
   })
 }
 
-Common.localDescribe('headless create pod kubectl kui mode', function(this: Common.ISuite) {
+Common.localDescribe('headless create poddy kubectl kui mode', function(this: Common.ISuite) {
   doHeadless(this, kubectl)
 })
 

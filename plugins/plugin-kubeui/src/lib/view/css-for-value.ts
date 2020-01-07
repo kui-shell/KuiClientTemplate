@@ -14,6 +14,8 @@
  * limitations under the License.
  */
 
+import TrafficLight from '../model/traffic-light'
+
 /**
  * Decorate certain values specially
  *
@@ -21,51 +23,51 @@
 export default {
   // helm lifecycle
   UNKNOWN: '',
-  DEPLOYED: 'green-background',
+  DEPLOYED: TrafficLight.Green,
   DELETED: '',
-  SUPERSEDED: 'yellow-background',
-  FAILED: 'red-background',
-  DELETING: 'yellow-background',
+  SUPERSEDED: TrafficLight.Yellow,
+  FAILED: TrafficLight.Red,
+  DELETING: TrafficLight.Yellow,
 
   // pod lifecycle
-  'Init:0/1': 'yellow-background',
-  PodScheduled: 'yellow-background',
-  PodInitializing: 'yellow-background',
-  Initialized: 'yellow-background',
-  Terminating: 'yellow-background',
+  'Init:0/1': TrafficLight.Yellow,
+  PodScheduled: TrafficLight.Yellow,
+  PodInitializing: TrafficLight.Yellow,
+  Initialized: TrafficLight.Yellow,
+  Terminating: TrafficLight.Yellow,
 
   // kube lifecycle
-  CrashLoopBackOff: 'red-background',
-  Failed: 'red-background',
-  Running: 'green-background',
-  Pending: 'yellow-background',
-  Succeeded: 'gray-background', // successfully terminated; don't use a color
-  Completed: 'gray-background', // successfully terminated; don't use a color
+  CrashLoopBackOff: TrafficLight.Red,
+  Failed: TrafficLight.Red,
+  Running: TrafficLight.Green,
+  Pending: TrafficLight.Yellow,
+  Succeeded: TrafficLight.Gray, // successfully terminated; don't use a color
+  Completed: TrafficLight.Gray, // successfully terminated; don't use a color
   Unknown: '',
 
   // AWS events
-  Ready: 'green-background',
-  ProvisionedSuccessfully: 'green-background',
+  Ready: TrafficLight.Green,
+  ProvisionedSuccessfully: TrafficLight.Green,
 
   // kube events
-  Active: 'green-background',
-  Online: 'green-background',
-  NodeReady: 'green-background',
-  Pulled: 'green-background',
-  Rebooted: 'green-background',
-  Started: 'green-background',
-  Created: 'green-background',
-  Scheduled: 'green-background',
-  SuccessfulCreate: 'green-background',
-  SuccessfulMountVol: 'green-background',
-  ContainerCreating: 'yellow-background',
-  Starting: 'yellow-background',
-  NodeNotReady: 'yellow-background',
-  Killing: 'yellow-background',
-  Deleting: 'yellow-background',
-  Pulling: 'yellow-background',
-  BackOff: 'yellow-background',
-  Unhealthy: 'red-background',
-  FailedScheduling: 'red-background',
-  FailedKillPod: 'red-background'
+  Active: TrafficLight.Green,
+  Online: TrafficLight.Green,
+  NodeReady: TrafficLight.Green,
+  Pulled: TrafficLight.Green,
+  Rebooted: TrafficLight.Green,
+  Started: TrafficLight.Green,
+  Created: TrafficLight.Green,
+  Scheduled: TrafficLight.Green,
+  SuccessfulCreate: TrafficLight.Green,
+  SuccessfulMountVol: TrafficLight.Green,
+  ContainerCreating: TrafficLight.Yellow,
+  Starting: TrafficLight.Yellow,
+  NodeNotReady: TrafficLight.Yellow,
+  Killing: TrafficLight.Yellow,
+  Deleting: TrafficLight.Yellow,
+  Pulling: TrafficLight.Yellow,
+  BackOff: TrafficLight.Yellow,
+  Unhealthy: TrafficLight.Red,
+  FailedScheduling: TrafficLight.Red,
+  FailedKillPod: TrafficLight.Red
 }

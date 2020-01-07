@@ -17,6 +17,7 @@
 import { Common, CLI, ReplExpect, Selectors, SidecarExpect, Util } from '@kui-shell/test'
 import {
   waitForGreen,
+  waitForRed,
   defaultModeForGet,
   createNS,
   allocateNS,
@@ -26,7 +27,7 @@ import {
 
 const synonyms = ['kubectl']
 
-describe(`electron configmap ${process.env.MOCHA_RUN_TARGET}`, function(this: Common.ISuite) {
+describe(`kubectl configmap ${process.env.MOCHA_RUN_TARGET || ''}`, function(this: Common.ISuite) {
   before(Common.before(this))
   after(Common.after(this))
 
@@ -83,12 +84,11 @@ describe(`electron configmap ${process.env.MOCHA_RUN_TARGET}`, function(this: Co
     }
 
     /** delete the given configmap */
-    const deleteIt = (name: string, errOk = false) => {
+    const deleteIt = (name: string) => {
       it(`should delete the configmap ${name} via ${kubectl} `, () => {
-        const expectResult = errOk ? ReplExpect.okWithAny : ReplExpect.okWithString('deleted')
-
         return CLI.command(`${kubectl} delete cm ${name} ${inNamespace}`, this.app)
-          .then(expectResult)
+          .then(ReplExpect.okWithCustom({ selector: Selectors.BY_NAME(name) }))
+          .then(selector => waitForRed(this.app, selector))
           .then(() => waitTillNone('configmap', undefined, name, undefined, inNamespace))
           .catch(Common.oops(this))
       })

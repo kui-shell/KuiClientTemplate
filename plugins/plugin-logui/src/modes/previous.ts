@@ -37,7 +37,7 @@ function isLogs(resource: KubeResource): boolean {
  *
  */
 async function renderPrevious(tab: Tab, resource: KubeResource): Promise<Table> {
-  return formatAsTable(await doExecRaw(`${resource.originatingCommand} --previous`, {}), resource.metadata)
+  return formatAsTable(await doExecRaw(`${resource.originatingCommand} --previous`, {}, {}), resource.metadata)
 }
 
 /**

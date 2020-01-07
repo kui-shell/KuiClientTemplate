@@ -46,7 +46,7 @@ const doGet = (cmd: string) => async (args: Arguments<ListOptions>): Promise<Mul
 
   const [{ Plugins: installed }, { plugins: available }, { safeDump }] = await Promise.all([
     getInstalledPlugins(args),
-    getAvailablePlugins(repoURL),
+    getAvailablePlugins(args.tab, repoURL),
     import('js-yaml')
   ])
 

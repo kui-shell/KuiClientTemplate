@@ -14,32 +14,16 @@
  * limitations under the License.
  */
 
-import {
-  Table,
-  isTable,
-  CodedError,
-  Arguments,
-  ExecType,
-  Registrar,
-  formatWatchableTable,
-  MultiModalResponse
-} from '@kui-shell/core'
+import { CodedError, Arguments, ExecType, Registrar, MultiModalResponse, isHeadless } from '@kui-shell/core'
 
 import flags from './flags'
 import { exec } from './exec'
 import { RawResponse } from './response'
+import doGetWatchTable from './watch/get-watch'
 import commandPrefix from '../command-prefix'
 import extractAppAndName from '../../lib/util/name'
 import { KubeResource } from '../../lib/model/resource'
-import {
-  KubeOptions,
-  isEntityRequest,
-  isTableRequest,
-  formatOf,
-  isWatchRequest,
-  isTableWatchRequest,
-  getNamespace
-} from './options'
+import { KubeOptions, isEntityRequest, isTableRequest, formatOf, isWatchRequest, getNamespace } from './options'
 import { stringToTable, KubeTableResponse, isKubeTableResponse } from '../../lib/view/formatTable'
 
 /**
@@ -56,10 +40,10 @@ function prepareArgsForGet(args: Arguments<KubeOptions>) {
 }
 
 /**
- * kubectl get as table response
+ * `kubectl get` as a table response
  *
  */
-export function doGetTable(args: Arguments<KubeOptions>, response: RawResponse, verb = 'get'): KubeTableResponse {
+export function doGetAsTable(args: Arguments<KubeOptions>, response: RawResponse, verb = 'get'): KubeTableResponse {
   const {
     content: { stderr, stdout }
   } = response
@@ -67,35 +51,24 @@ export function doGetTable(args: Arguments<KubeOptions>, response: RawResponse, 
   const command = 'kubectl'
   const entityType = args.argvNoOptions[args.argvNoOptions.indexOf(verb) + 1]
 
-  const table = stringToTable(stdout, stderr, args, command, verb, entityType)
-
-  if (isWatchRequest(args) && isTable(table)) {
-    formatWatchableTable(table, {
-      refreshCommand: args.command.replace(/--watch=true|-w=true|--watch-only=true|--watch|-w|--watch-only/g, ''),
-      watchByDefault: true
-    })
-  }
-
-  return table
+  return stringToTable(stdout, stderr, args, command, verb, entityType)
 }
 
 /**
- * Special case: user requested a watchable table, and there is
- * nothing yet to display
+ * `kubectl get --watch` as a table response, but for the special case
+ * where there is nothing yet to display
  *
  */
-function doGetEmptyTable(args: Arguments<KubeOptions>): KubeTableResponse {
-  return formatWatchableTable(new Table({ body: [] }), {
-    refreshCommand: args.command.replace(/--watch=true|-w=true|--watch-only=true|--watch|-w|--watch-only/g, ''),
-    watchByDefault: true
-  })
-}
+/* function doGetEmptyWatchTable(args: Arguments<KubeOptions>): KubeTableResponse {
+  const emptyTable = { body: [] }
+  return initWatch(args, emptyTable)
+} */
 
 /**
- * kubectl get as entity response
+ * `kubectl get` as entity response
  *
  */
-export async function doGetEntity(
+export async function doGetAsEntity(
   args: Arguments<KubeOptions>,
   response: RawResponse
 ): Promise<MultiModalResponse<KubeResource>> {
@@ -144,7 +117,7 @@ export async function doGetEntity(
  *
  */
 async function doGetCustom(args: Arguments<KubeOptions>, response: RawResponse): Promise<string> {
-  return response.content.stdout
+  return response.content.stdout.trim()
 }
 
 /**
@@ -155,46 +128,48 @@ async function doGetCustom(args: Arguments<KubeOptions>, response: RawResponse):
  */
 export const doGet = (command: string) =>
   async function doGet(args: Arguments<KubeOptions>): Promise<string | KubeResource | KubeTableResponse> {
+    // first, peel off some special cases:
+    if (!isHeadless() && isWatchRequest(args)) {
+      // special case: get --watch/watch-only
+
+      // special case of special case: kubectl -w get fails; even
+      // though we could handle it, we have decided to keep parity
+      // with kubectl's errors here
+      if (!/^k(ubectl)?\s+-/.test(args.command)) {
+        return doGetWatchTable(args)
+      }
+    }
+
     // first, we do the raw exec of the given command
     const response = await exec(args, prepareArgsForGet, command).catch((err: CodedError) => {
-      if (err.statusCode === 0 && err.code === 404 && isTableWatchRequest(args)) {
-        // Notes:
-        // err.statusCode === 0 means this was "normal error" (i.e. kubectl didn't bail)
-        // err.code === 404 means that raw.ts thinks this error was "not found" related
-        // if those hold, and the user asked us to watch a table, then
-        // respond with an empty table, rather than with the error
-        return doGetEmptyTable(args)
-      } else {
-        // Notes: we are using statusCode internally to this plugin;
-        // delete it before rethrowing the error, because the core would
-        // otherwise interpret the statusCode as being meaningful to the
-        // outside world
-        delete err.statusCode
-        throw err
-      }
+      // Notes: we are using statusCode internally to this plugin;
+      // delete it before rethrowing the error, because the core would
+      // otherwise interpret the statusCode as being meaningful to the
+      // outside world
+      delete err.statusCode
+
+      // trim? at least with 1.15 clients, e.g. `kubectl get all -l
+      // app=foo` emits weird initial blank newlinesc
+      err.message = err.message.trim()
+
+      throw err
     })
 
     if (isKubeTableResponse(response)) {
       return response
     } else if (response.content.code !== 0) {
       // raw exec yielded an error!
-      if (isTableWatchRequest(args)) {
-        // special case: user requested a watchable table, and there is
-        // not yet anything to display
-        return doGetEmptyTable(args)
-      } else {
-        const err: CodedError = new Error(response.content.stderr)
-        err.code = response.content.code
-        throw err
-      }
+      const err: CodedError = new Error(response.content.stderr)
+      err.code = response.content.code
+      throw err
     } else if (response.content.wasSentToPty) {
       return response.content.stdout
     } else if (isEntityRequest(args)) {
       // case 1: get-as-entity
-      return doGetEntity(args, response)
+      return doGetAsEntity(args, response)
     } else if (isTableRequest(args)) {
       // case 2: get-as-table
-      return doGetTable(args, response)
+      return doGetAsTable(args, response)
     } else {
       // case 3: get-as-custom
       return doGetCustom(args, response)

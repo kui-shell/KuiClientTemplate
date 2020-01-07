@@ -20,7 +20,7 @@ import flags from './flags'
 import { exec } from './exec'
 import commandPrefix from '../command-prefix'
 
-import { doGetEntity } from './get'
+import { doGetAsEntity } from './get'
 
 import { KubeResource } from '../../lib/model/resource'
 import { KubeOptions } from './options'
@@ -38,7 +38,7 @@ export const doDescribe = (command = 'kubectl') =>
     // first, we do the raw exec of the given command
     const response = await exec(args, prepareArgsForDescribe, command)
 
-    return doGetEntity(args, response)
+    return doGetAsEntity(args, response)
   }
 
 export default (registrar: Registrar) => {

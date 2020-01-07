@@ -16,6 +16,7 @@
 
 import { Table, Row, Cell, isTable, encodeComponent, Arguments, MixedResponse } from '@kui-shell/core'
 
+import TrafficLight from '../model/traffic-light'
 import KubeOptions from '../../controller/kubectl/options'
 import { RawResponse } from '../../controller/kubectl/response'
 
@@ -78,6 +79,7 @@ const cssForKey = {
 }
 
 const tagForKey = {
+  // READY: 'badge', // e.g. deployments
   REASON: 'badge', // k get events
   STATUS: 'badge'
 }
@@ -88,7 +90,7 @@ const cssForKeyValue = {}
  * Split the given string at the given split indices
  *
  */
-interface Pair {
+export interface Pair {
   key: string
   value: string
 }
@@ -112,7 +114,7 @@ const detabbify = (str: string) => str.replace(/\t/g, '   ')
  * Find the column splits
  *
  */
-export const preprocessTable = (raw: string[]) => {
+export const preprocessTable = (raw: string[]): Pair[][][] => {
   return raw.map(table => {
     const header = detabbify(table.substring(0, table.indexOf('\n')))
     const headerCells = header
@@ -145,6 +147,20 @@ export const preprocessTable = (raw: string[]) => {
 /** normalize the status badge by capitalization */
 const capitalize = (str: string): string => {
   return !str ? 'Unknown' : str[0].toUpperCase() + str.slice(1).toLowerCase()
+}
+
+/**
+ * Interpret READY column value "n/m" as a traffic light based on
+ * whehter n/m === 1.
+ *
+ */
+function cssForReadyCount(ready: string): string {
+  if (ready) {
+    const [nReady, nTotal] = ready.split(/\//)
+    const isDone = nReady && nTotal && nReady === nTotal
+
+    return isDone ? TrafficLight.Green : TrafficLight.Yellow
+  }
 }
 
 export const formatTable = <O extends KubeOptions>(
@@ -245,9 +261,9 @@ export const formatTable = <O extends KubeOptions>(
       // for `k get events`, show REASON and MESSAGE columns when sidecar open
       const columnVisibleWithSidecar = new RegExp(/STATUS|REASON|MESSAGE/i)
 
-      // show red-background if it's a failure reason in `k  get events`
+      // show TrafficLight.Red if it's a failure reason in `k  get events`
       const maybeRed = (reason: string) => {
-        return /failed/i.test(reason) ? 'red-background' : ''
+        return /failed/i.test(reason) ? TrafficLight.Red : ''
       }
 
       return {
@@ -273,7 +289,12 @@ export const formatTable = <O extends KubeOptions>(
                 (colIdx <= 1 || colIdx === nameColumnIdx - 1 || columnVisibleWithSidecar.test(key)
                   ? ''
                   : ' hide-with-sidecar'), // nameColumnIndex - 1 beacuse of rows.slice(1)
-              css: css + ' ' + ((idx > 0 && cssForKey[key]) || '') + ' ' + (cssForValue[column] || maybeRed(column)),
+              css:
+                css +
+                ' ' +
+                ((idx > 0 && cssForKey[key]) || '') +
+                ' ' +
+                (cssForValue[column] || (key === 'READY' && cssForReadyCount(column)) || maybeRed(column)),
               value: key === 'STATUS' && idx > 0 ? capitalize(column) : column
             })
           )

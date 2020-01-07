@@ -14,12 +14,17 @@
  * limitations under the License.
  */
 
-import { Arguments, ParsedOptions } from '@kui-shell/core'
+import { Arguments, ExecOptions, ParsedOptions } from '@kui-shell/core'
+import { FinalState } from '../../lib/model/states'
 
 type EntityFormat = 'yaml' | 'json'
 type TableFormat = 'wide' | string // want: 'custom-columns-file=' | 'custom-columns='
 type CustomFormat = string // want: 'go-template' | 'go-template-file' | 'jsonpath' | 'jsonpath-file'
 type OutputFormat = EntityFormat | TableFormat | CustomFormat
+
+export function fileOf(args: Arguments<KubeOptions>): string {
+  return args.parsedOptions.f || args.parsedOptions.filename
+}
 
 export function formatOf(args: Arguments<KubeOptions>): OutputFormat {
   return args.parsedOptions.o || args.parsedOptions.output
@@ -74,8 +79,12 @@ export function getNamespaceForArgv(args: Arguments<KubeOptions>) {
   }
 }
 
+export function getContext(args: Arguments<KubeOptions>) {
+  return args.parsedOptions.context
+}
+
 export function getContextForArgv(args: Arguments<KubeOptions>) {
-  const context = args.parsedOptions.context
+  const context = getContext(args)
   if (context) {
     return `--context ${context}`
   } else {
@@ -83,23 +92,35 @@ export function getContextForArgv(args: Arguments<KubeOptions>) {
   }
 }
 
+export interface KubeExecOptions extends ExecOptions {
+  finalState: FinalState
+  nResourcesToWaitFor: number
+
+  /** e.g. kubectl delete followed by a watch; if the watch fails,
+   * we'd like to report the initial response from the delete */
+  initialResponse: string
+}
+
 export interface KubeOptions extends ParsedOptions {
-  context: string
+  context?: string
 
-  n: string
-  namespace: string
+  n?: string
+  namespace?: string
 
-  o: OutputFormat
-  output: OutputFormat
+  o?: OutputFormat
+  output?: OutputFormat
 
-  w: boolean
-  watch: boolean
-  'watch-only': boolean
+  w?: boolean
+  watch?: boolean
+  'watch-only'?: boolean
 
-  wait: boolean
+  wait?: boolean
 
-  l: string
-  label: string
+  l?: string
+  label?: string
+
+  f?: string
+  filename?: string
 }
 
 export default KubeOptions

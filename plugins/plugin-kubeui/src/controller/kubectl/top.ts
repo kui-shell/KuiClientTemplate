@@ -22,7 +22,7 @@ import commandPrefix from '../command-prefix'
 import { KubeOptions } from './options'
 import { KubeTableResponse } from '../../lib/view/formatTable'
 
-import { doGetTable } from './get'
+import { doGetAsTable } from './get'
 
 const verb = 'top'
 
@@ -34,7 +34,7 @@ async function doTop(args: Arguments<KubeOptions>): Promise<KubeTableResponse> {
   // first, we do the raw exec of the given command
   const response = await exec(args)
 
-  return doGetTable(args, response, verb)
+  return doGetAsTable(args, response, verb)
 }
 
 export default (commandTree: Registrar) => {

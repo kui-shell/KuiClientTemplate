@@ -40,7 +40,7 @@ async function doGet(args: Arguments<KubeOptions>): Promise<MultiModalResponse<I
   const [installed, { Plugins: installedPlugins }, { plugins: availablePlugins }] = await Promise.all([
     getInstalledRepos(args),
     getInstalledPlugins(args),
-    getAvailablePlugins(repoURL)
+    getAvailablePlugins(args.tab, repoURL)
   ])
 
   const installedEntry = installed.find(_ => _.Name === whichRepo)

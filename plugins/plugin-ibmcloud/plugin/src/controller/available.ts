@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 
+import { Tab } from '@kui-shell/core'
 import { fetchFileString } from '@kui-shell/plugin-kubeui'
 import { AvailablePluginRaw } from '../models/plugin'
 
@@ -25,17 +26,20 @@ const defaultURL = 'https://plugins.cloud.ibm.com'
  * @return a model of available plugins
  *
  */
-export default async function getAvailablePlugins(url = defaultURL): Promise<{ plugins: AvailablePluginRaw[] }> {
-  return JSON.parse((await fetchFileString(`${url}/plugins`))[0])
+export default async function getAvailablePlugins(
+  tab: Tab,
+  url = defaultURL
+): Promise<{ plugins: AvailablePluginRaw[] }> {
+  return JSON.parse((await fetchFileString(tab, `${url}/plugins`))[0])
 }
 
 /**
  * @return a model of available plugins, or an empty model if the repository cannot be reached
  *
  */
-export async function getAvailablePluginsSafe(url = defaultURL): Promise<{ plugins: AvailablePluginRaw[] }> {
+export async function getAvailablePluginsSafe(tab: Tab, url = defaultURL): Promise<{ plugins: AvailablePluginRaw[] }> {
   try {
-    return await getAvailablePlugins(url)
+    return await getAvailablePlugins(tab, url)
   } catch (err) {
     console.error(err)
     return { plugins: [] }

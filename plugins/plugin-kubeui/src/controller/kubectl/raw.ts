@@ -17,10 +17,11 @@
 import Debug from 'debug'
 import { spawn } from 'child_process'
 
-import { split, CodedError, inBrowser, ExecOptions, Registrar } from '@kui-shell/core'
+import { expandHomeDir, split, CodedError, inBrowser, ExecOptions, Registrar } from '@kui-shell/core'
 
 import flags from './flags'
 import RawResponse from './response'
+import { KubeOptions } from './options'
 import commandPrefix from '../command-prefix'
 
 const debug = Debug('plugin-kubeui/controller/kubectl/raw')
@@ -29,6 +30,7 @@ const debug = Debug('plugin-kubeui/controller/kubectl/raw')
 interface Arguments {
   command: string
   argv: string[]
+  parsedOptions: KubeOptions
   execOptions: ExecOptions
 }
 
@@ -41,6 +43,14 @@ export const doNativeExec = (args: Arguments): Promise<RawResponse> =>
   new Promise((resolve, reject) => {
     const env = Object.assign({}, !inBrowser() ? process.env : {}, args.execOptions.env)
     delete env.DEBUG
+
+    if (args.parsedOptions.f || args.parsedOptions.filename) {
+      const filename = expandHomeDir(args.parsedOptions.f || args.parsedOptions.filename)
+      const idx = args.argv.indexOf(args.parsedOptions.f ? '-f' : '--filename')
+      if (idx >= 0) {
+        args.argv[idx + 1] = filename
+      }
+    }
 
     const executable = args.argv[0].replace(/^_/, '')
     const child = spawn(executable, args.argv.slice(1), { env })
@@ -109,8 +119,12 @@ export const doNativeExec = (args: Arguments): Promise<RawResponse> =>
  * stdout, and discards the exit code and stderr.
  *
  */
-export async function doExecRaw(command: string, execOptions: ExecOptions): Promise<string> {
-  return (await doNativeExec({ command, argv: split(command), execOptions })).content.stdout
+export async function doExecRaw(
+  command: string,
+  parsedOptions: KubeOptions,
+  execOptions: ExecOptions
+): Promise<string> {
+  return (await doNativeExec({ command, argv: split(command), parsedOptions, execOptions })).content.stdout
 }
 
 export default async (registrar: Registrar) => {

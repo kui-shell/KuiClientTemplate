@@ -19,7 +19,7 @@ import Debug from 'debug'
 import { basename, dirname } from 'path'
 
 import { Tab, Mode, Badge, Presentation } from '@kui-shell/core'
-import { KubeResource } from '@kui-shell/plugin-kubeui'
+import { KubeResource, TrafficLight } from '@kui-shell/plugin-kubeui'
 
 import runMode from '../model/modes/run'
 import flowMode from '../model/modes/flow'
@@ -78,12 +78,12 @@ export default async (
     if (jsons.find(_ => _.kind === 'PipelineRun' || _.kind === 'TaskRun')) {
       badges.push({
         title: 'Runnable',
-        css: 'green-background'
+        css: TrafficLight.Green
       })
     } else {
       badges.push({
         title: 'Not Runnable',
-        css: 'yellow-background'
+        css: TrafficLight.Yellow
       })
     }
   }

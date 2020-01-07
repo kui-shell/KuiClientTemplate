@@ -39,7 +39,7 @@ describe(`kubectl watch error handler ${process.env.MOCHA_RUN_TARGET}`, function
     })
   }
 
-  // here comes the tests that expect failure due to non-existant resources
+  // here comes the tests that expect failure due to non-existent resources
   const flags = ['-w', '--watch=true', '-w -w -w']
   flags.forEach(watch => {
     testResourceNotFound(`k get ns shouldNotExist ${watch}`, 'namespaces', 'shouldNotExist')
@@ -61,11 +61,11 @@ describe(`kubectl watch error handler ${process.env.MOCHA_RUN_TARGET}`, function
   testWrongCommand(`k -w get pod`, 500)
 
   // here comes the tests should start watching successfully
-  it(`should watch pods, starting from an non-existant namespace`, async () => {
+  it(`should watch pods, starting from an non-existent namespace`, async () => {
     try {
       const ns = createNS()
 
-      // start to watch pods in a non-existant namespace
+      // start to watch pods in a non-existent namespace
       const watchResult = await CLI.command(`k get pods -w -n ${ns}`, this.app).then(async result => {
         await ReplExpect.ok(result)
         return result

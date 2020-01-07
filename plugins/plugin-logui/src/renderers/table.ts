@@ -15,7 +15,7 @@
  */
 
 import { i18n, Tab, MultiModalResponse, Table, Cell } from '@kui-shell/core'
-import { KubeResource, InvolvedObject } from '@kui-shell/plugin-kubeui'
+import { KubeResource, InvolvedObject, TrafficLight } from '@kui-shell/plugin-kubeui'
 
 import { LogEntry } from '../models/entry'
 import { LogEntryResource, resourceFromLogEntry } from '../models/resource'
@@ -83,9 +83,9 @@ const tryParse = (raw: string) => (fmt: LogParser): LogEntry[] => {
  */
 function formatLevel(entry: LogEntry): string {
   if (entry.level === 'ERROR') {
-    return 'red-background'
+    return TrafficLight.Red
   } else if (entry.level === 'WARN') {
-    return 'yellow-background'
+    return TrafficLight.Yellow
   } else if (entry.level === 'INFO') {
   } else {
   }

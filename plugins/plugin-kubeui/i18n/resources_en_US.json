@@ -23,6 +23,7 @@
   "events": "events",
   "Show Events": "Show Events",
   "Unable to parse table": "Unable to parse table",
+  "Unable to fetch remote file": "Unable to fetch remote file",
   "No resources found.": "No resources found.",
   "allContexts": "Resources Across All Contexts",
   "currentContext": "This is your current context",
