@@ -155,7 +155,7 @@ export const render = (tab: Tab, activations: ActivationLike[], container: Eleme
        success.className = 'smaller-text lighter-text log-field success-field very-narrow'
        empty(success)
        const successBadge = document.createElement('badge')
-       successBadge.classList.add(isSuccess ? 'green-background' : 'red-background')
+       successBadge.classList.add(isSuccess ? TrafficLight.Green : TrafficLight.Red)
        successBadge.innerText = isSuccess ? 'OK' : 'Failed'
        success.appendChild(successBadge) */
 

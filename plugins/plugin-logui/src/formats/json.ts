@@ -21,9 +21,11 @@
  *
  */
 
+import Debug from 'debug'
 import { i18n } from '@kui-shell/core'
 import { LogEntry, LogLevel } from '../models/entry'
 
+const debug = Debug('plugin-logui/formats/json')
 const strings = i18n('plugin-kubeui')
 
 export default {
@@ -52,7 +54,7 @@ export default {
         return base
       }
     } catch (err) {
-      console.error('error parsing json', line, err)
+      debug('error parsing json', line, err)
       return undefined
     }
   }

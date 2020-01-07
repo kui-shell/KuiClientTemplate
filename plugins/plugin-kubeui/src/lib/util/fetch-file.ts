@@ -15,16 +15,38 @@
  */
 
 import Debug from 'debug'
-import { inBrowser, isHeadless, CodedError, findFile, expandHomeDir } from '@kui-shell/core'
+import { Tab, inBrowser, isHeadless, hasProxy, CodedError, i18n } from '@kui-shell/core'
 
-const debug = Debug('k8s/util/fetch-file')
+const strings = i18n('plugin-kubeui')
+const debug = Debug('plugin-kubeui/util/fetch-file')
 
-async function needle(method: 'get', url: string): Promise<{ statusCode: number; body: string }> {
-  if (inBrowser()) {
-    debug('fetch via xhr')
-    return new Promise((resolve, reject) => {
+async function needle(tab: Tab, method: 'get', url: string): Promise<{ statusCode: number; body: string }> {
+  if (isHeadless()) {
+    const needle = await import('needle')
+    debug('fetch via needle', needle)
+    return needle(method, url, { follow_max: 10 }).then(_ => ({ statusCode: _.statusCode, body: _.body }))
+  } else if (inBrowser()) {
+    // Unfortunately, we cannot rely on being able to fetch files
+    // directly from a browser. For one, if the remote site does not
+    // offer an Access-Control-Allow-Origin, then well behaving
+    // browsers will refuse to load their content;
+    // e.g. https://k8s.io/examples/controllers/nginx-deployment.yaml
+    // Solution: have the kui proxy do this
+    if (!hasProxy()) {
+      throw new Error(strings('Unable to fetch remote file'))
+    } else {
+      debug('fetch via proxy')
+      const body = await tab.REPL.qexec<string>(`_fetchfile ${url}`)
+      debug('fetched via proxy', body)
+      return {
+        statusCode: 200,
+        body
+      }
+    }
+    /* return new Promise((resolve, reject) => {
       const xhr = new XMLHttpRequest()
-      xhr.open(method, url)
+      xhr.open(method, url, true)
+      xhr.withCredentials = true
       xhr.addEventListener('error', () => {
         console.error('error in xhr', xhr)
         reject(xhr.response || 'Internal Error')
@@ -36,11 +58,7 @@ async function needle(method: 'get', url: string): Promise<{ statusCode: number;
         })
       })
       xhr.send()
-    })
-  } else if (isHeadless()) {
-    debug('fetch via needle')
-    const needle = await import('needle')
-    return needle(method, url, { follow_max: 10 }).then(_ => ({ statusCode: _.statusCode, body: _.body }))
+    }) */
   } else {
     debug('fetch via electron.net')
     const { net } = (await import('electron')).remote
@@ -87,7 +105,7 @@ async function needle(method: 'get', url: string): Promise<{ statusCode: number;
  * Either fetch a remote file or read a local one
  *
  */
-export function fetchFile(url: string): Promise<(string | Buffer)[]> {
+export function fetchFile(tab: Tab, url: string): Promise<(string | Buffer)[]> {
   debug('fetchFile', url)
 
   const urls = url.split(/,/)
@@ -96,7 +114,7 @@ export function fetchFile(url: string): Promise<(string | Buffer)[]> {
     urls.map(async url => {
       if (url.match(/http(s)?:\/\//)) {
         debug('fetch remote', url)
-        const fetchOnce = () => needle('get', url).then(_ => _.body)
+        const fetchOnce = () => needle(tab, 'get', url).then(_ => _.body)
 
         const retry = (delay: number) => async (err: Error) => {
           if (/timeout/.test(err.message) || /hang up/.test(err.message) || /hangup/.test(err.message)) {
@@ -114,19 +132,21 @@ export function fetchFile(url: string): Promise<(string | Buffer)[]> {
           .catch(retry(1000))
           .catch(retry(5000))
       } else {
-        debug('fetch local', url)
-
-        // why the dynamic import? being browser friendly here
-        const { readFile } = await import('fs-extra')
-
-        return readFile(findFile(expandHomeDir(url)))
+        const filepath = url
+        debug('fetch local', filepath)
+        const stats = (
+          await tab.REPL.rexec<{ data: string }>(`fstat ${tab.REPL.encodeComponent(filepath)} --with-data`)
+        ).content
+        return stats.data
       }
     })
   )
 }
 
 /** same as fetchFile, but returning a string rather than a Buffer */
-export async function fetchFileString(url: string): Promise<string[]> {
-  const files = await fetchFile(url)
+export async function fetchFileString(tab: Tab, url: string): Promise<string[]> {
+  const files = await fetchFile(tab, url)
   return files.map(_ => _.toString())
 }
+
+export default fetchFileString

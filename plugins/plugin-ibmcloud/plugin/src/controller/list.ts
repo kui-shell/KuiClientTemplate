@@ -36,7 +36,7 @@ async function doLs(args: Arguments<ListOptions>): Promise<Table> {
 
   const [{ Plugins: allInstalled }, { plugins: available }] = await Promise.all([
     getInstalledPlugins(args),
-    getAvailablePlugins(repoURL)
+    getAvailablePlugins(args.tab, repoURL)
   ])
 
   // Notes: the filter reduces allInstalled down to those installed in

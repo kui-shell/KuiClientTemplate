@@ -27,9 +27,9 @@ import { fetchFileString } from '../lib/util/fetch-file'
 export default (registrar: Registrar) => {
   registrar.listen(
     `/${commandPrefix}/_fetchfile`,
-    async ({ argvNoOptions }) => {
+    async ({ argvNoOptions, tab }) => {
       const uri = argvNoOptions[argvNoOptions.indexOf('_fetchfile') + 1]
-      return fetchFileString(uri)
+      return fetchFileString(tab, uri)
     },
     { requiresLocal: true }
   )

@@ -17,6 +17,7 @@
 import { i18n, Tab, BadgeRegistration, ModeRegistration } from '@kui-shell/core'
 
 import cssForValue from '../css-for-value'
+import TrafficLight from '../../model/traffic-light'
 import { Event, isEvent, KubeResource, isCrudableKubeResource } from '../../model/resource'
 
 const strings = i18n('plugin-kubeui')
@@ -67,7 +68,7 @@ export const eventsBadge: BadgeRegistration<Event> = {
       title: cssFromReason ? event.reason : event.type,
       css:
         cssFromReason ||
-        (event.type === 'Error' ? 'red-background' : event.type === 'Warning' ? 'yellow-background' : undefined)
+        (event.type === 'Error' ? TrafficLight.Red : event.type === 'Warning' ? TrafficLight.Yellow : undefined)
     }
   }
 }

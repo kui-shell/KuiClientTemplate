@@ -25,7 +25,7 @@ import {
 
 const synonyms = ['kubectl']
 
-describe(`electron get all-namespaces ${process.env.MOCHA_RUN_TARGET || ''}`, function(this: Common.ISuite) {
+describe(`kubectl get all-namespaces ${process.env.MOCHA_RUN_TARGET || ''}`, function(this: Common.ISuite) {
   before(Common.before(this))
   after(Common.after(this))
 
@@ -36,7 +36,7 @@ describe(`electron get all-namespaces ${process.env.MOCHA_RUN_TARGET || ''}`, fu
         return CLI.command(`${kubectl} create namespace ${name}`, this.app)
           .then(ReplExpect.okWithCustom({ selector: Selectors.BY_NAME(name) }))
           .then(selector => waitForGreen(this.app, selector))
-          .catch(Common.oops(this))
+          .catch(Common.oops(this, true))
       })
     }
 
@@ -49,7 +49,7 @@ describe(`electron get all-namespaces ${process.env.MOCHA_RUN_TARGET || ''}`, fu
         )
           .then(ReplExpect.okWithCustom({ selector: Selectors.BY_NAME('nginx') }))
           .then(selector => waitForGreen(this.app, selector))
-          .catch(Common.oops(this))
+          .catch(Common.oops(this, true))
       })
     }
 
@@ -73,7 +73,7 @@ describe(`electron get all-namespaces ${process.env.MOCHA_RUN_TARGET || ''}`, fu
             .then(SidecarExpect.mode(defaultModeForGet))
             .then(SidecarExpect.showing('nginx', undefined, undefined, ns))
         } catch (err) {
-          return Common.oops(this)(err)
+          return Common.oops(this, true)(err)
         }
       })
     }
@@ -85,7 +85,7 @@ describe(`electron get all-namespaces ${process.env.MOCHA_RUN_TARGET || ''}`, fu
           .then(ReplExpect.okWithCustom({ selector: Selectors.BY_NAME(name) }))
           .then(selector => waitForRed(this.app, selector))
           .then(() => waitTillNone('namespace', undefined, name))
-          .catch(Common.oops(this))
+          .catch(Common.oops(this, true))
       })
     }
 
@@ -95,7 +95,7 @@ describe(`electron get all-namespaces ${process.env.MOCHA_RUN_TARGET || ''}`, fu
         return CLI.command(`${kubectl} delete pod nginx -n ${ns}`, this.app)
           .then(ReplExpect.okWithCustom({ selector: Selectors.BY_NAME('nginx') }))
           .then(selector => waitForRed(this.app, selector))
-          .catch(Common.oops(this))
+          .catch(Common.oops(this, true))
       })
     }
 

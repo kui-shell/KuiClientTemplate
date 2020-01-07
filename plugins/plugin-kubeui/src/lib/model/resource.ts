@@ -334,4 +334,4 @@ export interface Resource<T = KubeResource> {
   resource: T
 }
 
-export default Resource
+export default KubeResource

@@ -39,7 +39,7 @@ async function doList(args: Arguments<ListOptions>): Promise<Table> {
   // fetch installed plugins and available plugins
   const [{ Plugins: installedPlugins }, { plugins: availablePlugins }] = await Promise.all([
     getInstalledPlugins(args),
-    getAvailablePluginsSafe(repoURL)
+    getAvailablePluginsSafe(args.tab, repoURL)
   ])
 
   // format the table body

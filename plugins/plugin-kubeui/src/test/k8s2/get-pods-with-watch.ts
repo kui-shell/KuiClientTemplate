@@ -145,7 +145,7 @@ const checkWatchableJobs = function(
 
 const synonyms = ['k']
 
-describe(`kubectl watch pod ${process.env.MOCHA_RUN_TARGET}`, function(this: Common.ISuite) {
+xdescribe(`kubectl watch pod ${process.env.MOCHA_RUN_TARGET || ''}`, function(this: Common.ISuite) {
   before(Common.before(this))
   after(Common.after(this))
 

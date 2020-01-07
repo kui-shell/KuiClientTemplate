@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 IBM Corporation
+ * Copyright 2018-19 IBM Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,19 +14,15 @@
  * limitations under the License.
  */
 
-import { BadgeRegistration } from '@kui-shell/core'
-import { TrafficLight } from '@kui-shell/plugin-kubeui'
-import { LogEntryResource, isLogEntryResource } from '../models/resource'
-
-const levelBadge: BadgeRegistration<LogEntryResource> = {
-  when: isLogEntryResource,
-  badge: (resource: LogEntryResource) => {
-    const level = resource.spec.entry.level
-    return {
-      title: level,
-      css: level === 'WARN' ? TrafficLight.Yellow : level === 'ERROR' ? TrafficLight.Red : undefined
-    }
-  }
+/**
+ * A rollup of State to "traffic light" model
+ *
+ */
+enum TrafficLight {
+  Gray = 'gray-background',
+  Red = 'red-background',
+  Yellow = 'yellow-background',
+  Green = 'green-background'
 }
 
-export default levelBadge
+export default TrafficLight

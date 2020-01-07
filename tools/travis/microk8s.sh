@@ -11,7 +11,7 @@ mkdir -p ~/.kube
 # Download and install misc packages and utilities
 pushd /tmp
   # Download and install kubectl
-  (curl -LO https://storage.googleapis.com/kubernetes-release/release/v${TRAVIS_KUBE_VERSION}.0/bin/linux/amd64/kubectl && \
+  (curl -LO https://storage.googleapis.com/kubernetes-release/release/v${TRAVIS_KUBE_VERSION}/bin/linux/amd64/kubectl && \
        sudo cp kubectl /usr/local/bin/kubectl && \
        sudo chmod a+rx /usr/local/bin/kubectl) &
   

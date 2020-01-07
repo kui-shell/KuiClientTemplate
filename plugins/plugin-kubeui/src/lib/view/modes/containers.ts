@@ -18,8 +18,8 @@ import Debug from 'debug'
 
 import { encodeComponent, i18n, Tab, Row, Table, ModeRegistration } from '@kui-shell/core'
 
-import { KubeResource } from '../../model/resource'
-import { TrafficLight } from '../../model/states'
+import KubeResource from '../../model/resource'
+import TrafficLight from '../../model/traffic-light'
 
 const strings = i18n('plugin-kubeui')
 const debug = Debug('k8s/view/modes/containers')

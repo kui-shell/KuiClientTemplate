@@ -37,6 +37,8 @@ export {
   Resource
 } from './lib/model/resource'
 
+export { default as TrafficLight } from './lib/model/traffic-light'
+
 export { default as apiVersion } from './controller/kubectl/apiVersion'
 
 export { doExecWithPty, doExecWithStdout, doExecWithStatus, doExecWithTable } from './controller/kubectl/exec'

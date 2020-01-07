@@ -15,32 +15,34 @@
  */
 
 import Debug from 'debug'
-import { join } from 'path'
-
 import {
-  CodedError,
-  isHeadless,
+  Abortable,
   Arguments,
-  ExecOptions,
+  CodedError,
   Registrar,
+  Tab,
   Table,
   Row,
-  formatWatchableTable,
-  findFile,
-  flatten
+  Cell,
+  Watchable,
+  Watcher,
+  WatchPusher,
+  i18n,
+  theme
 } from '@kui-shell/core'
 
 import { flags } from './flags'
-import Options from './options'
+import { fqnOfRef, ResourceRef, versionOf } from './fqn'
+import { KubeOptions as Options, fileOf, getNamespace, getContextForArgv } from './options'
 import commandPrefix from '../command-prefix'
 
-import { withOkOn404, withRetryOn404 } from '../../lib/util/retry'
-import { isDirectory } from '../../lib/util/util'
-import { KubeItems, KubeResource } from '../../lib/model/resource'
-import { States, FinalState } from '../../lib/model/states'
-import { formatEntity } from '../../lib/view/formatEntity'
+import fetchFile from '../../lib/util/fetch-file'
+import KubeResource from '../../lib/model/resource'
+import TrafficLight from '../../lib/model/traffic-light'
+import { isDone, FinalState } from '../../lib/model/states'
 
-const debug = Debug('k8s/controller/status')
+const strings = i18n('plugin-kubeui')
+const debug = Debug('plugin-kubeui/controller/kubectl/status')
 
 /** administartive core controllers that we want to ignore */
 // const adminCoreFilter = '-l provider!=kubernetes'
@@ -55,9 +57,9 @@ const usage = (command: string) => ({
   onlyEnforceOptions: true,
   optional: [
     {
-      name: 'file|kind',
+      name: '--filename',
+      alias: '-f',
       file: true,
-      positional: true,
       docs: 'A kubernetes resource file or kind'
     },
     {
@@ -94,312 +96,309 @@ const usage = (command: string) => ({
 })
 
 /**
- * Make a Tables.Row model for the status table
+ * @param file an argument to `-f`, as in `kubectl -f <file>`
  *
  */
-const headerRow = (kind: string): Row => {
-  debug('headerRow', kind)
+async function getResourcesReferencedByFile(file: string, args: Arguments<FinalStateOptions>): Promise<ResourceRef[]> {
+  const [{ safeLoadAll }, raw] = await Promise.all([import('js-yaml'), fetchFile(args.tab, file)])
 
-  const kindAttr = [{ value: 'KIND', outerCSS: 'header-cell not-too-wide entity-kind' }]
-  const namespaceAttr =
-    kind && kind.match(/(ns|Namespace)/i)
-      ? []
-      : [
-          {
-            value: 'NAMESPACE',
-            outerCSS: 'header-cell pretty-narrow hide-with-sidecar'
-          }
-        ]
-  // const contextAttr = !opts.context ? [] : formatContextAttr('CONTEXT', 'header-cell')
-  const statusAttr = [
-    { value: 'STATUS', outerCSS: 'header-cell badge-width' },
-    {
-      value: 'MESSAGE',
-      outerCSS: 'header-cell not-too-wide hide-with-sidecar min-width-date-like'
+  const namespaceFromCommandLine = getNamespace(args) || 'default'
+
+  const models: KubeResource[] = safeLoadAll(raw)
+  return models.map(({ apiVersion, kind, metadata: { name, namespace = namespaceFromCommandLine } }) => {
+    const { group, version } = versionOf(apiVersion)
+    return {
+      group,
+      version,
+      kind,
+      name,
+      namespace
     }
-  ]
-
-  const attributes = kindAttr
-    // .concat(contextAttr)
-    .concat(namespaceAttr)
-    .concat(statusAttr)
-
-  return {
-    type: 'status',
-    name: 'NAME',
-    outerCSS: 'header-cell',
-    attributes
-  }
+  })
 }
 
 /**
- * In case of an error fetching the status of an entity, return something...
+ * @param argvRest the argv after `kubectl status`, with options stripped off
  *
  */
-const errorEntity = (execOptions: ExecOptions, base: KubeResource, backupNamespace?: string) => (err: CodedError) => {
-  debug('creating error entity', err.code, base, backupNamespace, err)
+function getResourcesReferencedByCommandLine(argvRest: string[], args: Arguments<FinalStateOptions>): ResourceRef[] {
+  const [kind, nameGroupVersion] = argvRest
+  const [name, group, version] = nameGroupVersion.split(/\./)
+  const namespace = getNamespace(args) || 'default'
 
-  if (!base) {
-    base = {
-      apiVersion: undefined,
-      kind: undefined,
-      originatingCommand: base.originatingCommand,
-      metadata: { name: undefined, namespace: backupNamespace }
+  return [{ group, version, kind, name, namespace }]
+}
+
+/**
+ * Has the resource represented by the given table Row reached its
+ * desired final state?
+ *
+ */
+function isResourceReady(row: Row, finalState: FinalState) {
+  const status = row.attributes.find(_ => _.key === 'STATUS')
+  if (status !== undefined) {
+    // primary plan: use the STATUS column
+    return isDone(status.value, finalState)
+  } else {
+    // backup plan: use the READY column, of the form nReady/nTotal
+    const ready = row.attributes.find(_ => _.key === 'READY')
+    if (ready !== undefined) {
+      const [nReady, nTotal] = ready.value.split(/\//)
+      return nReady && nTotal && nReady === nTotal
     }
-  } else if (!base.metadata) {
-    base.metadata = { name: undefined, namespace: backupNamespace }
-  } else if (!base.metadata.namespace) {
-    base.metadata.namespace = backupNamespace
   }
 
-  if (err.code === 404) {
-    return Object.assign({}, base, {
-      status: {
-        state: States.Offline,
-        message: 'resource has been deleted'
+  // heuristic: if we find neither a STATUS nor a READY column,
+  // then assume it's ready; e.g. configmaps have this property
+  return true
+}
+
+/**
+ * The table push notification `update` routine assumes it has a copy of the rows.
+ *
+ */
+function clone(row: Row): Row {
+  const copy = Object.assign({}, row)
+  copy.attributes = row.attributes.map(_ => Object.assign({}, _))
+  return copy
+}
+
+class StatusPoller implements Abortable {
+  private timer: NodeJS.Timeout
+
+  public constructor(
+    private readonly tab: Tab,
+    private readonly ref: ResourceRef,
+    private readonly row: Row,
+    private readonly finalState: FinalState,
+    private readonly done: () => void,
+    private readonly pusher: WatchPusher,
+    private readonly contextArgs: string,
+    pollInterval = 1000,
+    private readonly ladder = StatusPoller.calculateLadder(pollInterval)
+  ) {
+    this.pollOnce(0)
+  }
+
+  private async pollOnce(iter: number) {
+    const sleepTime = iter < this.ladder.length ? this.ladder[iter] : this.ladder[this.ladder.length - 1]
+    debug('pollOnce', this.ref, sleepTime, fqnOfRef(this.ref))
+
+    try {
+      const table = await this.tab.REPL.qexec<Table>(`kubectl get ${fqnOfRef(this.ref)} ${this.contextArgs}`)
+      debug('pollOnce table', table)
+      if (table && table.body && table.body.length === 1) {
+        const row = table.body[0]
+        const isReady = isResourceReady(row, this.finalState)
+
+        const newStatusAttr =
+          row.attributes.find(_ => _.key === 'STATUS') || row.attributes.find(_ => _.key === 'READY')
+
+        const rowForUpdate = clone(this.row)
+        const statusAttr = rowForUpdate.attributes.find(({ key }) => key === 'STATUS')
+        statusAttr.value = newStatusAttr ? newStatusAttr.value : 'Ready'
+
+        if (isReady) {
+          statusAttr.css = TrafficLight.Green
+        }
+
+        this.pusher.update(rowForUpdate)
+
+        if (isReady) {
+          debug('resource is ready', this.ref, this.row, newStatusAttr)
+          this.done()
+          return
+        }
+      } else {
+        console.error('unexpected tabular response in poller', table)
+      }
+    } catch (error) {
+      const err = error as CodedError
+      if (err.code === 404 && this.finalState === FinalState.OfflineLike) {
+        this.pusher.offline(this.ref.name)
+        this.done()
+        return
+      }
+    }
+
+    this.timer = setTimeout(() => this.pollOnce(iter + 1), sleepTime)
+  }
+
+  /**
+   * calculate the polling ladder
+   *
+   */
+  private static calculateLadder(initial: number): number[] {
+    // final polling rate (do not increase the interval beyond this!)
+    const finalPolling = (theme && theme.tablePollingInterval) || 5000
+
+    const ladder = [initial]
+    let current = initial
+
+    // increment the polling interval
+    while (current < finalPolling) {
+      if (current < 1000) {
+        current = current + 250 < 1000 ? current + 250 : 1000
+        ladder.push(current)
+      } else {
+        ladder.push(current)
+        current = current + 2000 < finalPolling ? current + 2000 : finalPolling
+        ladder.push(current)
+      }
+    }
+
+    // debug('ladder', ladder)
+    return ladder
+  }
+
+  /**
+   * Our impl of `Abortable`
+   *
+   */
+  public abort() {
+    if (this.timer) {
+      clearTimeout(this.timer)
+    }
+  }
+}
+
+class StatusWatcher implements Abortable, Watcher {
+  private readonly pollers: Abortable[] = []
+  private initialBody: Row[]
+
+  // eslint-disable-next-line no-useless-constructor
+  public constructor(
+    private readonly tab: Tab,
+    private readonly resourcesToWaitFor: ResourceRef[],
+    private readonly finalState: FinalState,
+    private readonly contextArgs: string
+  ) {}
+
+  /**
+   * Our impl of `Abortable` for use by the table view
+   *
+   */
+  public abort() {
+    this.pollers.forEach(_ => _.abort())
+  }
+
+  /**
+   * Our impl of the `Watcher` API. This is the callback we will
+   * receive from the table UI when it is ready for us to start
+   * injecting updates to the table.
+   *
+   */
+  public async init(pusher: WatchPusher) {
+    let countdown = this.resourcesToWaitFor.length
+    const done = () => {
+      if (--countdown === 0) {
+        debug('all resources are ready')
+        pusher.done()
+        for (let idx = 0; idx < this.pollers.length; idx++) {
+          this.pollers[idx] = undefined
+        }
+      }
+    }
+
+    this.resourcesToWaitFor
+      .map((_, idx) => {
+        const row = this.initialBody[idx]
+        return new StatusPoller(this.tab, _, row, this.finalState, done, pusher, this.contextArgs)
+      })
+      .forEach(_ => {
+        this.pollers.push(_)
+      })
+  }
+
+  /**
+   * We only display a NAMESPACE column if at least one of the
+   * resources as a non-default namespace.
+   *
+   */
+  protected nsAttr(ns: string, anyNonDefaultNamespaces: boolean): Cell[] {
+    return !anyNonDefaultNamespaces ? [] : [{ key: 'NAMESPACE', value: ns }]
+  }
+
+  /**
+   * Formulate an initial response for the REPL
+   *
+   */
+  public initialTable(): Table & Watchable {
+    const anyNonDefaultNamespaces = this.resourcesToWaitFor.some(({ namespace }) => namespace !== 'default')
+
+    this.initialBody = this.resourcesToWaitFor.map(ref => {
+      const { group = '', version = '', kind, name, namespace } = ref
+      return {
+        name,
+        onclick: `kubectl get ${fqnOfRef(ref)} -o yaml`,
+        onclickSilence: true,
+        attributes: this.nsAttr(namespace, anyNonDefaultNamespaces).concat([
+          { key: 'KIND', value: kind + (group.length > 0 ? `.${group}.${version}` : ''), outerCSS: '', css: '' },
+          { key: 'STATUS', tag: 'badge', value: strings('Pending'), outerCSS: '', css: TrafficLight.Yellow }
+          // { key: 'MESSAGE', value: '', outerCSS: 'hide-with-sidecar' }
+        ])
       }
     })
-  } else {
-    if (execOptions.raw) {
-      throw err
-    } else {
-      return Object.assign({}, base, {
-        status: {
-          state: States.Failed,
-          message: 'error fetching resource'
-        }
-      })
+
+    const initialHeader = {
+      name: 'NAME',
+      attributes: this.initialBody[0].attributes.map(({ key, outerCSS }) => ({ value: key, outerCSS }))
+    }
+
+    return {
+      header: initialHeader,
+      body: this.initialBody,
+      watch: this
     }
   }
 }
 
-/**
- * Get the status of those entities referenced directly, either:
- *
- *   1. across all entities across all contexts
- *   2. across all entities in the current context
- *   3. of a given kind,name
- *   4. across files in a given directory
- *   5. in a given file (local or remote)
- *
- */
 interface FinalStateOptions extends Options {
   response?: string
-  watching?: boolean
   'final-state'?: FinalState
 }
-const getDirectReferences = (command: string) => async ({
-  execOptions,
-  argvNoOptions,
-  parsedOptions,
-  REPL
-}: Arguments<FinalStateOptions>): Promise<{
-  kind: string
-  resource: Promise<void | KubeResource | KubeResource[]>
-}> => {
-  const raw = Object.assign({}, execOptions, { raw: true })
 
-  const idx = argvNoOptions.indexOf(command) + 1
-  const file = argvNoOptions[idx]
-  const name = argvNoOptions[idx + 1]
-  const namespace = parsedOptions.namespace || parsedOptions.n || 'default'
-  const finalState: FinalState = parsedOptions['final-state'] || FinalState.NotPendingLike
-  // debug('getDirectReferences', file, name)
+async function doStatus(args: Arguments<FinalStateOptions>): Promise<string | Table> {
+  const rest = args.argvNoOptions.slice(args.argvNoOptions.indexOf('status') + 1)
+  const file = fileOf(args)
+  const contextArgs = getContextForArgv(args)
+  // const fileArgs = file ? `-f ${file}` : ''
+  // const cmd = `kubectl get ${rest} --watch ${fileArgs} ${contextArgs}`
 
-  /** format a --namespace cli option for the given kubeEntity */
-  const ns = ({ metadata = {} } = {}) => {
-    debug('ns', metadata['namespace'], namespace)
-    return metadata['namespace']
-      ? `-n "${metadata['namespace']}"`
-      : parsedOptions.namespace || parsedOptions.n
-      ? `-n ${namespace}`
-      : ''
+  try {
+    const resourcesToWaitFor = file
+      ? await getResourcesReferencedByFile(file, args)
+      : getResourcesReferencedByCommandLine(rest, args)
+    debug('resourcesToWaitFor', resourcesToWaitFor)
+
+    /* if (nResourcesToWaitFor > 1) {
+    // we don't yet support this; return whatever kubectl emitted from
+    // the initial command
+    return initialResponse
+  } */
+
+    // the desired final state of the specified resources
+    const finalState = args.parsedOptions['final-state']
+
+    return new StatusWatcher(args.tab, resourcesToWaitFor, finalState, contextArgs).initialTable()
+  } catch (err) {
+    console.error('error constructing StatusWatcher', err)
+
+    // the text that the create or delete emitted, i.e. the command that
+    // initiated this status request
+    const initialResponse = args.parsedOptions.response
+    return initialResponse
   }
-
-  const { safeLoadAll: parseYAML } = await import('js-yaml')
-
-  if (file && file.charAt(0) === '!') {
-    const resources: KubeResource[] = parseYAML(execOptions.parameters[file.slice(1)])
-    debug('status by programmatic parameter', resources)
-    return {
-      kind: 'file',
-      resource: Promise.all(
-        resources.map(async _ => {
-          return REPL.qexec<KubeResource>(
-            `kubectl get "${_.kind}" "${_.metadata.name}" ${ns(_)} -o json`,
-            undefined,
-            undefined,
-            raw
-          )
-        })
-      )
-    }
-  } else if (name) {
-    //
-    // then the user has asked for the status of a named resource
-    //
-    const kind = file
-    const command = `kubectl get "${kind}" "${name || ''}" ${ns()} -o json`
-    debug('status by kind and name', command)
-
-    // note: don't retry the getter on 404 if we're expecting the
-    // element (eventually) not to exist
-    const getter = async (): Promise<KubeResource> => {
-      return REPL.qexec<KubeResource>(command, undefined, undefined, Object.assign({}, execOptions, { raw: true }))
-    }
-
-    const kubeEntity = await (!finalState || finalState === FinalState.OfflineLike
-      ? withOkOn404(getter, command)
-      : withRetryOn404(getter, command))
-
-    if (!kubeEntity) {
-      return { kind, resource: Promise.resolve() }
-    } else {
-      return { kind, resource: Promise.resolve(kubeEntity) }
-    }
-  } else {
-    const filepath = findFile(file)
-    const isURL = file.match(/^http[s]?:\/\//)
-    const isDir = isURL ? false : await isDirectory(filepath)
-
-    debug('status by filepath', file, filepath, isURL, isDir)
-
-    if (isDir) {
-      // this is a directory of yamls
-      debug('status of directory')
-
-      // why the dynamic import? being browser friendly here
-      const { readdir } = await import('fs-extra')
-
-      const files: string[] = await readdir(filepath)
-      const yamls = files.filter(_ => _.match(/^[^\\.#].*\.yaml$/)).map(file => join(filepath, file))
-
-      if (files.find(file => file === 'seeds')) {
-        const seedsDir = join(filepath, 'seeds')
-        if (await isDirectory(seedsDir)) {
-          const seeds: string[] = (await readdir(seedsDir)).filter(_ => _.match(/\.yaml$/))
-          seeds.forEach(file => yamls.push(join(filepath, 'seeds', file)))
-        }
-      }
-
-      const main = yamls.find(_ => _.match(/main.yaml$/))
-      const yamlsWithMainFirst = (main ? [main] : []).concat(yamls.filter(_ => !_.match(/main.yaml$/)))
-
-      // make a list of tables, recursively calling ourselves for
-      // each yaml file in the given directory
-      return {
-        kind: 'dir',
-        resource: Promise.all(
-          yamlsWithMainFirst.map(async filepath => {
-            return REPL.qexec<KubeResource>(
-              `k status "${filepath}" --final-state ${finalState}`,
-              undefined,
-              undefined,
-              execOptions
-            )
-          })
-        )
-      }
-    } else if (isDir === undefined) {
-      // then the file does not exist; maybe the user specified a resource kind, e.g. k status pods
-      debug('status by resource kind', file, name)
-
-      const kubeEntities = REPL.qexec<KubeItems>(
-        `kubectl get "${file}" "${name || ''}" ${ns()} -o json`,
-        undefined,
-        undefined,
-        raw
-      )
-        .then(_ => _.items)
-        .catch(err => {
-          if (err.code === 404) {
-            // then no such resource type exists
-            throw err
-          } else {
-            return errorEntity(execOptions, undefined, namespace)(err)
-          }
-        })
-
-      return { kind: file, resource: kubeEntities }
-    } else {
-      // then the user has pointed us to a yaml file
-      debug('status by file', file)
-
-      // handle !spec
-      const passedAsParameter = !isURL && filepath.match(/\/(!.*$)/)
-
-      const specs: KubeResource[] = (passedAsParameter
-        ? parseYAML(execOptions.parameters[passedAsParameter[1].slice(1)]) // yaml given programatically
-        : flatten((await REPL.qexec<string[]>(`_fetchfile ${REPL.encodeComponent(file)}`)).map(_ => parseYAML(_)))
-      ).filter(_ => _) // in case there are empty paragraphs;
-      // debug('specs', specs)
-
-      const kubeEntities = Promise.all(
-        specs.map(async spec => {
-          return REPL.qexec<KubeResource>(
-            `kubectl get "${spec.kind}" "${spec.metadata.name}" ${ns(spec)} -o json`,
-            undefined,
-            undefined,
-            raw
-          ).catch(errorEntity(execOptions, spec, namespace))
-        })
-      )
-
-      return { kind: undefined, resource: kubeEntities }
-    }
-  }
-}
-
-/**
- * k status command handler
- *
- */
-export const status = (command: string) => async (
-  args: Arguments<FinalStateOptions>
-): Promise<true | string | KubeResource | Table> => {
-  const { kind, resource } = await getDirectReferences(command)(args)
-  const direct = await resource
-  // debug('getDirectReferences', direct)
-
-  if (args.execOptions.raw && !Array.isArray(direct)) {
-    if (!direct) {
-      return undefined
-    } else {
-      return direct
-    }
-  }
-
-  if (!direct && args.parsedOptions['final-state'] === FinalState.OfflineLike) {
-    if (args.parsedOptions.watching) {
-      // this is part of the watching loop
-      const error: CodedError = new Error(args.parsedOptions.response || '')
-      error.code = 404
-      throw error
-    } else {
-      return args.parsedOptions.response || true
-    }
-  }
-
-  const body = Array.isArray(direct)
-    ? await Promise.all(direct.map(formatEntity(args.tab, args.parsedOptions)))
-    : [await formatEntity(args.tab, args.parsedOptions)(direct)]
-
-  const table = new Table({
-    body,
-    header: headerRow(kind),
-    noSort: true
-  })
-
-  const doWatch = !isHeadless() && (args.parsedOptions.watch || args.parsedOptions.w)
-  if (!doWatch) {
-    return table
-  } else {
-    const refreshCommand = `${args.command.replace('--watch', '').replace('-w', '')} --watching`
-    return formatWatchableTable(table, {
-      refreshCommand,
-      watchByDefault: true
+  /* return args.REPL.qexec(
+    cmd,
+    args.block,
+    undefined,
+    Object.assign({}, args.execOptions, {
+      finalState,
+      nResourcesToWaitFor,
+      initialResponse
     })
-  }
+  ) */
 }
 
 /**
@@ -414,7 +413,7 @@ export default (registrar: Registrar) => {
     flags(['watching'])
   )
 
-  registrar.listen(`/${commandPrefix}/status`, status('status'), opts)
-  registrar.listen(`/${commandPrefix}/kubectl/status`, status('status'), opts)
-  registrar.listen(`/${commandPrefix}/k/status`, status('status'), opts)
+  registrar.listen(`/${commandPrefix}/kubectl/status`, doStatus, opts)
+  registrar.listen(`/${commandPrefix}/k/status`, doStatus, opts)
+  registrar.listen(`/${commandPrefix}/status`, doStatus, opts)
 }

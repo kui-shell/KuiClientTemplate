@@ -35,7 +35,7 @@ async function doList(args: Arguments<KubeOptions>): Promise<Table> {
   // fetch installed plugins and available plugins
   const [{ Plugins: installedPlugins }, availablePlugins] = await Promise.all([
     getInstalledPlugins(args),
-    Promise.all(installed.map(_ => _.URL).map(getAvailablePluginsSafe))
+    Promise.all(installed.map(_ => _.URL).map(_ => getAvailablePluginsSafe(args.tab, _)))
   ])
 
   // format the table body
