@@ -1,6 +1,6 @@
 {
   "name": "@kui-shell/plugin-openshift",
-  "version": "0.1.8",
+  "version": "0.1.9",
   "description": "Kui OpenShift support",
   "license": "Apache-2.0",
   "keywords": [
@@ -27,7 +27,6 @@
   },
   "main": "dist/index.js",
   "module": "mdist/index.js",
-  "dependencies": {},
   "krew": {
     "commandPrefix": "kubeui"
   },
