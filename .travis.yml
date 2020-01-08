@@ -27,6 +27,7 @@ stages:
 jobs:
   include:
     - env: S=logs T=electron
+    - env: S=logs T=webpack
     - env: S=k8s T=electron
     - env: S=k8s1 T=electron
     - env: S=k8s1 T=webpack

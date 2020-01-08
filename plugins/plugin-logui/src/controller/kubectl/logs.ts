@@ -15,7 +15,13 @@
  */
 
 import { Arguments, Registrar } from '@kui-shell/core'
-import { KubeOptions, doExecWithPty, doExecRaw, defaultFlags as flags, getNamespace } from '@kui-shell/plugin-kubeui'
+import {
+  KubeOptions,
+  doExecWithPty,
+  doExecWithStdout,
+  defaultFlags as flags,
+  getNamespace
+} from '@kui-shell/plugin-kubeui'
 
 import commandPrefix from '../command-prefix'
 import { formatAsTable } from '../../renderers/table'
@@ -50,7 +56,7 @@ function prepareCommand(args: Arguments<LogOptions>): string {
  *
  */
 async function getLogsAsTable(args: Arguments<LogOptions>) {
-  const raw = await doExecRaw(prepareCommand(args), args.execOptions)
+  const raw = await doExecWithStdout(args, prepareCommand)
 
   return formatAsTable(raw, {
     name: args.argvNoOptions[args.argvNoOptions.indexOf('logs') + 1],
