@@ -17,8 +17,6 @@
 import { i18n, Tab } from '@kui-shell/core'
 import { KubeResource, isJob, isDeployment, isPod } from '@kui-shell/plugin-kubeui'
 
-import commandPrefix from '../controller/command-prefix'
-
 const strings = i18n('plugin-logui')
 
 /**
@@ -26,7 +24,7 @@ const strings = i18n('plugin-logui')
  *
  */
 function deploymentLogs(tab: Tab, resource: KubeResource) {
-  return `${commandPrefix} kubectl logs deployment/${resource.metadata.name} -n ${resource.metadata.namespace} --all-containers --tail 20`
+  return `kubectl logs deployment/${resource.metadata.name} -n ${resource.metadata.namespace} --all-containers --tail 20`
 }
 
 /**
@@ -34,7 +32,7 @@ function deploymentLogs(tab: Tab, resource: KubeResource) {
  *
  */
 function jobLogs(tab: Tab, resource: KubeResource) {
-  return `${commandPrefix} kubectl logs job/${resource.metadata.name} -n ${resource.metadata.namespace} --tail 20`
+  return `kubectl logs job/${resource.metadata.name} -n ${resource.metadata.namespace} --tail 20`
 }
 
 /**
@@ -42,7 +40,7 @@ function jobLogs(tab: Tab, resource: KubeResource) {
  *
  */
 function podLogs(tab: Tab, resource: KubeResource) {
-  return `${commandPrefix} kubectl logs ${resource.metadata.name} -n ${resource.metadata.namespace} --tail 20`
+  return `kubectl logs ${resource.metadata.name} -n ${resource.metadata.namespace} --tail 20`
 }
 
 /**
