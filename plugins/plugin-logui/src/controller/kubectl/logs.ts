@@ -80,6 +80,15 @@ function doLogs(args: Arguments<LogOptions>) {
     return getLogsAsTable(args)
   } else {
     // send to PTY
+    if (streamed && !args.parsedOptions.since) {
+      // see https://github.com/kui-shell/plugin-kubeui/issues/210
+      const since = '10s'
+      args.parsedOptions.since = since
+      args.argvNoOptions.push(since)
+      args.argv.push(since)
+      args.command = args.command + ' --since=10s'
+    }
+
     return doExecWithPty(args)
   }
 }
