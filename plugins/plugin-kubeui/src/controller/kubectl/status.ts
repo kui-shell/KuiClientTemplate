@@ -279,7 +279,13 @@ class StatusWatcher implements Abortable, Watcher {
    *
    */
   public abort() {
-    this.pollers.forEach(_ => _.abort())
+    this.pollers.forEach(poller => {
+      if (poller) {
+        // be careful: the done() method below may nullify
+        // this.pollers[] entries
+        poller.abort()
+      }
+    })
   }
 
   /**
@@ -288,7 +294,7 @@ class StatusWatcher implements Abortable, Watcher {
    * injecting updates to the table.
    *
    */
-  public async init(pusher: WatchPusher) {
+  public init(pusher: WatchPusher) {
     let countdown = this.resourcesToWaitFor.length
     const done = () => {
       if (--countdown === 0) {
