@@ -127,7 +127,7 @@
     },
     "github": {
       "release": true,
-      "releaseNotes": "git log --pretty=format:\"* %s (%h)\" v${latestVersion}...HEAD",
+      "releaseNotes": "npx auto-changelog --stdout --commit-limit false --unreleased --template https://raw.githubusercontent.com/release-it/release-it/master/docs/recipes/changelog-compact-template.hbs -p lerna.json",
       "assets": [
         "./dist/electron/Kui-darwin-x64.tar.bz2",
         "./dist/electron/Kui-linux-x64.zip",
