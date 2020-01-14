@@ -5,6 +5,7 @@
   "license": "Apache-2.0",
   "author": "Mengting Yan",
   "homepage": "https://github.com/IBM/kui#readme",
+  "private": true,
   "bugs": {
     "url": "https://github.com/IBM/kui/issues/new"
   },
