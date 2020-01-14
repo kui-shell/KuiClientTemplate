@@ -38,7 +38,7 @@ jobs:
     - stage: release
       install: npm ci
       script:
-        - npm install -g release-it@12.4.3
+        - npm install -g release-it@12.4.3 auto-changelog@1.16.2
         - release-it
 
 env:
