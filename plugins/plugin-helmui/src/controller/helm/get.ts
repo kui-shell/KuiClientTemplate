@@ -58,7 +58,7 @@ async function doGet(args: Arguments<KubeOptions>): Promise<string | MultiModalR
       generation: revision,
       creationTimestamp
     },
-    prettyName: chart,
+    // prettyName: chart,
     summary: {
       content: response.substring(0, endOfBasicSection).trim(),
       contentType: 'yaml'

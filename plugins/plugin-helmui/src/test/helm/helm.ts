@@ -78,7 +78,7 @@ describe(`helm commands ${process.env.MOCHA_RUN_TARGET || ''}`, function(this: C
 
   const checkHelmInstall = async (res: ReplExpect.AppAndCount) => {
     await ReplExpect.okWithAny(res)
-    await SidecarExpect.open(res.app).then(SidecarExpect.showing('mysql', undefined, true)) // true means substring match ok
+    await SidecarExpect.open(res.app).then(SidecarExpect.showing(name, undefined, true)) // true means substring match ok
   }
 
   const checkHelmStatus = async (res: ReplExpect.AppAndCount) => {
@@ -141,7 +141,7 @@ describe(`helm commands ${process.env.MOCHA_RUN_TARGET || ''}`, function(this: C
     return CLI.command(`helm get ${name}`, this.app)
       .then(ReplExpect.justOK)
       .then(SidecarExpect.open)
-      .then(SidecarExpect.showing('mysql', undefined, true)) // true means substring match ok
+      .then(SidecarExpect.showing(name))
       .then(() => this.app.client.click(Selectors.SIDECAR_MODE_BUTTON('hooks')))
       .then(() => this.app.client.click(Selectors.SIDECAR_MODE_BUTTON('manifest')))
       .then(() => this.app.client.click(Selectors.SIDECAR_MODE_BUTTON('values')))
