@@ -14,7 +14,17 @@
  * limitations under the License.
  */
 
-import { CodedError, i18n, Table, isHeadless, inBrowser, Arguments, MixedResponse, KResponse } from '@kui-shell/core'
+import {
+  ExecType,
+  CodedError,
+  i18n,
+  Table,
+  isHeadless,
+  inBrowser,
+  Arguments,
+  MixedResponse,
+  KResponse
+} from '@kui-shell/core'
 
 import RawResponse from './response'
 import commandPrefix from '../command-prefix'
@@ -120,7 +130,10 @@ export async function doExecWithPty<
         `sendtopty ${commandToPTY}`,
         args.block,
         undefined,
-        Object.assign({}, args.execOptions, { rawResponse: true })
+        Object.assign({}, args.execOptions, {
+          rawResponse: true,
+          quiet: args.execOptions.type === ExecType.TopLevel ? false : undefined
+        })
       ).catch((err: CodedError) => {
         if (err.code === 500 || err.statusCode === 500) {
           err.code = err.statusCode = 500

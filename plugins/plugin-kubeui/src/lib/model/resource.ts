@@ -327,6 +327,19 @@ export function isKubeItems(resource: KubeResource): resource is KubeItems {
   return resource.apiVersion === 'v1' && resource.kind === 'List'
 }
 
+/**
+ * Kubernetes context
+ *
+ */
+export interface KubeContext extends KubeResource {
+  apiVersion: typeof kubeuiApiVersion
+  kind: 'Context'
+  spec: {
+    user: string
+    cluster: string
+  }
+}
+
 export interface Resource<T = KubeResource> {
   filepathForDrilldown?: string
   kind?: string

@@ -22,7 +22,6 @@
   "defaultTheme": "Dark",
   "defaultContext": ["kubeui"],
   "contentSecurityPolicy": "default-src * 'nonce-kuiDefaultNonce' 'unsafe-eval' 'unsafe-inline'; img-src * data:; style-src * 'unsafe-inline'; connect-src 'self' http://localhost:8081 https://localhost:8081",
-  "about": [{ "mode": "contexts", "label": "Contexts", "contentFrom": "about --mode contexts --content contexts" }],
   "css": ["kui-ui.css", "kui-tables.css", "carbon-overrides.css"],
   "bodyCss": ["kui"],
   "tabStripe": "top-tab-stripe.css",

@@ -14,11 +14,13 @@
  * limitations under the License.
  */
 
-import { i18n, Table, Arguments, ExecOptions, Registrar, UsageModel } from '@kui-shell/core'
+import { i18n, Table, Row, RawResponse, Arguments, ExecOptions, Registrar, UsageModel } from '@kui-shell/core'
 
 import flags from './flags'
+import apiVersion from './apiVersion'
 import commandPrefix from '../command-prefix'
 import { doExecWithTable } from './exec'
+import { KubeContext } from '../../lib/model/resource'
 
 const strings = i18n('plugin-kubeui')
 
@@ -72,16 +74,40 @@ const addClickHandlers = (table: Table, { REPL }: Arguments, execOptions: ExecOp
   })
 }
 
+function valueOf(key: 'NAME' | 'NAMESPACE' | 'AUTHINFO' | 'CLUSTER', row: Row) {
+  const cell = row.attributes.find(_ => _.key === key)
+  return cell ? cell.value : ''
+}
+
 /**
  * List contets command handler
  *
  */
-const listContexts = (args: Arguments): Promise<Table> => {
+const listContexts = async (args: Arguments): Promise<RawResponse<KubeContext[]> | Table> => {
   const execOptions = Object.assign({}, args.execOptions, { render: false })
 
-  return args.REPL.qexec<Table>(`kubectl config get-contexts`, undefined, undefined, execOptions).then(contexts =>
-    addClickHandlers(contexts, args, execOptions)
-  )
+  const contexts = await args.REPL.qexec<Table>(`kubectl config get-contexts`, undefined, undefined, execOptions)
+
+  if (args.execOptions.raw) {
+    return {
+      mode: 'raw',
+      content: contexts.body.map(_ => ({
+        apiVersion,
+        kind: 'Context',
+        originatingCommand: args.command,
+        metadata: {
+          name: valueOf('NAME', _),
+          namespace: valueOf('NAMESPACE', _)
+        },
+        spec: {
+          user: valueOf('AUTHINFO', _),
+          cluster: valueOf('CLUSTER', _)
+        }
+      }))
+    }
+  } else {
+    return addClickHandlers(contexts, args, execOptions)
+  }
 }
 
 /**
@@ -94,7 +120,7 @@ export default (commandTree: Registrar) => {
   commandTree.listen(
     `/${commandPrefix}/context`,
     async ({ REPL }) => {
-      return (await REPL.qexec<string>('kubectl config current-context', undefined, undefined, { raw: true })).trim()
+      return (await REPL.qexec<string>('kubectl config current-context')).trim()
     },
     Object.assign(
       {
