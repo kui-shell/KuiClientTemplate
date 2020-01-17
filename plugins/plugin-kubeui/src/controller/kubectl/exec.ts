@@ -132,7 +132,12 @@ export async function doExecWithPty<
         undefined,
         Object.assign({}, args.execOptions, {
           rawResponse: true,
-          quiet: args.execOptions.type === ExecType.TopLevel ? false : undefined
+          quiet:
+            args.execOptions.quiet === undefined
+              ? args.execOptions.type === ExecType.TopLevel
+                ? false
+                : undefined
+              : args.execOptions.quiet
         })
       ).catch((err: CodedError) => {
         if (err.code === 500 || err.statusCode === 500) {
