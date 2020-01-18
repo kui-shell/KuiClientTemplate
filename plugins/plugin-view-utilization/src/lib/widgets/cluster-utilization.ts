@@ -14,9 +14,10 @@
  * limitations under the License.
  */
 
-import { Tab, Table, StatusStripeController, StatusTextWithIcon } from '@kui-shell/core'
+import { Tab, Table, StatusStripeController, StatusTextWithIcon, i18n } from '@kui-shell/core'
 import { percentLimHeader } from '../cluster-utilization'
 
+const strings = i18n('plugin-view-utilization', 'widgets')
 const icon = ''
 
 interface MyFragment extends StatusTextWithIcon {
@@ -24,6 +25,13 @@ interface MyFragment extends StatusTextWithIcon {
   memBar: HTMLElement
 }
 
+/**
+ * |    >   |
+ *
+ * where, in the code below:
+ * - `bar` is |        |
+ * - `live` is the region of `bar` up to the >
+ */
 function bar(color: string, container: Element): HTMLElement {
   const bar = document.createElement('div')
   const live = document.createElement('div')
@@ -32,7 +40,7 @@ function bar(color: string, container: Element): HTMLElement {
   bar.style.background = 'var(--color-base04)'
   live.style.background = color
   bar.style.height = '45%'
-  live.style.borderRight = '1px solid var(--color-stripe-01)'
+  live.style.borderRight = '1px solid var(--color-stripe-02)'
 
   bar.appendChild(live)
   container.appendChild(bar)
@@ -68,7 +76,10 @@ async function listener(tab: Tab, controller: StatusStripeController<MyFragment>
     const mem = info.body[1].attributes[idx].value
 
     fragment.cpuBar.style.width = cpu
+    fragment.cpuBar.title = strings('Cluster CPU', cpu)
+
     fragment.memBar.style.width = mem
+    fragment.memBar.title = strings('Cluster Memory', mem)
   } catch (err) {
     controller.showAs('hidden')
   }
