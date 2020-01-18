@@ -93,9 +93,6 @@ export default function() {
     memBar
   }
 
-  // update once every 60 seconds
-  setTimeout(listener, 60 * 1000)
-
   return {
     fragment,
     listener
