@@ -37,7 +37,7 @@ function bar(color: string, container: Element): HTMLElement {
   const live = document.createElement('div')
 
   bar.style.display = 'flex'
-  bar.style.background = 'var(--color-base04)'
+  bar.style.background = 'var(--color-stripe-01)'
   live.style.background = color
   bar.style.height = '45%'
   live.style.borderRight = '1px solid var(--color-stripe-02)'
@@ -49,8 +49,8 @@ function bar(color: string, container: Element): HTMLElement {
 
 function bars() {
   const container = document.createElement('div')
-  const cpuBar = bar('var(--color-brand-03)', container)
-  const memBar = bar('var(--color-brand-02)', container)
+  const cpuBar = bar('var(--color-latency-0)', container)
+  const memBar = bar('var(--color-latency-1)', container)
 
   container.style.display = 'flex'
   container.style.flexDirection = 'column'
