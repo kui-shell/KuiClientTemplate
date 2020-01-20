@@ -17,7 +17,8 @@
 import { Registrar } from '@kui-shell/core'
 import { defaultFlags, commandPrefix } from '@kui-shell/plugin-kubeui'
 
-import { nodeUtilization, clusterUtilization } from './lib/cluster-utilization'
+import nodeUtilization from './controller/utilization/node'
+import clusterUtilization from './controller/utilization/cluster'
 
 export default async (commandTree: Registrar) => {
   commandTree.listen(

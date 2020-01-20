@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 
+import { Table } from '@kui-shell/core'
 import * as bytes from 'bytes-iec'
 
 export function fromTime(str: string): number {
@@ -33,6 +34,23 @@ export function fromSize(str: string): number {
       .replace(/Gi/g, 'GiB')
       .replace(/Ti/g, 'TiB')
   )
+}
+
+/**
+ * @return the sum of the attributes in the given column, interpreted
+ * as times
+ *
+ */
+export function sumTime(table: Table, attrIdx: number): number {
+  return table.body.reduce((sum, _) => sum + fromTime(_.attributes[attrIdx].value), 0)
+}
+
+/**
+ * @return the sum of the attributes in the given column, interpreted as sizes
+ *
+ */
+export function sumSize(table: Table, attrIdx: number): number {
+  return table.body.reduce((sum, _) => sum + fromSize(_.attributes[attrIdx].value), 0)
 }
 
 export default function parseAsSize(str: string): string {

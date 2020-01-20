@@ -15,48 +15,30 @@
  */
 
 import { Tab, Table, StatusStripeController, StatusTextWithIcon, i18n } from '@kui-shell/core'
-import { percentLimHeader } from '../cluster-utilization'
+
+import { BarColor, bar, barContainer } from '../bar'
+import { percentLimHeader } from '../../controller/utilization/cluster'
 
 const strings = i18n('plugin-view-utilization', 'widgets')
 const icon = ''
 
+/**
+ * The model for our bars
+ *
+ */
 interface MyFragment extends StatusTextWithIcon {
   cpuBar: HTMLElement
   memBar: HTMLElement
 }
 
 /**
- * |    >   |
+ * Render our pair of bars
  *
- * where, in the code below:
- * - `bar` is |        |
- * - `live` is the region of `bar` up to the >
  */
-function bar(color: string, container: Element): HTMLElement {
-  const bar = document.createElement('div')
-  const live = document.createElement('div')
-
-  bar.style.display = 'flex'
-  bar.style.background = 'var(--color-stripe-01)'
-  live.style.background = color
-  bar.style.height = '45%'
-  live.style.borderRight = '1px solid var(--color-stripe-02)'
-
-  bar.appendChild(live)
-  container.appendChild(bar)
-  return live
-}
-
 function bars() {
-  const container = document.createElement('div')
-  const cpuBar = bar('var(--color-latency-0)', container)
-  const memBar = bar('var(--color-latency-1)', container)
-
-  container.style.display = 'flex'
-  container.style.flexDirection = 'column'
-  container.style.justifyContent = 'space-between'
-  container.style.width = '5em'
-  container.style.height = '1.375em'
+  const container = barContainer()
+  const cpuBar = bar(container, BarColor.CPU)
+  const memBar = bar(container, BarColor.Memory)
 
   return { container, cpuBar, memBar }
 }

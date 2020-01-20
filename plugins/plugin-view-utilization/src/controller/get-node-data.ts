@@ -16,7 +16,7 @@
 
 import { Arguments, Table, Row } from '@kui-shell/core'
 
-import parseAsSize from './parse-as-size'
+import parseAsSize from '../lib/parse'
 
 function parse(data: string, nodeLabel: string, context: string, raw = false): Table {
   const header = {
