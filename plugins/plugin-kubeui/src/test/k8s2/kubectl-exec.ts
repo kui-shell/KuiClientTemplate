@@ -17,12 +17,6 @@
 import { Common, CLI, ReplExpect, Selectors } from '@kui-shell/test'
 import { waitForGreen, createNS, allocateNS, deleteNS } from '@kui-shell/plugin-kubeui/tests/lib/k8s/utils'
 
-import { readFileSync } from 'fs'
-import { dirname, join } from 'path'
-const ROOT = dirname(require.resolve('@kui-shell/plugin-kubeui/tests/package.json'))
-const inputBuffer = readFileSync(join(ROOT, 'data/k8s/kubectl-exec.yaml'))
-const inputEncoded = inputBuffer.toString('base64')
-
 describe(`kubectl exec basic stuff ${process.env.MOCHA_RUN_TARGET || ''}`, function(this: Common.ISuite) {
   before(Common.before(this))
   after(Common.after(this))
@@ -30,9 +24,12 @@ describe(`kubectl exec basic stuff ${process.env.MOCHA_RUN_TARGET || ''}`, funct
   const ns: string = createNS()
   allocateNS(this, ns)
 
-  const podName = 'vim'
+  const podName = 'nginx'
   it('should create sample pod from URL', () => {
-    return CLI.command(`echo ${inputEncoded} | base64 --decode | kubectl create -f - -n ${ns}`, this.app)
+    return CLI.command(
+      `kubectl create -f https://raw.githubusercontent.com/kubernetes/examples/master/staging/pod -n ${ns}`,
+      this.app
+    )
       .then(ReplExpect.okWithString(podName))
       .catch(Common.oops(this, true))
   })
