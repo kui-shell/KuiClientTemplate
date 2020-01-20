@@ -1,0 +1,4 @@
+{
+  "userAgent": "Kui-Shell",
+  "contentSecurityPolicy": "default-src * 'nonce-kuiDefaultNonce' 'unsafe-eval' 'unsafe-inline'; img-src * data:; style-src * 'unsafe-inline'; connect-src 'self' http://localhost:8081 https://localhost:8081"
+}

@@ -27,9 +27,9 @@ import {
   Watchable,
   Watcher,
   WatchPusher,
-  i18n,
-  theme
+  i18n
 } from '@kui-shell/core'
+import { tablePollingInterval } from '@kui-shell/client/config.d/limits.json'
 
 import { flags } from './flags'
 import { fqnOfRef, ResourceRef, versionOf } from './fqn'
@@ -230,7 +230,7 @@ class StatusPoller implements Abortable {
    */
   private static calculateLadder(initial: number): number[] {
     // final polling rate (do not increase the interval beyond this!)
-    const finalPolling = (theme && theme.tablePollingInterval) || 5000
+    const finalPolling = tablePollingInterval || 5000
 
     const ladder = [initial]
     let current = initial
