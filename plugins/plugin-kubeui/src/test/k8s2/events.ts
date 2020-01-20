@@ -67,10 +67,12 @@ describe(`kubectl get events ${process.env.MOCHA_RUN_TARGET || ''}`, function(th
         const table = `${Selectors.OUTPUT_N(res.count + 1)} .result-table`
 
         // test events table has correct header
-        const header = ['TYPE', 'REASON', 'LAST SEEN', 'FIRST SEEN', 'FROM', 'MESSAGE']
-        header.forEach(async _header => {
-          await this.app.client.waitForExist(`${table} .header-row .header-cell .cell-inner[data-key="${_header}"]`)
-        })
+        const header = ['TYPE', 'REASON', 'LAST SEEN', 'FIRST SEEN', 'MESSAGE']
+        await Promise.all(
+          header.map(async _header => {
+            await this.app.client.waitForExist(`${table} .header-row .header-cell .cell-inner[data-key="${_header}"]`)
+          })
+        )
 
         await this.app.client.click(`${table} tr:first-child .clickable`)
 
