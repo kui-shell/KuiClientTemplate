@@ -22,7 +22,7 @@ import { CapabilityRegistration, PreloadRegistrar, isHeadless } from '@kui-shell
  */
 export const registerCapability: CapabilityRegistration = async (registrar: PreloadRegistrar) => {
   if (!isHeadless()) {
-    const [{ default: clusterUtilization }] = await Promise.all([import('./lib/widgets/cluster-utilization')])
+    const [{ default: clusterUtilization }] = await Promise.all([import('./view/widgets/cluster-utilization')])
     registrar.registerMeter(clusterUtilization())
   }
 }
