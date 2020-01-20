@@ -1,0 +1,11 @@
+{
+  "modes": [
+    {
+      "mode": "about",
+      "content": "about:content",
+      "contentType": "text/markdown"
+    },
+    { "mode": "theme", "contentFrom": "themes" },
+    { "mode": "version", "contentFrom": "about --mode version" }
+  ]
+}

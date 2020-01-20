@@ -156,7 +156,7 @@ export function isKubeResourceWithItsOwnSummary(resource: KubeResource): resourc
  *
  */
 export function isSummarizableKubeResource(resource: KubeResource): boolean {
-  return isKubeResourceWithItsOwnSummary(resource) || resource.kind !== 'List'
+  return isKubeResourceWithItsOwnSummary(resource) || (resource.kind !== undefined && resource.kind !== 'List')
 }
 
 /** Role */

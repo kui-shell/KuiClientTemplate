@@ -26,10 +26,10 @@
   "main": "dist/index.js",
   "module": "mdist/index.js",
   "dependencies": {
-    "@kui-shell/core": "5.7.42",
-    "@kui-shell/plugin-bash-like": "5.7.42",
-    "@kui-shell/plugin-core-support": "5.7.42",
-    "@kui-shell/plugin-editor": "5.7.42",
+    "@kui-shell/core": "5.7.43",
+    "@kui-shell/plugin-bash-like": "5.7.43",
+    "@kui-shell/plugin-core-support": "5.7.43",
+    "@kui-shell/plugin-editor": "5.7.43",
     "debug": "4.1.1",
     "js-yaml": "3.13.1"
   },
