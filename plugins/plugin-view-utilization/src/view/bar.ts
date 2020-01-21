@@ -16,7 +16,8 @@
 
 export const enum BarColor {
   CPU = 'var(--color-latency-0)',
-  Memory = 'var(--color-latency-1)'
+  Memory = 'var(--color-latency-1)',
+  Overcommitted = 'var(--color-error)'
 }
 
 /**

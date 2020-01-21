@@ -49,7 +49,14 @@ export { default as commandPrefix } from './controller/command-prefix'
 
 export { default as defaultFlags } from './controller/kubectl/flags'
 
-export { KubeOptions, getNamespace, getNamespaceForArgv } from './controller/kubectl/options'
+export {
+  KubeOptions,
+  getLabel,
+  getLabelForArgv,
+  getNamespace,
+  getNamespaceForArgv,
+  isForAllNamespaces
+} from './controller/kubectl/options'
 
 export { default as parseName } from './lib/util/name'
 
@@ -58,6 +65,8 @@ export { formatTable, preprocessTable } from './lib/view/formatTable'
 export { renderHelp } from './lib/util/help'
 
 export { fetchFileString } from './lib/util/fetch-file'
+
+export { fqnOf, fqn } from './controller/kubectl/fqn'
 
 /**
  * Exports for future delegation; e.g. `oc get pods` is mostly just

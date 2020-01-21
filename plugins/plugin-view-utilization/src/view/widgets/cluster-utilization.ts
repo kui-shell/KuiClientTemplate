@@ -14,11 +14,13 @@
  * limitations under the License.
  */
 
-import { Tab, Table, StatusStripeController, StatusTextWithIcon, i18n } from '@kui-shell/core'
+import Debug from 'debug'
+import { Tab, StatusStripeController, StatusTextWithIcon, i18n } from '@kui-shell/core'
 
 import { BarColor, bar, barContainer } from '../bar'
-import { percentLimHeader } from '../../controller/utilization/cluster'
+import { NodeSummary } from '../../controller/get-node-data'
 
+const debug = Debug('plugin-view-utilization/widgets/cluster-utilization')
 const strings = i18n('plugin-view-utilization', 'widgets')
 const icon = ''
 
@@ -51,11 +53,10 @@ function bars() {
 async function listener(tab: Tab, controller: StatusStripeController<MyFragment>, fragment: MyFragment) {
   try {
     controller.showAs('normal')
-    const info = await tab.REPL.qexec<Table>(`utilization cluster`)
+    const { content: info } = await tab.REPL.rexec<NodeSummary>('kubectl top node --summary')
 
-    const idx = info.header.attributes.findIndex(_ => _.key === percentLimHeader)
-    const cpu = info.body[0].attributes[idx].value
-    const mem = info.body[1].attributes[idx].value
+    const cpu = 100 * info.cpuFrac + '%'
+    const mem = 100 * info.memFrac + '%'
 
     fragment.cpuBar.style.width = cpu
     fragment.cpuBar.title = strings('Cluster CPU', cpu)
@@ -63,6 +64,7 @@ async function listener(tab: Tab, controller: StatusStripeController<MyFragment>
     fragment.memBar.style.width = mem
     fragment.memBar.title = strings('Cluster Memory', mem)
   } catch (err) {
+    debug(err)
     controller.showAs('hidden')
   }
 }
@@ -80,7 +82,7 @@ export default function() {
     icon,
     text,
     onclick: {
-      text: 'utilization cluster'
+      text: 'kubectl top node'
     },
     cpuBar,
     memBar
