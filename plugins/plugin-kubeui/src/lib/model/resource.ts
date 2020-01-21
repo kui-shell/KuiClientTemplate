@@ -204,6 +204,7 @@ export interface Pod extends KubeResource {
   apiVersion: 'v1'
   kind: 'Pod'
   spec: {
+    nodeName: string
     containers: {
       args: string[]
       command: string[]

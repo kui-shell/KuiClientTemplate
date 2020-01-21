@@ -14,25 +14,36 @@
  * limitations under the License.
  */
 
-import { Arguments, Table, Row } from '@kui-shell/core'
+import { Arguments, Table, Row, RawResponse, i18n } from '@kui-shell/core'
+import { KubeOptions } from '@kui-shell/plugin-kubeui'
 
-import parseAsSize from '../lib/parse'
+import slash from '../view/slash'
+import { BarColor, singletonBar as bar } from '../view/bar'
+import { formatAsBytes, formatAsCpu, cpuFraction, cpuShare, memShare } from '../lib/parse'
 
-function parse(data: string, nodeLabel: string, context: string, raw = false): Table {
+const strings = i18n('plugin-view-utilization', 'table')
+
+//
+// For a primer on terminology, look at the README.md for this plugin.
+//
+
+function parse(data: string, nodeLabel: string, context: string): Table {
   const header = {
     name: 'Node',
     attributes: [{ value: 'CPU' }, { value: 'Memory' }]
   }
 
   const body = data.split(/\n/).map(line => {
-    const [name, cpu, memory] = line.split(/\t/)
+    const [name, cpuAllocatable, memoryAllocatable, cpuCapacity, memoryCapacity] = line.split(/\t/)
 
     const row: Row = {
       name,
       onclick: `kubectl get node ${name} -o yaml ${context} ${nodeLabel}`,
       attributes: [
-        { key: 'cpu', value: raw ? cpu : parseAsSize(cpu) },
-        { key: 'memory', value: raw ? memory : parseAsSize(memory) }
+        { key: 'cpuAllocatable', value: cpuAllocatable },
+        { key: 'memoryAllocatable', value: memoryAllocatable },
+        { key: 'cpuCapacity', value: cpuCapacity },
+        { key: 'memoryCapacity', value: memoryCapacity }
       ]
     }
 
@@ -46,7 +57,7 @@ function parse(data: string, nodeLabel: string, context: string, raw = false): T
   }
 }
 
-export default async function getNodeData(args: Arguments, raw = false): Promise<Table> {
+export async function getNodeData(args: Arguments<KubeOptions>, onlySchedulable = false, forNode = ''): Promise<Table> {
   const { parsedOptions: options, REPL } = args
 
   const nodeOption = options.l || options.selector || options.label
@@ -54,13 +65,226 @@ export default async function getNodeData(args: Arguments, raw = false): Promise
 
   const context = options.context ? `--context ${options.context}` : ''
 
+  //
+  // for each node, the following jsonpath emits a table, where rows
+  // are newline-separated, and columns are tab-separated; the columns
+  // are:
+  //
+  // 1) nodeName
+  // 2) status.allocatable.cpu
+  // 3) status.allocatable.memory
+  //
+
   const TAB = `{'\\\\t'}`
   const NEWLINE = `{'\\\\n'}`
   const namePart = '{range .items[*]}{.metadata.name}'
-  const cpuPart = '{.status.allocatable.cpu}'
-  const memoryPart = '{.status.allocatable.memory}'
+  const cpuAllocatablePart = `{.status.allocatable.cpu}`
+  const memoryAllocatablePart = `{.status.allocatable.memory}`
+  const cpuCapacityPart = `{.status.capacity.cpu}`
+  const memoryCapacityPart = `{.status.capacity.memory}`
 
-  const cmd = `kubectl ${context} get nodes ${nodeLabel} --field-selector=spec.unschedulable=false -o=jsonpath=${namePart}${TAB}${cpuPart}${TAB}${memoryPart}${NEWLINE}{end}`
+  const filter =
+    (onlySchedulable ? '--field-selector=spec.unschedulable=false' : '') +
+    (forNode ? (onlySchedulable ? '' : '--field-selector' + `=metadata.name=${forNode}`) : '')
 
-  return parse(await REPL.qexec<string>(cmd), nodeLabel, context, raw)
+  const cmd = `kubectl ${context} get nodes ${nodeLabel} ${filter} -o=jsonpath=${namePart}${TAB}${cpuAllocatablePart}${TAB}${memoryAllocatablePart}${TAB}${cpuCapacityPart}${TAB}${memoryCapacityPart}${NEWLINE}{end}`
+
+  return parse(await REPL.qexec<string>(cmd), nodeLabel, context)
+}
+
+interface Overheads {
+  cpuOverhead: number
+  memOverhead: number
+  cpuCapacity: number
+  memCapacity: number
+}
+export async function getSystemOverhead(
+  args: Arguments<KubeOptions>,
+  forNode: string,
+  onlySchedulable = false
+): Promise<Overheads> {
+  const detail = await getNodeData(args, onlySchedulable, forNode)
+
+  const cpuOverhead = detail.body.reduce((total, row) => {
+    return total + cpuShare(row.attributes[2].value) - cpuShare(row.attributes[0].value)
+  }, 0)
+  const cpuCapacity = detail.body.reduce((total, row) => {
+    return total + cpuShare(row.attributes[2].value)
+  }, 0)
+
+  const memOverhead = detail.body.reduce((total, row) => {
+    return total + memShare(row.attributes[3].value) - memShare(row.attributes[1].value)
+  }, 0)
+  const memCapacity = detail.body.reduce((total, row) => {
+    return total + memShare(row.attributes[3].value)
+  }, 0)
+
+  return { cpuOverhead, memOverhead, cpuCapacity, memCapacity }
+}
+
+/**
+ * Allows for `kubectl top node --summary`
+ *
+ */
+interface NodeOptions extends KubeOptions {
+  summary?: boolean
+}
+
+/**
+ * Summary of resource consumption, averaged across nodes.
+ *
+ */
+export interface NodeSummary {
+  cpuFrac: number
+  memFrac: number
+}
+
+export function strip(args: Arguments, flag: string, nargs = 0) {
+  if (nargs === 0) {
+    args.command = args.command.replace(flag, '')
+  } else {
+    args.command = args.command.replace(new RegExp(`${flag}\\s+\\S+`), '')
+  }
+
+  args.argv.splice(args.argv.indexOf(flag), nargs + 1)
+}
+
+/**
+ * Special case of `kubectl top node --summary`, where the caller
+ * needs only the fractional consumption, averaged across nodes.
+ *
+ */
+async function summary(
+  args: Arguments<NodeOptions>,
+  top: (args: Arguments<KubeOptions>) => Promise<Table>
+): Promise<RawResponse<NodeSummary>> {
+  // strip off the --summary bits, and then pass the command to the
+  // underlying top impl
+  strip(args, '--summary')
+
+  // call the underlying top impl that we are overriding
+  const nodeTable = await top(args)
+
+  // extract the summary statistics
+  const cpuFrac =
+    nodeTable.body.reduce((total, row) => total + cpuFraction(row.attributes[1].value), 0) / nodeTable.body.length / 100
+  const memFrac =
+    nodeTable.body.reduce((total, row) => total + cpuFraction(row.attributes[3].value), 0) / nodeTable.body.length / 100
+
+  // return as a RawResponse
+  return { mode: 'raw', content: { cpuFrac, memFrac } }
+}
+
+/**
+ * Command handler for `kubectl top node` (overrides built-in functionality)
+ *
+ */
+export default async function topNode(
+  args: Arguments<NodeOptions>,
+  top: (args: Arguments<KubeOptions>) => Promise<Table>
+): Promise<RawResponse<NodeSummary> | Table> {
+  // special case for callers that need only fractional consumption,
+  // averaged across nodes
+  if (args.parsedOptions.summary) {
+    return summary(args, top)
+  }
+
+  const [nodeTable, detailTable] = await Promise.all([top(args), getNodeData(args, true)])
+
+  /* nodeTable.header.attributes.push({
+    outerCSS: 'hide-with-sidecar',
+    key: 'Allocatable CPU',
+    value: strings('Allocatable CPU')
+  })
+  nodeTable.header.attributes.push({
+    outerCSS: 'hide-with-sidecar',
+    key: 'Allocatable Memory',
+    value: strings('Allocatable Memory')
+  }) */
+
+  // don't hide-with-sidecar the mem% column
+  nodeTable.header.attributes[3].outerCSS = nodeTable.header.attributes[2].outerCSS.replace(/hide-with-sidecar/, '')
+
+  nodeTable.body.forEach(row => {
+    row.onclick = `kubectl top pod --node ${args.REPL.encodeComponent(row.name)}`
+    row.onclickSilence = false
+
+    const cpuPercentAttr = row.attributes.find(_ => _.key === 'CPU%')
+    if (cpuPercentAttr) {
+      cpuPercentAttr.valueDom = bar(BarColor.CPU, cpuPercentAttr.value)
+    }
+
+    const memoryPercentAttr = row.attributes.find(_ => _.key === 'MEMORY%')
+    if (memoryPercentAttr) {
+      memoryPercentAttr.valueDom = bar(BarColor.Memory, memoryPercentAttr.value)
+    }
+
+    const allocatableInfo = detailTable.body.find(_ => _.name === row.name)
+    if (allocatableInfo) {
+      row.attributes[0].valueDom = slash(row.attributes[0].value, allocatableInfo.attributes[2].value)
+      row.attributes[2].valueDom = slash(
+        row.attributes[2].value,
+        formatAsBytes(memShare(allocatableInfo.attributes[3].value))
+      )
+
+      // don't hide-with-sidecar the mem% column
+      row.attributes[3].outerCSS = row.attributes[2].outerCSS.replace(/hide-with-sidecar/, '')
+
+      row.attributes.push({
+        outerCSS: 'hidden',
+        key: 'Allocatable CPU',
+        value: allocatableInfo === undefined ? '&emdash;' : allocatableInfo.attributes[2].value
+      })
+      row.attributes.push({
+        outerCSS: 'hidden',
+        key: 'Allocatable Memory',
+        value: allocatableInfo === undefined ? '&emdash;' : formatAsBytes(memShare(allocatableInfo.attributes[3].value))
+      })
+    }
+  })
+
+  // if we have more than one node, then add a total row
+  if (nodeTable.body.length > 1) {
+    const totalRow = JSON.parse(JSON.stringify(nodeTable.body[0]))
+    totalRow.name = strings('Total')
+
+    const cpuTotal = nodeTable.body.reduce((total, row) => total + cpuShare(row.attributes[0].value), 0)
+    const cpuFrac = nodeTable.body.reduce((total, row) => total + cpuFraction(row.attributes[1].value), 0)
+    const memTotal = nodeTable.body.reduce((total, row) => total + memShare(row.attributes[2].value), 0)
+    const memFrac = nodeTable.body.reduce((total, row) => total + cpuFraction(row.attributes[3].value), 0)
+    const cpuAllocTotal = nodeTable.body.reduce((total, row) => total + cpuShare(row.attributes[4].value), 0)
+    const memAllocTotal = nodeTable.body.reduce((total, row) => total + memShare(row.attributes[5].value), 0)
+
+    totalRow.onclick = false
+    totalRow.attributes[0].value = formatAsCpu(cpuTotal)
+    totalRow.attributes[1].value = cpuFrac / nodeTable.body.length + '%'
+    totalRow.attributes[1].valueDom = bar(BarColor.CPU, totalRow.attributes[1].value)
+    totalRow.attributes[2].value = formatAsBytes(memTotal)
+    totalRow.attributes[3].value = memFrac / nodeTable.body.length + '%'
+    totalRow.attributes[3].valueDom = bar(BarColor.Memory, totalRow.attributes[3].value)
+    totalRow.attributes[4].value = formatAsCpu(cpuAllocTotal)
+    totalRow.attributes[5].value = formatAsBytes(memAllocTotal)
+    totalRow.attributes[0].valueDom = slash(totalRow.attributes[0].value, totalRow.attributes[4].value)
+    totalRow.attributes[2].valueDom = slash(totalRow.attributes[2].value, totalRow.attributes[5].value)
+
+    if (args.parsedOptions.nodes === false) {
+      return {
+        header: nodeTable.header,
+        body: [totalRow]
+      }
+    } else {
+      // lighten up the node rows
+      totalRow.rowCSS = 'semi-bold'
+      nodeTable.body.forEach(row => {
+        row.rowCSS = 'lighter-text'
+        row.attributes.forEach(cell => {
+          cell.css = (cell.css || '') + 'even-lighter-text'
+        })
+      })
+
+      nodeTable.body.push(totalRow)
+    }
+  }
+
+  return nodeTable
 }

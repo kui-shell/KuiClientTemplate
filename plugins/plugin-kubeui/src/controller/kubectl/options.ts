@@ -66,6 +66,15 @@ export function getLabel(args: Arguments<KubeOptions>) {
   return args.parsedOptions.l || args.parsedOptions.label
 }
 
+export function getLabelForArgv(args: Arguments<KubeOptions>) {
+  const label = getLabel(args)
+  if (label) {
+    return `-l ${label}`
+  } else {
+    return ''
+  }
+}
+
 export function getNamespace(args: Arguments<KubeOptions>) {
   return args.parsedOptions.n || args.parsedOptions.namespace
 }
@@ -102,6 +111,9 @@ export interface KubeExecOptions extends ExecOptions {
 }
 
 export interface KubeOptions extends ParsedOptions {
+  A?: boolean
+  'all-namespaces'?: boolean
+
   context?: string
 
   n?: string
@@ -121,6 +133,10 @@ export interface KubeOptions extends ParsedOptions {
 
   f?: string
   filename?: string
+}
+
+export function isForAllNamespaces(args: Arguments<KubeOptions>) {
+  return args.parsedOptions.A || args.parsedOptions['all-namespaces']
 }
 
 export default KubeOptions

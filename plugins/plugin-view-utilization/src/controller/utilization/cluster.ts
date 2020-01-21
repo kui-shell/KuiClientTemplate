@@ -14,140 +14,128 @@
  * limitations under the License.
  */
 
-import { Arguments, Table } from '@kui-shell/core'
+/* import { Arguments, Table, i18n } from '@kui-shell/core'
 
 import getPodData from '../get-pod-data'
 import getNodeData from '../get-node-data'
-import { sumTime, sumSize } from '../../lib/parse'
+import { cpuFraction, cpuShare, memShare, fromSize, sumTime, sumSize } from '../../lib/parse'
 import { BarColor, singletonBar as bar } from '../../view/bar'
 import { cpuPretty, memPretty, calcPercentage } from '../../lib/format'
+
+const strings = i18n('plugin-view-utilization', 'table') */
+
+//
+// For a primer on terminology, look at the README.md for this plugin.
+//
 
 /**
  * @return the Schedulable metric
  *
  */
-function calcSched(requests: number, allocatable: number): number {
-  if (allocatable >= requests) {
-    return allocatable - requests
+/* function calcSched(requests: number, capacity: number): number {
+  if (capacity >= requests) {
+    return capacity - requests
   } else {
     return 0
   }
-}
+} */
 
 /**
  * @return the free ratio
  *
  */
-function calcFree(requests: number, limits: number, allocatable: number): number {
-  const totalUsed = limits > requests ? limits : requests
+/* function calcFree(requests: number, limits: number, allocatable: number): number {
+  const totalUsed = requests // limits > requests ? limits : requests
   if (allocatable > totalUsed) {
     return allocatable - totalUsed
   } else {
     return 0
   }
-}
+} */
 
 /** column headers */
-const headerNames = {
+/* export const headerNames = {
   req: 'REQUESTS',
   percentReq: '%REQUESTS',
   lim: 'LIMITS',
   percentLim: '%LIMITS',
   alloc: 'ALLOCATABLE',
-  sched: 'SCHEDULABLE',
-  free: 'FREE'
-}
-
-/** used in the cluster-utilization widget */
-export const percentLimHeader = headerNames.percentLim
+  capacity: 'CAPACITY',
+  percentConsumed: '%CONSUMED'
+} */
 
 /**
  * Formatter for `utilization cluster`
  *
  */
-function formatClusterUtilization(nodes: Table, pods: Table): Table {
+/* function formatClusterUtilization(nodes: Table, pods: Table): Table {
   const allocCpu = sumTime(nodes, 0)
   const allocMem = sumSize(nodes, 1)
   const reqCpu = sumTime(pods, 3)
   const reqMem = sumSize(pods, 4)
-  const limCpu = sumTime(pods, 5)
-  const limMem = sumSize(pods, 6)
+  const limCpu = sumTime(pods, 5, 3)
+  const limMem = sumSize(pods, 6, 4)
 
-  const reqCpuText = cpuPretty(reqCpu)
-  const reqMemText = memPretty(reqMem)
-  // const req_width=calc_max_width(reqHeader, reqCpuText, reqMemText)
+  // %REQUESTS = requests/allocatable
+  const percentReqCpu = calcPercentage(reqCpu, allocCpu)
+  const percentReqMem = calcPercentage(reqMem, allocMem)
 
-  const percentReqCpuText = calcPercentage(reqCpu, allocCpu)
-  const percentReqMemText = calcPercentage(reqMem, allocMem)
-  // const percentReq_width=calc_max_width(percentReqHeader, percentReqCpuText, percentReqMemText)
+  // %LIMITS = limit/allocatable
+  const percentLimCpu = calcPercentage(limCpu, allocCpu)
+  const percentLimMem = calcPercentage(limMem, allocMem)
 
-  const limCpuText = cpuPretty(limCpu)
-  const limMemText = memPretty(limMem)
-  // const lim_width=calc_max_width(limHeader, limCpuText, limMemText)
+  // SCHEDULABLE = Math.max(0, allocatable - requests)
+  // const schedCpuText = cpuPretty(calcSched(reqCpu, capacityCpu))
+  // const schedMemText = memPretty(calcSched(reqMem, capacityMem))
 
-  const percentLimCpuText = calcPercentage(limCpu, allocCpu)
-  const percentLimMemText = calcPercentage(limMem, allocMem)
-  // const percentLim_width=calc_max_width(percentLimHeader, percentLimCpuText, percentLimMemText)
+  // does max (i.e. "limit") exceed remaining capacity (i.e. "allocatable")?
+  const isCpuOvercommitted = limCpu > allocCpu
+  const isMemOvercommitted = limMem > allocMem
 
-  const allocCpuText = cpuPretty(allocCpu)
-  const allocMemText = memPretty(allocMem)
-  // const alloc_width=calc_max_width(allocHeader, allocCpuText, allocMemText)
-
-  const schedCpuText = cpuPretty(calcSched(reqCpu, allocCpu))
-  const schedMemText = memPretty(calcSched(reqMem, allocMem))
-  // const sched_width=calc_max_width(schedHeader, schedCpuText, schedMemText)
-
-  const freeCpuText = cpuPretty(calcFree(reqCpu, limCpu, allocCpu))
-  const freeMemText = memPretty(calcFree(reqMem, limMem, allocMem))
-  // const free_width=calc_max_width("Free", freeCpuText, freeMemText)
+  // %CONSUMED: 1-allocatabale/capacity
+  const percentConsumedCpu = calcPercentage(allocCpu - calcFree(reqCpu, limCpu, allocCpu), allocCpu)
+  const percentConsumedMem = calcPercentage(allocMem - calcFree(reqMem, limMem, allocMem), allocMem)
 
   const cpuRow = {
     name: 'CPU',
     attributes: [
-      { value: reqCpuText, outerCSS: 'hide-with-sidecar' },
-      { value: percentReqCpuText },
-      { value: limCpuText, outerCSS: 'hide-with-sidecar' },
-      { value: percentLimCpuText, valueDom: bar(BarColor.CPU, percentLimCpuText) },
-      { value: allocCpuText },
-      { value: schedCpuText },
-      { value: freeCpuText }
+      { value: cpuPretty(reqCpu), outerCSS: 'hide-with-sidecar' },
+      { value: percentReqCpu, valueDom: bar(BarColor.CPU, percentReqCpu) },
+      { value: cpuPretty(limCpu), outerCSS: 'hide-with-sidecar', css: isCpuOvercommitted ? 'red-text' : '' },
+      {
+        value: percentLimCpu,
+        valueDom: bar(isCpuOvercommitted ? BarColor.Overcommitted : BarColor.CPU, percentLimCpu)
+      },
+      { value: cpuPretty(allocCpu) },
+      { value: percentConsumedCpu, valueDom: bar(BarColor.CPU, percentConsumedCpu) }
     ]
   }
   const memRow = {
     name: 'Memory',
     attributes: [
-      { value: reqMemText, outerCSS: 'hide-with-sidecar' },
-      { value: percentReqMemText },
-      { value: limMemText, outerCSS: 'hide-with-sidecar' },
-      { value: percentLimMemText, valueDom: bar(BarColor.Memory, percentLimMemText) },
-      { value: allocMemText },
-      { value: schedMemText },
-      { value: freeMemText }
+      { value: memPretty(reqMem), outerCSS: 'hide-with-sidecar' },
+      { value: percentReqMem, valueDom: bar(BarColor.Memory, percentReqMem) },
+      { value: memPretty(limMem), outerCSS: 'hide-with-sidecar', css: isMemOvercommitted ? 'red-text' : '' },
+      {
+        value: percentLimMem,
+        valueDom: bar(isMemOvercommitted ? BarColor.Overcommitted : BarColor.Memory, percentLimMem)
+      },
+      { value: memPretty(allocMem) },
+      { value: percentConsumedMem, valueDom: bar(BarColor.Memory, percentConsumedMem) }
     ]
   }
   return {
     header: {
       name: 'Resource',
       attributes: [
-        { key: headerNames.req, value: headerNames.req, outerCSS: 'hide-with-sidecar' },
-        { key: headerNames.percentReq, value: headerNames.percentReq },
-        { key: headerNames.lim, value: headerNames.lim, outerCSS: 'hide-with-sidecar' },
-        { key: headerNames.percentLim, value: headerNames.percentLim },
-        { key: headerNames.alloc, value: headerNames.alloc },
-        { key: headerNames.sched, value: headerNames.sched },
-        { key: headerNames.free, value: headerNames.free }
+        { key: headerNames.req, value: strings(headerNames.req), outerCSS: 'hide-with-sidecar' },
+        { key: headerNames.percentReq, value: strings(headerNames.percentReq) },
+        { key: headerNames.lim, value: strings(headerNames.lim), outerCSS: 'hide-with-sidecar' },
+        { key: headerNames.percentLim, value: strings(headerNames.percentLim) },
+        { key: headerNames.alloc, value: strings(headerNames.alloc) },
+        { key: headerNames.percentConsumed, value: strings(headerNames.percentConsumed) }
       ]
     },
     body: [cpuRow, memRow]
   }
-}
-
-/**
- * Command handler for `utilization cluster`
- *
- */
-export default async function clusterUtilization(args: Arguments): Promise<Table> {
-  const [nodes, pods] = await Promise.all([getNodeData(args, true), getPodData(args, true)])
-
-  return formatClusterUtilization(nodes, pods)
-}
+} */

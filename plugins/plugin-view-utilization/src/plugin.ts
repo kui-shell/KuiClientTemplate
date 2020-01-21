@@ -17,17 +17,16 @@
 import { Registrar } from '@kui-shell/core'
 import { defaultFlags, commandPrefix } from '@kui-shell/plugin-kubeui'
 
-import nodeUtilization from './controller/utilization/node'
-import clusterUtilization from './controller/utilization/cluster'
+import { topContainer, topPod } from './controller/get-pod-data'
+import topNode from './controller/get-node-data'
 
 export default async (commandTree: Registrar) => {
-  commandTree.listen(
-    `/${commandPrefix}/utilization/cluster`,
-    clusterUtilization,
-    Object.assign({ usage: { docs: 'Summarize cluster-level resource utilization metrics' } }, defaultFlags)
-  )
+  commandTree.override(`/${commandPrefix}/kubectl/top/node`, 'plugin-kubeui', topNode, defaultFlags)
+  commandTree.override(`/${commandPrefix}/k/top/node`, 'plugin-kubeui', topNode, defaultFlags)
 
-  const flags2 = Object.assign({ usage: { docs: 'Summarize node-level resource utilization metrics' } }, defaultFlags)
-  const cmd2 = commandTree.listen(`/${commandPrefix}/utilization/node`, nodeUtilization, flags2)
-  commandTree.synonym(`/${commandPrefix}/utilization/nodes`, nodeUtilization, cmd2, flags2)
+  commandTree.override(`/${commandPrefix}/kubectl/top/pod`, 'plugin-kubeui', topPod, defaultFlags)
+  commandTree.override(`/${commandPrefix}/k/top/pod`, 'plugin-kubeui', topPod, defaultFlags)
+
+  commandTree.listen(`/${commandPrefix}/kubectl/top/container`, topContainer, defaultFlags)
+  commandTree.listen(`/${commandPrefix}/k/top/container`, topContainer, defaultFlags)
 }
