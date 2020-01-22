@@ -65,7 +65,7 @@ describe(`kubectl get all-namespaces ${process.env.MOCHA_RUN_TARGET || ''}`, fun
           await waitForGreen(this.app, selector)
 
           // make sure the NAME cell is clickable (as opposed to, say, the NAMESPACE cell)
-          await this.app.client.waitForExist(`${selector} .clickable [data-key="NAME"]`)
+          await this.app.client.waitForExist(`${selector} .clickable[data-key="NAME"]`)
 
           // now click on that cell
           await this.app.client.click(`${selector} .clickable`)
