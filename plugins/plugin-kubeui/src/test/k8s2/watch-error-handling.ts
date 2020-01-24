@@ -65,17 +65,20 @@ describe(`kubectl watch error handler ${process.env.MOCHA_RUN_TARGET}`, function
     try {
       const ns = createNS()
 
+      console.error('watch from non-existent namespace 0')
       // start to watch pods in a non-existent namespace
       const watchResult = await CLI.command(`k get pods -w -n ${ns}`, this.app).then(async result => {
         await ReplExpect.ok(result)
         return result
       })
 
+      console.error('watch from non-existent namespace 1')
       // create the namespace
       await CLI.command(`k create ns ${ns}`, this.app)
         .then(ReplExpect.okWithCustom({ selector: Selectors.BY_NAME(ns) }))
         .then(status => waitForGreen(this.app, status))
 
+      console.error('watch from non-existent namespace 2')
       // create a pod
       await CLI.command(
         `k create -f https://raw.githubusercontent.com/kubernetes/examples/master/staging/pod -n ${ns}`,
@@ -84,19 +87,23 @@ describe(`kubectl watch error handler ${process.env.MOCHA_RUN_TARGET}`, function
         .then(ReplExpect.okWithCustom({ selector: Selectors.BY_NAME('nginx') }))
         .then(status => waitForGreen(this.app, status))
 
+      console.error('watch from non-existent namespace 3')
       // the watch table should have the new pods with online status
       const watchStatus = `${Selectors.OUTPUT_N(watchResult.count)} ${Selectors.BY_NAME('nginx')}`
-      await this.app.client.waitForExist(watchStatus)
+      await this.app.client.waitForExist(watchStatus, CLI.waitTimeout)
       await waitForGreen(this.app, watchStatus)
 
+      console.error('watch from non-existent namespace 4')
       // delete the pod
       await CLI.command(`k delete pods nginx -n ${ns}`, this.app)
         .then(ReplExpect.okWithCustom({ selector: Selectors.BY_NAME('nginx') }))
         .then(status => waitForRed(this.app, status))
 
+      console.error('watch from non-existent namespace 5')
       // the watch table should have the new pods with offline status
       await waitForRed(this.app, watchStatus)
 
+      console.error('watch from non-existent namespace 6')
       // delete the namespace
       await CLI.command(`k delete ns ${ns}`, this.app)
         .then(ReplExpect.okWithCustom({ selector: Selectors.BY_NAME(ns) }))

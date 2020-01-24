@@ -60,6 +60,23 @@ describe(`kubectl apply pod ${process.env.MOCHA_RUN_TARGET || ''}`, function(thi
           await SidecarExpect.open(this.app)
             .then(SidecarExpect.mode(defaultModeForGet))
             .then(SidecarExpect.showing('nginx'))
+
+          let idx = 0
+          await this.app.client.waitUntil(async () => {
+            const text = await Util.getValueFromMonaco(this.app)
+            if (++idx > 5) {
+              console.error(`still waiting for yaml in ${this.title}`, text)
+            }
+
+            return Promise.resolve(text).then(
+              Util.expectYAMLSubset(
+                {
+                  STATUS: 'Running'
+                },
+                false
+              )
+            )
+          })
         } catch (err) {
           return Common.oops(this, true)(err)
         }
