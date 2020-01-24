@@ -85,7 +85,7 @@ class KubectlWatcher implements Abortable, Watcher {
    */
   private leftover: string
 
-  /** the pty job we spawned to capture --watch-only output */
+  /** the pty job we spawned to capture --watch output */
   private ptyJob: Abortable
 
   /** the table push API */
@@ -173,15 +173,17 @@ class KubectlWatcher implements Abortable, Watcher {
               const getCommand = `kubectl get ${fqn(apiVersion, kind, name, namespace)} ${
                 this.output ? `-o ${this.output}` : ''
               }`
-              // console.error('!! row fetch', getCommand)
 
               // this is where we fetch the table columns the user
               // requested; note our use of the "output" variable,
               // which (above) we defined to be the user's schema
               // request
-              return this.args.REPL.qexec<Table>(getCommand).catch(() => {
+              return this.args.REPL.qexec<Table>(getCommand).catch((err: CodedError) => {
                 // error fetching the row data
                 // const rowKey = fqn(apiVersion, kind, name, namespace)
+                if (err.code !== 404) {
+                  console.error(err)
+                }
                 this.pusher.offline(name)
               })
             } catch (err) {
@@ -190,16 +192,13 @@ class KubectlWatcher implements Abortable, Watcher {
           })
         )
 
-        // Now that we have fetched the user's data, we may have a
-        // sense of the table schema, a.k.a. a "headerRow". Notes:
-        // since we are using watch-only, this code is not currently
-        // needed; if we every decide to use --watch, this could be
-        // helpful.
-        /* const tableWithHeader = tables.find(table => table && table.header)
-        if (tableWithHeader) {
+        // in case the initial get was empty, we add the header to the
+        // table; see https://github.com/kui-shell/plugin-kubeui/issues/219
+        const tableWithHeader = tables.find(table => table && table.header)
+        if (tableWithHeader && tableWithHeader.header) {
           // yup, we have a header; push it to the view
           this.pusher.header(tableWithHeader.header)
-        } */
+        }
 
         // based on the information we got back, 1) we push updates to
         // the table model; and 2) we may be able to discern that we
@@ -224,7 +223,7 @@ class KubectlWatcher implements Abortable, Watcher {
    * injecting updates to the table.
    *
    * We handle it by firing off a PTY to watch for subsequent changes
-   * via `kubectl get --watch-only`.
+   * via `kubectl get --watch`.
    *
    */
   public async init(pusher: WatchPusher) {
@@ -236,7 +235,7 @@ class KubectlWatcher implements Abortable, Watcher {
     const command =
       this.args.command
         .replace(/^k(\s)/, 'kubectl$1')
-        .replace(/--watch=true|-w=true|--watch-only=true|--watch|-w|--watch-only/g, '--watch-only')
+        .replace(/--watch=true|-w=true|--watch-only=true|--watch|-w|--watch-only/g, '--watch') // force --watch
         .replace(new RegExp(`(-o|--output)(\\s+|=)${this.output}`), '') +
       ` -o custom-columns=NAME:.metadata.name,KIND:.kind,APIVERSION:.apiVersion,NAMESPACE:.metadata.namespace`
     // ^^^^^ keep these in sync with nCols above !!
@@ -258,7 +257,7 @@ class KubectlWatcher implements Abortable, Watcher {
  */
 export default async function doGetWatchTable(args: Arguments<KubeOptions>): Promise<string | (Table & Watchable)> {
   try {
-    // we do a get, then (above) a watch-only; this is the get part;
+    // we do a get, then (above) a --watch; this is the get part;
     // observe how we strip off any --watch requests from the user's
     // command line
     const cmd = args.command

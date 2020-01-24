@@ -49,14 +49,14 @@ exports.waitForGreen = async (app, selector) => {
   }
 
   try {
-    await app.client.waitForExist(yellowBadge, process.env.TIMEOUT || 60000, true)
+    await app.client.waitForExist(yellowBadge, CLI.waitTimeout, true)
   } catch (err) {
-    console.log(`Creation is still yellow after ${process.env.TIMEOUT || 60000} ${selector}`)
+    console.log(`Creation is still yellow after ${CLI.waitTimeout} ${selector}`)
     const text = await app.client.getText(badge)
     console.log(`Creation status ${text}`)
   }
 
-  await app.client.waitForExist(greenBadge, process.env.TIMEOUT || 60000)
+  await app.client.waitForExist(greenBadge, CLI.waitTimeout)
   return greenBadge
 }
 
@@ -83,14 +83,14 @@ exports.waitForRed = async (app, selector) => {
   }
 
   try {
-    await app.client.waitForExist(yellowBadge, process.env.TIMEOUT || 60000, true)
+    await app.client.waitForExist(yellowBadge, CLI.waitTimeout, true)
   } catch (err) {
-    console.log(`Deletion is still yellow after ${process.env.TIMEOUT || 60000}`)
+    console.log(`Deletion is still yellow after ${CLI.waitTimeout}`)
     const text = await app.client.getText(yellowBadge)
     console.log(`Deletion status ${text}`)
   }
 
-  await app.client.waitForExist(badge, process.env.TIMEOUT || 60000)
+  await app.client.waitForExist(badge, CLI.waitTimeout)
   return badge
 }
 
