@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import { Arguments, Table, i18n } from '@kui-shell/core'
+import { Arguments, Table, i18n, isTable } from '@kui-shell/core'
 import {
   KubeItems,
   KubeOptions,
@@ -113,6 +113,7 @@ const strings = i18n('plugin-view-utilization', 'table')
 
 interface PodOptions extends KubeOptions {
   node?: string
+  containers?: boolean
 }
 
 /**
@@ -121,19 +122,23 @@ interface PodOptions extends KubeOptions {
  *
  */
 async function getPodsInNode(args: Arguments<KubeOptions>, forNode: string): Promise<Record<string, boolean>> {
-  const {
-    content: { items: pods }
-  } = await args.REPL.rexec<KubeItems<Pod>>(
+  const { content } = await args.REPL.rexec<KubeItems<Pod>>(
     `kubectl get pods -o json ${getNamespaceForArgv(args)} ${getLabelForArgv(args)}`
   )
 
-  return pods
-    .filter(_ => _.spec.nodeName === forNode)
-    .map(_ => _.metadata.name) // name versus fqn?
-    .reduce((M, fqn) => {
-      M[fqn] = true
-      return M
-    }, {} as Record<string, boolean>)
+  const empty = {} as Record<string, boolean>
+
+  if (content && content.items) {
+    return content.items
+      .filter(_ => _.spec.nodeName === forNode)
+      .map(_ => _.metadata.name) // name versus fqn?
+      .reduce((M, fqn) => {
+        M[fqn] = true
+        return M
+      }, empty)
+  } else {
+    return empty
+  }
 }
 
 function withAllNamespaces(args: Arguments<KubeOptions>) {
@@ -171,12 +176,12 @@ function addRow(
 }
 
 function addAllNSRow(args: Arguments<KubeOptions>, forThisNS: Table, forAllNS: Table) {
-  if (forThisNS.body.length > 0) {
+  if (forThisNS.body && forThisNS.body.length > 0) {
     const cpuTotal = forThisNS.body.reduce((total, row) => total + cpuShare(row.attributes[0].value), 0)
     const memTotal = forThisNS.body.reduce((total, row) => total + memShare(row.attributes[1].value), 0)
     addRow(forThisNS, 'Total', cpuTotal, memTotal)
 
-    if (forAllNS.body.length > 0) {
+    if (forAllNS.body && forAllNS.body.length > 0) {
       const thisNS = getNamespace(args) || 'default'
       const otherNS = forAllNS.body.filter(_ => _.name !== thisNS)
 
@@ -197,7 +202,7 @@ async function getPodDataForAllNodes(
   args: Arguments<PodOptions>,
   top: (args: Arguments<KubeOptions>) => Promise<Table>
 ): Promise<Table> {
-  if (isForAllNamespaces(args)) {
+  if (isForAllNamespaces(args) || args.parsedOptions.containers) {
     return top(args)
   } else {
     const [forThisNS, forAllNS] = await Promise.all([top(args), top(withAllNamespaces(args))])
@@ -219,10 +224,12 @@ async function getPodDataForOneNode(
   // strip off the --node <node> option
   strip(args, '--node', 1) // 1 means --node takes 1 arg
 
-  if (isForAllNamespaces(args)) {
+  if (isForAllNamespaces(args) || args.parsedOptions.containers) {
     const [podTable, pods] = await Promise.all([top(args), getPodsInNode(args, forNode)])
 
-    podTable.body = podTable.body.filter(row => pods[row.name])
+    if (podTable.body) {
+      podTable.body = podTable.body.filter(row => pods[row.name])
+    }
     return podTable
   } else {
     const [podTable, pods, podTableInAllNS] = await Promise.all([
@@ -231,8 +238,12 @@ async function getPodDataForOneNode(
       top(withAllNamespaces(args))
     ])
 
-    podTable.body = podTable.body.filter(row => pods[row.name])
-    podTableInAllNS.body = podTableInAllNS.body.filter(row => pods[row.attributes[0].value])
+    if (podTable.body) {
+      podTable.body = podTable.body.filter(row => pods[row.name])
+    }
+    if (podTableInAllNS.body) {
+      podTableInAllNS.body = podTableInAllNS.body.filter(row => pods[row.attributes[0].value])
+    }
     return addAllNSRow(args, podTable, podTableInAllNS)
   }
 }
@@ -251,6 +262,12 @@ export async function topPod(
   const table = !args.parsedOptions.node
     ? await getPodDataForAllNodes(args, top)
     : await getPodDataForOneNode(args, top)
+
+  if (!isTable(table)) {
+    return table
+  } else if (table.body.length === 0) {
+    throw new Error(strings('No pods found'))
+  }
 
   table.body.forEach(row => {
     // don't need to filter by node: ${args.parsedOptions.node ? `--node ${args.REPL.encodeComponent(args.parsedOptions.node)}` : ''}
@@ -284,15 +301,19 @@ export async function topPod(
  *
  */
 export async function topContainer(args: Arguments<PodOptions>): Promise<Table> {
-  const allContainers = await args.REPL.qexec<Table>(args.command.replace('top container', 'top pod') + ' --containers')
+  const cmd = args.command.replace('top container', 'top pod').replace(/(-A|--all-namespaces)/, '') + ' --containers'
+  const allContainers = await args.REPL.qexec<Table>(cmd)
 
   // filter for the given pod name
   const pod = args.argvNoOptions[args.argvNoOptions.indexOf('container') + 1]
-  allContainers.body = allContainers.body.filter(_ => _.name === pod)
 
-  allContainers.body.forEach(row => {
-    row.onclick = `kubectl get pod ${args.REPL.encodeComponent(row.name)} -o yaml`
-  })
+  if (allContainers.body) {
+    allContainers.body = allContainers.body.filter(_ => _.name === pod)
+
+    allContainers.body.forEach(row => {
+      row.onclick = `kubectl get pod ${args.REPL.encodeComponent(row.name)} -o yaml`
+    })
+  }
 
   return allContainers
 }
