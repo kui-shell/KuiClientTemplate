@@ -14,13 +14,28 @@
  * limitations under the License.
  */
 
-import { Registrar } from '@kui-shell/core'
-import { defaultFlags, commandPrefix } from '@kui-shell/plugin-kubeui'
+import { Arguments, Registrar, Table } from '@kui-shell/core'
+import { KubeOptions, defaultFlags, commandPrefix } from '@kui-shell/plugin-kubeui'
 
 import { topContainer, topPod } from './controller/get-pod-data'
-import topNode from './controller/get-node-data'
+import { NodeOptions, topNode } from './controller/get-node-data'
 
 export default async (commandTree: Registrar) => {
+  // works around a defect in the core's `override` function; if the
+  // plugin-kubeui is loaded before us, our override is ignored
+  const top = (await commandTree.find(`/${commandPrefix}/kubectl/top/node`, 'plugin-kubeui')).$ as (
+    args: Arguments<KubeOptions>
+  ) => Promise<Table>
+  commandTree.listen(
+    `/${commandPrefix}/kubectl/top/node-summary`,
+    async (args: Arguments<NodeOptions>) => {
+      args.command = args.command.replace(/node-summary/, 'node --summary')
+      args.parsedOptions.summary = true
+      return topNode(args, top)
+    },
+    defaultFlags
+  )
+
   commandTree.override(`/${commandPrefix}/kubectl/top/node`, 'plugin-kubeui', topNode, defaultFlags)
   commandTree.override(`/${commandPrefix}/k/top/node`, 'plugin-kubeui', topNode, defaultFlags)
 
