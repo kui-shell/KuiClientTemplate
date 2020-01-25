@@ -38,6 +38,8 @@ async function doTop(args: Arguments<KubeOptions>): Promise<KubeTableResponse> {
 }
 
 export default (commandTree: Registrar) => {
-  commandTree.listen(`/${commandPrefix}/kubectl/${verb}`, doTop, flags)
-  commandTree.listen(`/${commandPrefix}/k/${verb}`, doTop, flags)
+  commandTree.listen(`/${commandPrefix}/kubectl/${verb}/node`, doTop, flags)
+  commandTree.listen(`/${commandPrefix}/k/${verb}/node`, doTop, flags)
+  commandTree.listen(`/${commandPrefix}/kubectl/${verb}/pod`, doTop, flags)
+  commandTree.listen(`/${commandPrefix}/k/${verb}/pod`, doTop, flags)
 }

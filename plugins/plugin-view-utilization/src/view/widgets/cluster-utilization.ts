@@ -52,8 +52,7 @@ function bars() {
  */
 async function listener(tab: Tab, controller: StatusStripeController<MyFragment>, fragment: MyFragment) {
   try {
-    controller.showAs('normal')
-    const { content: info } = await tab.REPL.rexec<NodeSummary>('kubectl top node --summary')
+    const { content: info } = await tab.REPL.rexec<NodeSummary>('kubectl top node-summary')
 
     const cpu = 100 * info.cpuFrac + '%'
     const mem = 100 * info.memFrac + '%'
@@ -63,6 +62,9 @@ async function listener(tab: Tab, controller: StatusStripeController<MyFragment>
 
     fragment.memBar.style.width = mem
     fragment.memBar.title = strings('Cluster Memory', mem)
+
+    // only show normally if we succeed; see https://github.com/IBM/kui/issues/3537
+    controller.showAs('normal')
   } catch (err) {
     debug(err)
     controller.showAs('hidden')

@@ -31,8 +31,10 @@ function renderName(context: string): string {
  */
 async function listener(tab: Tab, controller: StatusStripeController, fragment: StatusTextWithIcon) {
   try {
-    controller.showAs('normal')
     fragment.text.innerText = renderName(await tab.REPL.qexec<string>(`context`))
+
+    // only show normally if we succeed; see https://github.com/IBM/kui/issues/3537
+    controller.showAs('normal')
   } catch (err) {
     controller.showAs('hidden')
   }

@@ -33,8 +33,6 @@ function renderContext(context: KubeContext): string {
  */
 async function listener(tab: Tab, controller: StatusStripeController, fragment: StatusTextWithIcon) {
   try {
-    controller.showAs('normal')
-
     // fetch both the current context name, and the list of KubeContext objects */
     const [currentContextName, { content: contexts }] = await Promise.all([
       tab.REPL.qexec<string>(`context`),
@@ -46,6 +44,9 @@ async function listener(tab: Tab, controller: StatusStripeController, fragment: 
 
     // render the current context into the UI
     fragment.text.innerText = currentContext === undefined ? '' : renderContext(currentContext)
+
+    // only show normally if we succeed; see https://github.com/IBM/kui/issues/3537
+    controller.showAs('normal')
   } catch (err) {
     controller.showAs('hidden')
   }

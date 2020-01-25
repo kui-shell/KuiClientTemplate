@@ -18,28 +18,7 @@ import Debug from 'debug'
 const debug = Debug('plugins/kubeui/preload')
 debug('loading')
 
-import { CapabilityRegistration, PreloadRegistrar, inBrowser, isHeadless } from '@kui-shell/core'
-
-/**
- * This is the capabilities registraion
- *
- */
-export const registerCapability: CapabilityRegistration = async (registrar: PreloadRegistrar) => {
-  if (inBrowser()) {
-    debug('register capabilities for browser')
-    const { restoreAuth } = await import('./lib/model/auth')
-    restoreAuth()
-  }
-
-  if (!isHeadless()) {
-    const [{ default: currentContextUI }, { default: currentNamespaceUI }] = await Promise.all([
-      import('./lib/view/status-stripe/current-context'),
-      import('./lib/view/status-stripe/current-namespace')
-    ])
-    registrar.registerContext(currentContextUI())
-    registrar.registerContext(currentNamespaceUI())
-  }
-}
+import { PreloadRegistrar, isHeadless } from '@kui-shell/core'
 
 /**
  * This is the module
@@ -49,6 +28,13 @@ export default async (registrar: PreloadRegistrar) => {
   if (!isHeadless()) {
     const preloader = (await import('./non-headless-preload')).default
     await preloader(registrar)
+
+    const [{ default: currentContextUI }, { default: currentNamespaceUI }] = await Promise.all([
+      import('./lib/view/status-stripe/current-context'),
+      import('./lib/view/status-stripe/current-namespace')
+    ])
+    registrar.registerContext(currentContextUI())
+    registrar.registerContext(currentNamespaceUI())
   }
 }
 

@@ -14,15 +14,16 @@
  * limitations under the License.
  */
 
-import { CapabilityRegistration, PreloadRegistrar, isHeadless } from '@kui-shell/core'
+import { PreloadRegistrar, isHeadless } from '@kui-shell/core'
 
 /**
  * This is the capabilities registraion
  *
  */
-export const registerCapability: CapabilityRegistration = async (registrar: PreloadRegistrar) => {
+export default function(registrar: PreloadRegistrar) {
   if (!isHeadless()) {
-    const [{ default: clusterUtilization }] = await Promise.all([import('./view/widgets/cluster-utilization')])
-    registrar.registerMeter(clusterUtilization())
+    import('./view/widgets/cluster-utilization').then(({ default: clusterUtilization }) => {
+      registrar.registerMeter(clusterUtilization())
+    })
   }
 }

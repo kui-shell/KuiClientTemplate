@@ -126,7 +126,7 @@ export async function getSystemOverhead(
  * Allows for `kubectl top node --summary`
  *
  */
-interface NodeOptions extends KubeOptions {
+export interface NodeOptions extends KubeOptions {
   summary?: boolean
 }
 
@@ -179,7 +179,7 @@ async function summary(
  * Command handler for `kubectl top node` (overrides built-in functionality)
  *
  */
-export default async function topNode(
+export async function topNode(
   args: Arguments<NodeOptions>,
   top: (args: Arguments<KubeOptions>) => Promise<Table>
 ): Promise<RawResponse<NodeSummary> | Table> {
