@@ -23,8 +23,8 @@
   ],
   "main": "dist/index.js",
   "dependencies": {
-    "@kui-shell/core": "^5.7.50",
-    "@kui-shell/plugin-wskflow": "^5.7.50",
+    "@kui-shell/core": "^5.7.51",
+    "@kui-shell/plugin-wskflow": "^5.7.51",
     "debug": "4.1.1",
     "js-yaml": "3.13.1"
   },
