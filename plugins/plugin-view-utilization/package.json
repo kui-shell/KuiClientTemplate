@@ -12,7 +12,7 @@
   ],
   "main": "dist/plugin.js",
   "dependencies": {
-    "@kui-shell/core": "^5.7.50",
+    "@kui-shell/core": "^5.7.51",
     "bytes-iec": "3.1.0",
     "lorem-ipsum": "2.0.3",
     "uuid": "3.4.0"
