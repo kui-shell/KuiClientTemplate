@@ -23,6 +23,8 @@ import { LogEntryResource, resourceFromLogEntry } from '../models/resource'
 // here are the known log parsers
 import json from '../formats/json'
 import nginx from '../formats/nginx'
+import express from '../formats/express'
+import webrick from '../formats/webrick'
 import zapr from '../formats/zapr'
 import plain from '../formats/plain'
 
@@ -47,7 +49,7 @@ function isPatternLogParser(parser: LogParser): parser is PatternLogParser {
   return (parser as PatternLogParser).pattern !== undefined
 }
 
-const formats = [nginx, zapr, json, plain]
+const formats = [nginx, express, webrick, zapr, json, plain]
 
 /**
  * Attempt to parse the given `raw` log string using the given
@@ -56,10 +58,10 @@ const formats = [nginx, zapr, json, plain]
  */
 const tryParse = (raw: string) => (fmt: LogParser): LogEntry[] => {
   if (isPatternLogParser(fmt)) {
-    const logLines = raw.split(fmt.pattern)
+    const logLines = raw.trim().split(fmt.pattern)
     const nLines = logLines.length / fmt.nColumns
 
-    if (nLines > 0) {
+    if (nLines >= 1) {
       const entries: LogEntry[] = []
       for (let idx = 0; idx < nLines; idx++) {
         const slice = logLines.slice(idx * fmt.nColumns, (idx + 1) * fmt.nColumns)
@@ -137,7 +139,7 @@ export async function formatAsTable(raw: string, metadata: { name: string; names
     namespace
   }
 
-  const logLines = formats.map(tryParse(raw)).filter(_ => _.length > 0)[0]
+  const logLines = formats.map(tryParse(raw)).filter(_ => _ && _.length > 0)[0]
   const anyStructure = !!logLines.find(_ => _.timestamp)
 
   // headers
