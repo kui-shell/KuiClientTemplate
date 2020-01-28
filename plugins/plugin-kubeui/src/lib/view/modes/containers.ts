@@ -130,7 +130,6 @@ const bodyModel = (tab: Tab, pod: KubeResource): Row[] => {
         type: 'container',
         name: container.name,
         onclick: showLogs(tab, { pod, container }),
-        usePip: true,
         attributes: specAttrs.concat(statusAttrs)
       }
     })
