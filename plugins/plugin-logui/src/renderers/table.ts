@@ -124,7 +124,7 @@ export async function formatAsTable(raw: string, metadata: { name: string; names
   }
 
   const { name, namespace = 'default' } = metadata
-  const kindMatch = name.match(/(\w+)\//)
+  const kindMatch = name ? name.match(/(\w+)\//) : undefined
   const kindOfInvolved = kindMatch ? kindMatch[1] : 'pod'
   const apiVersionOfInvolved = /^deploy/i.test(kindOfInvolved)
     ? 'extensions/v1beta1'

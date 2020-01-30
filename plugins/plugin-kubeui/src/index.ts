@@ -51,6 +51,7 @@ export { default as defaultFlags } from './controller/kubectl/flags'
 
 export {
   KubeOptions,
+  hasLabel,
   getLabel,
   getLabelForArgv,
   getNamespace,

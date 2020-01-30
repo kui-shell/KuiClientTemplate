@@ -66,7 +66,7 @@ describe(`kubectl logs follow ${process.env.MOCHA_RUN_TARGET || ''}`, function(t
     try {
       const res = await CLI.command(`kubectl logs ${podName} ${containerName} -n ${ns} -f`, this.app)
 
-      const rows = Selectors.xtermRows(res.count)
+      const rows = Selectors.OUTPUT_N_STREAMING(res.count)
 
       await sleep(sleepTime)
       const text1 = await getTextContent(this.app, rows)

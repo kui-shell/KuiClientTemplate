@@ -14,13 +14,14 @@
  * limitations under the License.
  */
 
-import { Arguments, Registrar } from '@kui-shell/core'
+import { Abortable, Arguments, Registrar } from '@kui-shell/core'
 import {
   KubeOptions,
   doExecWithPty,
   doExecWithStdout,
   defaultFlags as flags,
-  getNamespace
+  getNamespace,
+  hasLabel
 } from '@kui-shell/plugin-kubeui'
 
 import commandPrefix from '../command-prefix'
@@ -69,9 +70,9 @@ async function getLogsAsTable(args: Arguments<LogOptions>) {
  * request to a PTY for deeper handling.
  *
  */
-function doLogs(args: Arguments<LogOptions>) {
+async function doLogs(args: Arguments<LogOptions>) {
   const streamed = args.parsedOptions.follow || args.parsedOptions.f
-  const hasSelector = args.parsedOptions.selector || args.parsedOptions.l
+  const hasSelector = args.parsedOptions.selector || hasLabel(args)
   const resourePos = args.argvNoOptions[0] === commandPrefix ? 4 : 3
   const hasResource = args.argvNoOptions.length >= resourePos
 
@@ -89,7 +90,25 @@ function doLogs(args: Arguments<LogOptions>) {
       args.command = args.command + ' --since=10s'
     }
 
-    return doExecWithPty(args)
+    const stdout = await args.createOutputStream()
+    const myExecOptions = Object.assign({}, args.execOptions, {
+      quiet: true,
+      replSilence: true,
+      echo: false,
+      onInit: (ptyJob: Abortable) => {
+        return _ => {
+          if (args.block['isCancelled']) {
+            ptyJob.abort()
+          } else {
+            stdout(_)
+          }
+        }
+      }
+    })
+
+    // be careful not to smash the original execOptions!
+    const myArgs = Object.assign({}, args, { execOptions: myExecOptions })
+    return doExecWithPty(myArgs)
   }
 }
 
