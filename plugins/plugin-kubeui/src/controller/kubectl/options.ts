@@ -63,6 +63,7 @@ export function isTableWatchRequest(args: Arguments<KubeOptions>) {
 }
 
 export function getLabel(args: Arguments<KubeOptions>) {
+  // TODO, handle -lapp=name, see hasLabel below
   return args.parsedOptions.l || args.parsedOptions.label
 }
 
@@ -73,6 +74,23 @@ export function getLabelForArgv(args: Arguments<KubeOptions>) {
   } else {
     return ''
   }
+}
+
+/**
+ * Due to deficiencies in yargs-parser (used by @kui-shell/core), the
+ * form -lapp=name (i.e. without a whitespace after the -l) is not
+ * parsed properly.
+ */
+export function hasLabel(args: Arguments<KubeOptions>) {
+  if (args.parsedOptions.l || args.parsedOptions.label) {
+    return true
+  }
+  for (const key in args.parsedOptions) {
+    if (/^l/.test(key)) {
+      return true
+    }
+  }
+  return false
 }
 
 export function getNamespace(args: Arguments<KubeOptions>) {

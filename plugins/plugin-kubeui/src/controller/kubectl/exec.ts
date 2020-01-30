@@ -130,15 +130,17 @@ export async function doExecWithPty<
         `sendtopty ${commandToPTY}`,
         args.block,
         undefined,
-        Object.assign({}, args.execOptions, {
-          rawResponse: true,
-          quiet:
-            args.execOptions.quiet === undefined
-              ? args.execOptions.type === ExecType.TopLevel
-                ? false
-                : undefined
-              : args.execOptions.quiet
-        })
+        args.execOptions.onInit
+          ? args.execOptions
+          : Object.assign({}, args.execOptions, {
+              rawResponse: true,
+              quiet:
+                args.execOptions.quiet === undefined
+                  ? args.execOptions.type === ExecType.TopLevel
+                    ? false
+                    : undefined
+                  : args.execOptions.quiet
+            })
       ).catch((err: CodedError) => {
         if (err.code === 500 || err.statusCode === 500) {
           err.code = err.statusCode = 500
