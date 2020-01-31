@@ -120,6 +120,22 @@ async function doGetCustom(args: Arguments<KubeOptions>, response: RawResponse):
   return response.content.stdout.trim()
 }
 
+export function rawGet(args: Arguments<KubeOptions>, command = 'kubectl') {
+  return exec(args, prepareArgsForGet, command).catch((err: CodedError) => {
+    // Notes: we are using statusCode internally to this plugin;
+    // delete it before rethrowing the error, because the core would
+    // otherwise interpret the statusCode as being meaningful to the
+    // outside world
+    delete err.statusCode
+
+    // trim? at least with 1.15 clients, e.g. `kubectl get all -l
+    // app=foo` emits weird initial blank newlines
+    err.message = err.message.trim()
+
+    throw err
+  })
+}
+
 /**
  * This is the main handler for `kubectl get`. Here, we act as a
  * dispatcher: in `kubectl` a `get` can mean either get-as-table,
@@ -141,19 +157,7 @@ export const doGet = (command: string) =>
     }
 
     // first, we do the raw exec of the given command
-    const response = await exec(args, prepareArgsForGet, command).catch((err: CodedError) => {
-      // Notes: we are using statusCode internally to this plugin;
-      // delete it before rethrowing the error, because the core would
-      // otherwise interpret the statusCode as being meaningful to the
-      // outside world
-      delete err.statusCode
-
-      // trim? at least with 1.15 clients, e.g. `kubectl get all -l
-      // app=foo` emits weird initial blank newlinesc
-      err.message = err.message.trim()
-
-      throw err
-    })
+    const response = await rawGet(args, command)
 
     if (isKubeTableResponse(response)) {
       return response

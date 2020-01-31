@@ -21,6 +21,7 @@ import create from './controller/kubectl/create'
 import describe from './controller/kubectl/describe'
 import kdelete from './controller/kubectl/delete'
 import kget from './controller/kubectl/get'
+import kgetNs from './controller/kubectl/get-namespaces'
 import raw from './controller/kubectl/raw'
 import run from './controller/kubectl/run'
 import status from './controller/kubectl/status'
@@ -35,6 +36,7 @@ export default async (registrar: Registrar) => {
   describe(registrar)
   kdelete(registrar)
   kget(registrar)
+  kgetNs(registrar)
   raw(registrar)
   run(registrar)
   status(registrar)
