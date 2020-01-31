@@ -68,7 +68,70 @@ describe(`kubectl namespace ${process.env.MOCHA_RUN_TARGET || ''}`, function(thi
       })
     }
 
-    /** kubectl descsribe namespace <name> */
+    /** switch to default context via command */
+    const switchToDefault = () => {
+      it('should switch back to default via command', () => {
+        return CLI.command(`namespace switch default`, this.app)
+          .then(ReplExpect.okWithAny)
+          .catch(Common.oops(this, true))
+      })
+
+      it('should show default as current namespace', () => {
+        return CLI.command(`namespace current`, this.app)
+          .then(ReplExpect.okWithString('default'))
+          .catch(Common.oops(this, true))
+      })
+    }
+
+    /** kubectl get namespace and show clickable table */
+    const listIt = (ns1: string) => {
+      it('should show default as current namespace', () => {
+        return CLI.command(`namespace current`, this.app)
+          .then(ReplExpect.okWithString('default'))
+          .catch(Common.oops(this, true))
+      })
+
+      it(`should list the namespace default`, () => {
+        return CLI.command(`${kubectl} get ns`, this.app)
+          .then(ReplExpect.okWith('default'))
+          .catch(Common.oops(this, true))
+      })
+
+      it(`should list the namespace ${ns1}`, () => {
+        return CLI.command(`${kubectl} get ns`, this.app)
+          .then(ReplExpect.okWith(ns1))
+          .catch(Common.oops(this, true))
+      })
+
+      it(`should initiate namespace switch via click`, () => {
+        return CLI.command(`${kubectl} get ns ${ns1}`, this.app)
+          .then(ReplExpect.okWithCustom({ selector: `${Selectors.BY_NAME('')} .selected-entity.clickable` }))
+          .then(selector => this.app.client.click(selector))
+          .catch(Common.oops(this))
+      })
+
+      it(`should show ${ns1} as current namespace`, () => {
+        return CLI.command(`namespace current`, this.app)
+          .then(ReplExpect.okWithString(ns1))
+          .catch(Common.oops(this, true))
+      })
+
+      switchToDefault()
+    }
+
+    /** click on status stripe namespace widget */
+    const listItViaStatusStripe = () => {
+      it('should list namespaces by clicking on status stripe widget', async () => {
+        const res = await CLI.command('echo hi', this.app)
+        await ReplExpect.okWithString('hi')(res)
+
+        await this.app.client.click('#kui--status-stripe .kui--plugin-kubeui--current-namespace .clickable')
+
+        await ReplExpect.okWith('default')({ app: this.app, count: res.count + 1 })
+      })
+    }
+
+    /** kubectl describe namespace <name> */
     const describeIt = (name: string) => {
       it(`should describe that namespace ${name} via ${kubectl}`, () => {
         return CLI.command(`${kubectl} describe namespace ${name}`, this.app)
@@ -130,7 +193,10 @@ describe(`kubectl namespace ${process.env.MOCHA_RUN_TARGET || ''}`, function(thi
     //
     // now start the tests
     //
+    switchToDefault()
     createIt(ns1)
+    listItViaStatusStripe()
+    listIt(ns1)
     describeIt(ns1)
     createIt(ns2)
     describeIt(ns2)

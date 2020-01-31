@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import { i18n, Table, Row, RawResponse, Arguments, ExecOptions, Registrar, UsageModel } from '@kui-shell/core'
+import { i18n, Tab, Table, Row, RawResponse, Arguments, ExecOptions, Registrar, UsageModel } from '@kui-shell/core'
 
 import flags from './flags'
 import apiVersion from './apiVersion'
@@ -77,6 +77,21 @@ const addClickHandlers = (table: Table, { REPL }: Arguments, execOptions: ExecOp
 function valueOf(key: 'NAME' | 'NAMESPACE' | 'AUTHINFO' | 'CLUSTER', row: Row) {
   const cell = row.attributes.find(_ => _.key === key)
   return cell ? cell.value : ''
+}
+
+/**
+ * @return a `KubeContext` representing the current context
+ *
+ */
+export async function getCurrentContext(tab: Tab): Promise<KubeContext> {
+  // fetch both the current context name, and the list of KubeContext objects */
+  const [currentContextName, { content: contexts }] = await Promise.all([
+    tab.REPL.qexec<string>(`context`),
+    tab.REPL.rexec<KubeContext[]>(`contexts`)
+  ])
+
+  // the KubeContext object matching the current context name
+  return contexts.find(_ => _.metadata.name === currentContextName)
 }
 
 /**

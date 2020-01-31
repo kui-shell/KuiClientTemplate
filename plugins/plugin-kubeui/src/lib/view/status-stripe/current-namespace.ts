@@ -15,7 +15,9 @@
  */
 
 import { Tab, StatusStripeController, StatusTextWithIcon } from '@kui-shell/core'
+
 import { KubeContext } from '../../model/resource'
+import { getCurrentContext } from '../../../controller/kubectl/contexts'
 
 // @ icon
 const icon =
@@ -33,14 +35,7 @@ function renderContext(context: KubeContext): string {
  */
 async function listener(tab: Tab, controller: StatusStripeController, fragment: StatusTextWithIcon) {
   try {
-    // fetch both the current context name, and the list of KubeContext objects */
-    const [currentContextName, { content: contexts }] = await Promise.all([
-      tab.REPL.qexec<string>(`context`),
-      tab.REPL.rexec<KubeContext[]>(`contexts`)
-    ])
-
-    // the KubeContext object matching the current context name
-    const currentContext = contexts.find(_ => _.metadata.name === currentContextName)
+    const currentContext = await getCurrentContext(tab)
 
     // render the current context into the UI
     fragment.text.innerText = currentContext === undefined ? '' : renderContext(currentContext)
