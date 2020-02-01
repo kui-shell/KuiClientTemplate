@@ -230,6 +230,23 @@ export function isPod(resource: KubeResource): resource is Pod {
 }
 
 /**
+ * Kubernetes Namespace resource type
+ *
+ */
+export interface Namespace extends KubeResource {
+  apiVersion: 'v1'
+  kind: 'Namespace'
+}
+
+/**
+ * @return whether the given resource is an instance of a Namespace
+ *
+ */
+export function isNamespace(resource: KubeResource): resource is Namespace {
+  return resource.apiVersion === 'v1' && resource.kind === 'Namespace'
+}
+
+/**
  * Kubernetes Job resource type
  *
  */
