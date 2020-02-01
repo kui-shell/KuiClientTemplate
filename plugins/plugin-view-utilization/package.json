@@ -13,6 +13,7 @@
   "main": "dist/plugin.js",
   "dependencies": {
     "@kui-shell/core": "^6.0.10",
+    "@kui-shell/plugin-kubeui": "*",
     "bytes-iec": "3.1.0",
     "lorem-ipsum": "2.0.3",
     "uuid": "3.4.0"
