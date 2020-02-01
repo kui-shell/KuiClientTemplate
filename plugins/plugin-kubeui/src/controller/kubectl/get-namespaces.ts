@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import { isTable, Arguments, Registrar, Table, Row, Cell, ExecType } from '@kui-shell/core'
+import { isTable, Arguments, Registrar, Tab, Table, Row, Cell, ExecType } from '@kui-shell/core'
 
 import flags from './flags'
 import { getCurrentContext } from './contexts'
@@ -40,10 +40,11 @@ async function doGetNamespaceTable(args: Arguments<KubeOptions>) {
   // then decorate the table as a row-selectable table
   if (isTable(baseTable)) {
     const augmentedTable = Object.assign({}, baseTable, {
+      title: 'Namespaces',
       header: {
-        name: 'CURRENT',
+        name: '',
         css: baseTable.header.css,
-        outerCSS: baseTable.header.outerCSS,
+        outerCSS: `${baseTable.header.outerCSS} not-a-name`,
         attributes: [
           {
             key: baseTable.header.key,
@@ -61,15 +62,16 @@ async function doGetNamespaceTable(args: Arguments<KubeOptions>) {
           value: ns,
           outerCSS: 'entity-name-group',
           css: 'entity-name',
-          onclick: `summarize namespace ${ns}`
+          onclick: `kubectl get ns ${ns} -o yaml`
         }
 
         const newRow: Row = {
-          key: 'CURRENT',
+          key: 'NAME',
           css: 'selected-entity',
           name: isSelected ? '*' : '',
           fontawesome: 'fas fa-check',
           attributes: [nameAttr].concat(row.attributes),
+          outerCSS: 'not-a-name',
           rowCSS: isSelected ? 'selected-row' : ''
         }
 
@@ -102,7 +104,7 @@ async function doGetNamespaceTable(args: Arguments<KubeOptions>) {
  *
  */
 function doGetNamespace(args: Arguments<KubeOptions>) {
-  if (isTableRequest(args) && !isWatchRequest(args) && args.execOptions.type === ExecType.TopLevel) {
+  if (isTableRequest(args) && !isWatchRequest(args) && args.execOptions.type !== ExecType.Nested) {
     return doGetNamespaceTable(args)
   } else {
     return doGet('kubectl')(args)
@@ -115,16 +117,9 @@ function doGetNamespace(args: Arguments<KubeOptions>) {
  * by kind.
  *
  */
-async function doSummarizeNamespace(args: Arguments<KubeOptions>): Promise<true | Table> {
-  // summarize this namespace
-  const ns = args.argvNoOptions[args.argvNoOptions.length - 1]
-
+export async function doSummarizeNamedNamespace(tab: Tab, ns: string): Promise<Table> {
   // otherwise, summarize resource count by kind in a table
-  const response = await args.REPL.qexec<Table>(`kubectl get all -n ${ns} -o custom-columns=KIND:.kind`)
-
-  if (!isTable(response)) {
-    return true
-  }
+  const response = await tab.REPL.qexec<Table>(`kubectl get all -n ${ns} -o custom-columns=KIND:.kind`)
 
   const resources = response.body
   const histogram = resources.reduce((M, { name: kind }) => {
@@ -155,6 +150,18 @@ async function doSummarizeNamespace(args: Arguments<KubeOptions>): Promise<true 
 }
 
 /**
+ * Summarize the resources in the namespace indicated by the last
+ * positional argument into a table, where resources are histogrammed
+ * by kind.
+ *
+ */
+function doSummarizeNamespace(args: Arguments<KubeOptions>): Promise<Table> {
+  // summarize this namespace
+  const ns = args.argvNoOptions[args.argvNoOptions.length - 1]
+  return doSummarizeNamedNamespace(args.tab, ns)
+}
+
+/**
  * Switch to the namespace indicated by the last positional argument,
  * then summarize the resources in that namespace in a table.
  *
@@ -168,7 +175,7 @@ async function doSwitchNamespace(args: Arguments<KubeOptions>): Promise<true | T
 
   if (!summarizeNamespaceOnSwitch) {
     // client config told us not to summarize namespace on switch
-    return
+    return true
   }
 
   return doSummarizeNamespace(args)

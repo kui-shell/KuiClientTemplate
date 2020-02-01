@@ -6,6 +6,7 @@
   "deleteResource": "Delete this resource",
   "createResource": "Create this resource",
   "summary": "Summary",
+  "resources": "Resources",
   "lastApplied": "Last Applied",
   "previous": "Previous",
   "latest": "Latest",
