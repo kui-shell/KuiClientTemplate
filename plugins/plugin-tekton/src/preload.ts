@@ -20,13 +20,23 @@ debug('loading')
 
 import { dirname, join } from 'path'
 
-import { isHeadless, ModeFilter, ModeRegistration, PreloadRegistrar, augmentModuleLoadPath } from '@kui-shell/core'
+import {
+  isHeadless,
+  inBrowser,
+  ModeFilter,
+  ModeRegistration,
+  PreloadRegistrar,
+  augmentModuleLoadPath
+} from '@kui-shell/core'
 import { KubeResource } from '@kui-shell/plugin-kubeui'
 
 import { isPipeline, isPipelineRun, isTask } from './model/resource'
 
 /** this is the SidecarMode model for the tekton run view */
 // import runMode from './model/modes/run'
+
+declare let __non_webpack_require__ // eslint-disable-line @typescript-eslint/camelcase
+declare let __webpack_require__ // eslint-disable-line @typescript-eslint/camelcase
 
 /**
  * A sidecar mode relevancy filter
@@ -72,9 +82,13 @@ async function registerModes(registrar: PreloadRegistrar) {
 
 /** on preload, register our sidecar modes */
 export default (registrar: PreloadRegistrar) => {
-  // register a "special path" that resolves
-  const specialPath = join(dirname(require.resolve('@kui-shell/plugin-tekton/package.json')), 'samples/@demos')
-  augmentModuleLoadPath(specialPath, { prefix: '@demos/tekton', command: 'tekton flow' })
+  if (!inBrowser()) {
+    // eslint-disable-next-line @typescript-eslint/camelcase
+    const requireFunc = typeof __webpack_require__ === 'function' ? __non_webpack_require__ : require
+    // register a "special path" that resolves
+    const specialPath = join(dirname(requireFunc.resolve('@kui-shell/plugin-tekton/package.json')), 'samples/@demos')
+    augmentModuleLoadPath(specialPath, { prefix: '@demos/tekton', command: 'tekton flow' })
+  }
 
   if (!isHeadless()) {
     return registerModes(registrar)
