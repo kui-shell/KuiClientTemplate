@@ -28,7 +28,7 @@ import {
 
 import RawResponse from './response'
 import commandPrefix from '../command-prefix'
-import { KubeOptions, getNamespaceForArgv, getContextForArgv, fileOf } from './options'
+import { KubeOptions, getNamespaceForArgv, getContextForArgv, fileOf, isHelpRequest } from './options'
 
 import { renderHelp } from '../../lib/util/help'
 import { FinalState } from '../../lib/model/states'
@@ -98,7 +98,7 @@ const isKubectl = (args: Arguments<KubeOptions>) =>
     args.argvNoOptions[0] === commandPrefix &&
     /^k(ubectl)?$/.test(args.argvNoOptions[1]))
 
-const isUsage = (args: Arguments<KubeOptions>) => args.parsedOptions.help || args.parsedOptions.h || isKubectl(args)
+const isUsage = (args: Arguments<KubeOptions>) => isHelpRequest(args) || isKubectl(args)
 
 function doHelp<O extends KubeOptions>(args: Arguments<O>, response: RawResponse): void {
   const verb = args.argvNoOptions.length >= 2 ? args.argvNoOptions[1] : ''

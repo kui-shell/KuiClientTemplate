@@ -54,6 +54,7 @@ export {
   hasLabel,
   getLabel,
   getLabelForArgv,
+  isHelpRequest,
   getNamespace,
   getNamespaceForArgv,
   isForAllNamespaces

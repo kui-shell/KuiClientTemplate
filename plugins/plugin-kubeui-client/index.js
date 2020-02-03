@@ -14,4 +14,5 @@
  * limitations under the License.
  */
 
+import './web/css/static/colors.css'
 require('@kui-shell/plugin-client-default')

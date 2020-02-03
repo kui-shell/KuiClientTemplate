@@ -50,6 +50,10 @@ function isTableFormat(format: OutputFormat): format is TableFormat {
   return !format || format === 'wide' || /^custom-columns=/.test(format) || /^custom-columns-file=/.test(format)
 }
 
+export function isHelpRequest(args: Arguments<KubeOptions>) {
+  return args.parsedOptions.help || args.parsedOptions.h
+}
+
 export function isTableRequest(args: Arguments<KubeOptions>) {
   return isTableFormat(formatOf(args))
 }
@@ -151,6 +155,9 @@ export interface KubeOptions extends ParsedOptions {
 
   f?: string
   filename?: string
+
+  h?: boolean
+  help?: boolean
 }
 
 export function isForAllNamespaces(args: Arguments<KubeOptions>) {
