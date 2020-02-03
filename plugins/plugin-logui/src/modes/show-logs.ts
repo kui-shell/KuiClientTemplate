@@ -40,7 +40,7 @@ function jobLogs(tab: Tab, resource: KubeResource) {
  *
  */
 function podLogs(tab: Tab, resource: KubeResource) {
-  return `kubectl logs ${resource.metadata.name} -n ${resource.metadata.namespace} --tail 20`
+  return `kubectl logs ${resource.metadata.name} -n ${resource.metadata.namespace} --all-containers --tail 20`
 }
 
 /**
