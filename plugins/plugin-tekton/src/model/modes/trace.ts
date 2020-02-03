@@ -18,13 +18,14 @@ import Debug from 'debug'
 import * as prettyPrintDuration from 'pretty-ms'
 
 import { KubeResource } from '@kui-shell/plugin-kubeui'
-import { Badge, Mode, Tab, empty, prettyPrintTime } from '@kui-shell/core'
+import { Badge, Mode, Tab, empty, prettyPrintTime, i18n } from '@kui-shell/core'
 import { ActivationLikeFull as ActivationLike } from '@kui-shell/plugin-wskflow'
 
 import success from '../../lib/success'
 import { getPipelineFromRef, getTasks } from '../fetch'
 import { Pipeline, PipelineRun, Task, TaskRef } from '../resource'
 
+const strings = i18n('plugin-tekton', 'modes')
 const debug = Debug('plugins/tekton/models/modes/trace')
 
 interface RenderOpts {
@@ -404,6 +405,7 @@ export const traceView = (tab: Tab, run: PipelineRun, pipeline: Pipeline, jsons:
  */
 const traceMode: Mode = {
   mode: 'trace',
+  label: strings('trace'),
   content: async (tab: Tab, resource: PipelineRun) => {
     const [pipeline, tasks] = await Promise.all([getPipelineFromRef(tab, resource), getTasks(tab)])
     return traceView(tab, resource, pipeline, tasks)

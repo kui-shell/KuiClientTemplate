@@ -14,12 +14,14 @@
  * limitations under the License.
  */
 
-import { ResourceWithMetadata, Mode, Tab } from '@kui-shell/core'
+import { ResourceWithMetadata, Mode, Tab, i18n } from '@kui-shell/core'
 import { KubeResource, isKubeResource } from '@kui-shell/plugin-kubeui'
 
 import flowView from '../../view/flow'
 import { getPipelineFromRef, getTasks } from '../fetch'
 import { isPipelineRun, isPipeline } from '../resource'
+
+const strings = i18n('plugin-tekton', 'modes')
 
 export type ResponseObject =
   | KubeResource
@@ -35,6 +37,7 @@ export type ResponseObject =
  */
 const flowMode: Mode = {
   mode: 'flow',
+  label: strings('flow'),
   content: async (tab: Tab, resource: ResponseObject) => {
     if (isKubeResource(resource)) {
       if (isPipelineRun(resource)) {
