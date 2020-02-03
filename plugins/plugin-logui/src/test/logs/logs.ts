@@ -68,9 +68,8 @@ describe(`kubectl logs getty ${process.env.MOCHA_RUN_TARGET || ''}`, function(th
       if (hasLogs) {
         await Promise.resolve(res)
           .then(ReplExpect.okWithCustom({ passthrough: true }))
-          .then(N => this.app.client.elements(Selectors.LIST_RESULTS_BY_NAME_N(N)))
-          .then(rows => rows.value.length)
-          .then(nRows => assert.ok(nRows > 0))
+          .then(N => this.app.client.getText(Selectors.OUTPUT_N_STREAMING(N)))
+          .then(txt => assert.ok(txt.length > 0))
       } else {
         await Promise.resolve(res).then(ReplExpect.justOK)
       }
