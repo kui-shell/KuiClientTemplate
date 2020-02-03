@@ -18,7 +18,7 @@ import { i18n, Tab, BadgeRegistration, ModeRegistration } from '@kui-shell/core'
 
 import cssForValue from '../css-for-value'
 import TrafficLight from '../../model/traffic-light'
-import { Event, isEvent, KubeResource, isCrudableKubeResource } from '../../model/resource'
+import { Event, isEvent, KubeResource, isCrudableKubeResource, isNamespaced } from '../../model/resource'
 
 const strings = i18n('plugin-kubeui')
 
@@ -42,7 +42,7 @@ function command(tab: Tab, resource: KubeResource) {
  *
  */
 function hasEvents(resource: KubeResource): boolean {
-  return isCrudableKubeResource(resource) && !isEvent(resource)
+  return isCrudableKubeResource(resource) && !isEvent(resource) && isNamespaced(resource)
 }
 
 /**

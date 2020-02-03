@@ -20,12 +20,14 @@ import { PreloadRegistrar } from '@kui-shell/core'
 import podMode from './lib/view/modes/pods'
 import yamlMode from './lib/view/modes/yaml'
 import summaryMode from './lib/view/modes/summary'
+import crdSummaryMode from './lib/view/modes/crd-summary'
 import namespaceSummaryMode from './lib/view/modes/namespace-summary'
 import conditionsMode from './lib/view/modes/conditions'
 import containersMode from './lib/view/modes/containers'
 import lastAppliedMode from './lib/view/modes/last-applied'
 import deleteResourceMode from './lib/view/modes/crud'
 import involvedObjectMode from './lib/view/modes/involved-object'
+import showCRDResources from './lib/view/modes/show-crd-managed-resources'
 import { eventsMode, eventsBadge } from './lib/view/modes/events'
 
 import tabCompletionProvider from './lib/tab-completion'
@@ -37,10 +39,12 @@ export default async (registrar: PreloadRegistrar) => {
     yamlMode,
     eventsMode,
     summaryMode,
+    crdSummaryMode,
     namespaceSummaryMode,
     conditionsMode,
     containersMode,
     lastAppliedMode,
+    showCRDResources,
     deleteResourceMode,
     involvedObjectMode
   )
