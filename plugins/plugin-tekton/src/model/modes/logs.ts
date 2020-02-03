@@ -14,9 +14,11 @@
  * limitations under the License.
  */
 
-import { Row, Table, Mode, Tab, flatten } from '@kui-shell/core'
+import { Row, Table, Mode, Tab, flatten, i18n } from '@kui-shell/core'
 import { KubeItems, Pod } from '@kui-shell/plugin-kubeui'
 import { PipelineRun, TaskRun } from '../resource'
+
+const strings = i18n('plugin-tekton', 'modes')
 
 /**
  * The sidecar mode for the tekton logs of a PipelineRun
@@ -24,6 +26,7 @@ import { PipelineRun, TaskRun } from '../resource'
  */
 const mode: Mode = {
   mode: 'Logs',
+  label: strings('logs'),
   content: async (tab: Tab, run: PipelineRun) => {
     const [{ items: taskRuns }, { items: pods }] = await Promise.all([
       tab.REPL.qexec<KubeItems<TaskRun>>(`kubectl get taskrun -l tekton.dev/pipelineRun=${run.metadata.name} -o json`),
