@@ -121,6 +121,11 @@ export type KubeResource<Status = KubeStatus> = ResourceWithMetadata &
     isSimulacrum?: boolean // is this a manufactured resource that does not exist on the api server?
   }
 
+/** is the resource Namespaced? */
+export function isNamespaced(resource: KubeResource) {
+  return resource.metadata !== undefined && resource.metadata.namespace !== undefined
+}
+
 /** is the command response a Kubernetes resource? note: excluding any ones we simulate in kubeui */
 export function isKubeResource(entity: ResourceWithMetadata): entity is KubeResource {
   const kube = entity as KubeResource
@@ -158,7 +163,8 @@ export function isKubeResourceWithItsOwnSummary(resource: KubeResource): resourc
 export function isSummarizableKubeResource(resource: KubeResource): boolean {
   return (
     isKubeResource(resource) &&
-    (isKubeResourceWithItsOwnSummary(resource) || (resource.kind !== undefined && resource.kind !== 'List'))
+    (isKubeResourceWithItsOwnSummary(resource) ||
+      (resource.kind !== undefined && resource.kind !== 'List' && resource.kind !== 'CustomResourceDefinition'))
   )
 }
 
@@ -346,6 +352,41 @@ export interface KubeItems<Item extends KubeResource = KubeResource> extends Kub
 
 export function isKubeItems(resource: KubeResource): resource is KubeItems {
   return resource.apiVersion === 'v1' && resource.kind === 'List'
+}
+
+/** Scope */
+type Scope = 'Namespaced' | 'Cluster'
+
+/**
+ * CustomResourceDefinition
+ *
+ */
+export type CustomResourceDefinition = KubeResource & {
+  apiVersion: 'apiextensions.k8s.io/v1' | 'apiextensions.k8s.io/v1beta1'
+  kind: 'CustomResourceDefinition'
+  spec: {
+    scope: Scope
+    group: string
+    version: string
+    names: {
+      categories: Record<string, string>
+      kind: string
+      listKind: string
+      plural: string
+      singular: string
+    }
+  }
+}
+
+/**
+ * @return whether the given resource is an instance of a CustomResourceDefinition
+ *
+ */
+export function isCustomResourceDefinition(resource: KubeResource): resource is CustomResourceDefinition {
+  return (
+    (resource.apiVersion === 'apiextensions.k8s.io/v1' || resource.apiVersion === 'apiextensions.k8s.io/v1beta1') &&
+    resource.kind === 'CustomResourceDefinition'
+  )
 }
 
 /**
