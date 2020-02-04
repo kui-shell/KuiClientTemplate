@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import { Tab, StatusStripeController, StatusTextWithIcon } from '@kui-shell/core'
+import { Tab, StatusStripeController, StatusTextWithIcon, eventBus } from '@kui-shell/core'
 
 import { KubeContext } from '../../model/resource'
 import { getCurrentContext } from '../../../controller/kubectl/contexts'
@@ -36,6 +36,7 @@ function renderContext(context: KubeContext): string {
 async function listener(tab: Tab, controller: StatusStripeController, fragment: StatusTextWithIcon) {
   try {
     const currentContext = await getCurrentContext(tab)
+    eventBus.emit('/kubeui/context/current', currentContext)
 
     // render the current context into the UI
     fragment.text.innerText = currentContext === undefined ? '' : renderContext(currentContext)
