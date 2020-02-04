@@ -33,6 +33,7 @@ export default async (registrar: PreloadRegistrar) => {
       import('./lib/view/status-stripe/current-context'),
       import('./lib/view/status-stripe/current-namespace')
     ])
+    // careful: the order here matters; see the "careful" comment in current-context.ts
     registrar.registerContext(currentContextUI())
     registrar.registerContext(currentNamespaceUI())
   }
