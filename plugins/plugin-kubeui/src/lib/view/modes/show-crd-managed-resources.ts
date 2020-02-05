@@ -16,7 +16,6 @@
 
 import { i18n, Tab, ModeRegistration } from '@kui-shell/core'
 
-import { fqnOfGVK } from '../../../controller/kubectl/fqn'
 import { CustomResourceDefinition, isCustomResourceDefinition } from '../../model/resource'
 
 const strings = i18n('plugin-kubeui')
@@ -26,9 +25,7 @@ const strings = i18n('plugin-kubeui')
  *
  */
 export function command(tab: Tab, crd: CustomResourceDefinition) {
-  const { group, version } = crd.spec
-  const kind = crd.spec.names.kind
-  return `kubectl get ${fqnOfGVK(group, version, kind)}`
+  return `kubectl get ${tab.REPL.encodeComponent(crd.metadata.name)}`
 }
 
 /**

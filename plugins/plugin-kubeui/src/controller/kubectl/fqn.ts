@@ -60,10 +60,6 @@ export function fqn(apiVersion: string, kind: string, name: string, namespace: s
   return `${kind}${versionString(apiVersion)} ${namespace === '<none>' ? '' : `-n ${namespace}`} ${name}`
 }
 
-export function fqnOfGVK(group: string, version: string, kind: string): string {
-  return `${kind}.${version}.${group}`
-}
-
 export function fqnOf(resource: KubeResource) {
   return fqn(resource.apiVersion, resource.kind, resource.metadata.name, resource.metadata.namespace)
 }
