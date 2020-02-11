@@ -14,35 +14,56 @@
  * limitations under the License.
  */
 
+import Debug from 'debug'
 import { i18n, Tab, Table, ModeRegistration } from '@kui-shell/core'
 
 import { CustomResourceDefinition, isCustomResourceDefinition } from '../../model/resource'
 import { command } from './show-crd-managed-resources'
 
 const strings = i18n('plugin-kubeui')
+const debug = Debug('plugin-kubeui/view/modes/crd-summary')
 
 /**
  * Extract the events
  *
  */
 async function content(tab: Tab, crd: CustomResourceDefinition) {
-  console.error(
-    '!!!!! ',
-    `${command(tab, crd)} -o custom-columns=KIND:.kind`,
-    await tab.REPL.qexec<Table>(`${command(tab, crd)} -o custom-columns=NAME:.metadata.name`)
-  )
-  const [{ safeDump }, { body: resources }] = await Promise.all([
-    import('js-yaml'),
-    tab.REPL.qexec<Table>(`${command(tab, crd)} -o custom-columns=NAME:.metadata.name`)
-  ])
-
   const { group, version, scope } = crd.spec
   const kind = crd.spec.names.kind
-  const resourceCount = resources.length
 
-  return {
-    content: safeDump({ scope, group, version, kind, 'resource count': resourceCount }),
-    contentType: 'yaml'
+  // safeguarding here, in case some of the fields are undefined;
+  // js-yaml does not take kindly to `undefined` values; see
+  // https://github.com/kui-shell/plugin-kubeui/issues/330
+  const scopeObj = scope ? { scope } : {}
+  const groupObj = group ? { group } : {}
+  const versionObj = version ? { version } : {}
+  const kindObj = kind ? { kind } : {}
+
+  const baseResponse = Object.assign({}, scopeObj, groupObj, versionObj, kindObj)
+
+  try {
+    const [{ safeDump }, { body: resources }] = await Promise.all([
+      import('js-yaml'),
+      tab.REPL.qexec<Table>(`${command(tab, crd)} -o custom-columns=NAME:.metadata.name`)
+    ])
+
+    const countObj = { 'resource count': resources.length }
+
+    return {
+      content: safeDump(Object.assign(baseResponse, countObj)),
+      contentType: 'yaml'
+    }
+  } catch (err) {
+    // safeguarding here, in case of unexpected errors collecting
+    // optional information; see
+    // https://github.com/kui-shell/plugin-kubeui/issues/330
+    debug('error trying to determine resource count for crd', err)
+
+    const safeDump = await import('js-yaml')
+    return {
+      content: safeDump(baseResponse),
+      contentType: 'yaml'
+    }
   }
 }
 
