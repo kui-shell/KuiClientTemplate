@@ -5,7 +5,7 @@
   "license": "Apache-2.0",
   "author": "Mengting Yan",
   "dependencies": {
-    "@kui-shell/plugin-client-default": "^6.0.12"
+    "@kui-shell/plugin-client-default": "^6.0.15"
   },
   "homepage": "https://github.com/IBM/kui#readme",
   "private": true,
