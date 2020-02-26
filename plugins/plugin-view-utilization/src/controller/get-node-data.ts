@@ -19,7 +19,7 @@ import { KubeOptions } from '@kui-shell/plugin-kubeui'
 
 import slash from '../view/slash'
 import { BarColor, singletonBar as bar } from '../view/bar'
-import { formatAsBytes, formatAsCpu, cpuFraction, cpuShare, memShare } from '../lib/parse'
+import { formatAsBytes, cpuFraction, cpuShare, memShare } from '../lib/parse'
 
 const strings = i18n('plugin-view-utilization', 'table')
 
@@ -191,16 +191,16 @@ export async function topNode(
 
   const [nodeTable, detailTable] = await Promise.all([top(args), getNodeData(args, true)])
 
-  /* nodeTable.header.attributes.push({
-    outerCSS: 'hide-with-sidecar',
+  nodeTable.header.attributes.push({
+    outerCSS: 'hide-with-sidecar not-displayed',
     key: 'Allocatable CPU',
     value: strings('Allocatable CPU')
   })
   nodeTable.header.attributes.push({
-    outerCSS: 'hide-with-sidecar',
+    outerCSS: 'hide-with-sidecar not-displayed',
     key: 'Allocatable Memory',
     value: strings('Allocatable Memory')
-  }) */
+  })
 
   // don't hide-with-sidecar the mem% column
   nodeTable.header.attributes[3].outerCSS = nodeTable.header.attributes[2].outerCSS.replace(/hide-with-sidecar/, '')
@@ -211,12 +211,12 @@ export async function topNode(
 
     const cpuPercentAttr = row.attributes.find(_ => _.key === 'CPU%')
     if (cpuPercentAttr) {
-      cpuPercentAttr.valueDom = bar(BarColor.CPU, cpuPercentAttr.value)
+      cpuPercentAttr.valueDom = bar({ color: BarColor.CPU, fractionString: cpuPercentAttr.value })
     }
 
     const memoryPercentAttr = row.attributes.find(_ => _.key === 'MEMORY%')
     if (memoryPercentAttr) {
-      memoryPercentAttr.valueDom = bar(BarColor.Memory, memoryPercentAttr.value)
+      memoryPercentAttr.valueDom = bar({ color: BarColor.Memory, fractionString: memoryPercentAttr.value })
     }
 
     const allocatableInfo = detailTable.body.find(_ => _.name === row.name)
@@ -231,12 +231,12 @@ export async function topNode(
       row.attributes[3].outerCSS = row.attributes[2].outerCSS.replace(/hide-with-sidecar/, '')
 
       row.attributes.push({
-        outerCSS: 'hidden',
+        outerCSS: 'not-displayed',
         key: 'Allocatable CPU',
         value: allocatableInfo === undefined ? '&emdash;' : allocatableInfo.attributes[2].value
       })
       row.attributes.push({
-        outerCSS: 'hidden',
+        outerCSS: 'not-displayed',
         key: 'Allocatable Memory',
         value: allocatableInfo === undefined ? '&emdash;' : formatAsBytes(memShare(allocatableInfo.attributes[3].value))
       })
@@ -244,7 +244,7 @@ export async function topNode(
   })
 
   // if we have more than one node, then add a total row
-  if (nodeTable.body.length > 1) {
+  /* if (nodeTable.body.length > 1) {
     const totalRow = JSON.parse(JSON.stringify(nodeTable.body[0]))
     totalRow.name = strings('Total')
 
@@ -258,10 +258,10 @@ export async function topNode(
     totalRow.onclick = false
     totalRow.attributes[0].value = formatAsCpu(cpuTotal)
     totalRow.attributes[1].value = cpuFrac / nodeTable.body.length + '%'
-    totalRow.attributes[1].valueDom = bar(BarColor.CPU, totalRow.attributes[1].value)
+    totalRow.attributes[1].valueDom = bar({ color: BarColor.CPU, fractionString: totalRow.attributes[1].value })
     totalRow.attributes[2].value = formatAsBytes(memTotal)
     totalRow.attributes[3].value = memFrac / nodeTable.body.length + '%'
-    totalRow.attributes[3].valueDom = bar(BarColor.Memory, totalRow.attributes[3].value)
+    totalRow.attributes[3].valueDom = bar({ color: BarColor.Memory, fractionString: totalRow.attributes[3].value })
     totalRow.attributes[4].value = formatAsCpu(cpuAllocTotal)
     totalRow.attributes[5].value = formatAsBytes(memAllocTotal)
     totalRow.attributes[0].valueDom = slash(totalRow.attributes[0].value, totalRow.attributes[4].value)
@@ -284,7 +284,12 @@ export async function topNode(
 
       nodeTable.body.push(totalRow)
     }
-  }
+  } */
 
   return nodeTable
+}
+
+interface Foo {
+  x: number
+  foo: Foo
 }

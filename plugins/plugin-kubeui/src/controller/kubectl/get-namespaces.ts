@@ -76,7 +76,6 @@ async function doGetNamespaceTable(args: Arguments<KubeOptions>) {
         }
 
         newRow.onclick = () => {
-          newRow.setSelected()
           args.REPL.pexec(`namespace switch ns ${ns}`)
         }
 

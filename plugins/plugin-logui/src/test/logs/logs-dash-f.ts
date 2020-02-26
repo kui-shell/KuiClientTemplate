@@ -51,7 +51,7 @@ describe(`kubectl logs follow ${process.env.MOCHA_RUN_TARGET || ''}`, function(t
   const containerName = 'alpine'
   it(`should create sample pod from URL`, () => {
     return CLI.command(`echo ${inputEncoded} | base64 --decode | kubectl create -f - -n ${ns}`, this.app)
-      .then(ReplExpect.okWithString(podName))
+      .then(ReplExpect.okWithPtyOutput(podName))
       .catch(Common.oops(this, true))
   })
 
@@ -85,7 +85,7 @@ describe(`kubectl logs follow ${process.env.MOCHA_RUN_TARGET || ''}`, function(t
       console.log('nRows3', nRows3)
       assert.ok(nRows3 > nRows2, `${nRows3} is not > ${nRows2}`)
 
-      await this.app.client.click(rows)
+      // await this.app.client.click(rows)
       await this.app.client.keys(Keys.ctrlC)
 
       await sleep(sleepTime)

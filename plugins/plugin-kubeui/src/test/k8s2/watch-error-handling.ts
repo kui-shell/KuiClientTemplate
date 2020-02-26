@@ -17,7 +17,7 @@
 import { Common, CLI, ReplExpect, Selectors } from '@kui-shell/test'
 import { createNS, waitForGreen, waitForRed } from '@kui-shell/plugin-kubeui/tests/lib/k8s/utils'
 
-describe(`kubectl watch error handler ${process.env.MOCHA_RUN_TARGET}`, function(this: Common.ISuite) {
+describe(`kubectl watch error handler ${process.env.MOCHA_RUN_TARGET || ''}`, function(this: Common.ISuite) {
   before(Common.before(this))
   after(Common.after(this))
 

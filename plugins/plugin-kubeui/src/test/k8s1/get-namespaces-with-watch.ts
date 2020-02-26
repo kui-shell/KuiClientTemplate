@@ -98,7 +98,7 @@ const testDrilldown = async (nsName: string, res: ReplExpect.AppAndCount) => {
     .then(SidecarExpect.showing(nsName))
 
   await res.app.client.click(Selectors.SIDECAR_FULLY_CLOSE_BUTTON)
-  await SidecarExpect.closed(res.app)
+  await SidecarExpect.fullyClosed(res.app)
 }
 
 /** k get ns -w */

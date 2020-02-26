@@ -53,7 +53,7 @@ describe(`kubectl edit ${process.env.MOCHA_RUN_TARGET || ''}`, function(this: Co
         await this.app.client.waitForExist(rows)
 
         // wait for vi to come up in alt buffer mode
-        await this.app.client.waitForExist(`tab.visible.xterm-alt-buffer-mode`)
+        await this.app.client.waitForExist(`${Selectors.CURRENT_TAB}.xterm-alt-buffer-mode`)
 
         // wait for apiVersion: v<something> to show up in the pty
         await this.app.client.waitUntil(async () => {

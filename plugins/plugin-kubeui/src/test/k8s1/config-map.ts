@@ -36,11 +36,7 @@ describe(`kubectl configmap ${process.env.MOCHA_RUN_TARGET || ''}`, function(thi
     const inNamespace = `-n ${ns}`
     /** return the editor text */
     const getText = () => {
-      return this.app.client
-        .execute(() => {
-          return document.querySelector('.monaco-editor-wrapper')['editor'].getValue()
-        })
-        .then(res => res.value)
+      return Util.getValueFromMonaco(this.app)
     }
 
     /** wait until the sidecar displays a superset of the given content */

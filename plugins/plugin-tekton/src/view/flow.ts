@@ -44,9 +44,7 @@ export default async (
   ])
   debug('graph', graph)
 
-  const { graph2doms, injectCSS, zoomToFitButtons } = await import('@kui-shell/plugin-wskflow')
-
-  injectCSS()
+  const { graph2doms, zoomToFitButtons } = await import('@kui-shell/plugin-wskflow')
 
   const content = document.createElement('div')
   content.classList.add('padding-content')

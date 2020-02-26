@@ -64,13 +64,13 @@ describe(`kubectl label handling ${process.env.MOCHA_RUN_TARGET || ''}`, functio
 
     it('should add a label to that pod resource', () => {
       return CLI.command(`${kubectl} label pod nginx creepy=pasta ${inNamespace}`, this.app)
-        .then(ReplExpect.okWithString('nginx'))
+        .then(ReplExpect.okWithPtyOutput('nginx'))
         .catch(Common.oops(this))
     })
 
     it('should add another label that starts with "f" to that pod resource', () => {
       return CLI.command(`${kubectl} label pod nginx feels=life ${inNamespace}`, this.app)
-        .then(ReplExpect.okWithString('nginx'))
+        .then(ReplExpect.okWithPtyOutput('nginx'))
         .catch(Common.oops(this))
     })
 

@@ -14,7 +14,8 @@
  * limitations under the License.
  */
 
-import { Common, CLI, ReplExpect, SidecarExpect, Selectors } from '@kui-shell/test'
+import { strictEqual } from 'assert'
+import { Common, CLI, ReplExpect, SidecarExpect, Selectors, Util } from '@kui-shell/test'
 import { waitForGreen, waitForRed, createNS, waitTillNone } from '@kui-shell/plugin-kubeui/tests/lib/k8s/utils'
 
 const ns1: string = createNS()
@@ -28,11 +29,7 @@ describe(`kubectl namespace ${process.env.MOCHA_RUN_TARGET || ''}`, function(thi
   synonyms.forEach(kubectl => {
     /** return the editor text */
     const getText = () => {
-      return this.app.client
-        .execute(() => {
-          return document.querySelector('.monaco-editor-wrapper')['editor'].getValue()
-        })
-        .then(res => res.value)
+      return Util.getValueFromMonaco(this.app)
     }
 
     /** expect to see some familiar bits of a pod in the editor under the Describe tab */
@@ -92,22 +89,31 @@ describe(`kubectl namespace ${process.env.MOCHA_RUN_TARGET || ''}`, function(thi
       })
 
       it(`should list the namespace default`, () => {
-        return CLI.command(`${kubectl} get ns`, this.app)
+        return CLI.command(`${kubectl} get ns default`, this.app)
           .then(ReplExpect.okWith('default'))
           .catch(Common.oops(this, true))
       })
 
       it(`should list the namespace ${ns1}`, () => {
-        return CLI.command(`${kubectl} get ns`, this.app)
+        return CLI.command(`${kubectl} get ns ${ns1}`, this.app)
           .then(ReplExpect.okWith(ns1))
           .catch(Common.oops(this, true))
       })
 
       it(`should initiate namespace switch via click`, () => {
         return CLI.command(`${kubectl} get ns ${ns1}`, this.app)
-          .then(ReplExpect.okWithCustom({ selector: `${Selectors.BY_NAME('')} .selected-entity.clickable` }))
-          .then(selector => this.app.client.click(selector))
-          .catch(Common.oops(this))
+          .then(ReplExpect.okWithCustom({ selector: `${Selectors.BY_NAME('')} .bx--radio-button` }))
+          .then(selector =>
+            this.app.client.waitUntil(async () => {
+              await this.app.client.click(selector)
+              const actualNamespace = await this.app.client.getText(
+                '#kui--status-stripe .kui--plugin-kubeui--current-namespace .kui--status-stripe-text'
+              )
+              const isSelected = await this.app.client.isSelected(selector)
+              return actualNamespace === ns1 && isSelected
+            })
+          )
+          .catch(Common.oops(this, true))
       })
 
       it(`should show ${ns1} as current namespace`, () => {
@@ -123,11 +129,16 @@ describe(`kubectl namespace ${process.env.MOCHA_RUN_TARGET || ''}`, function(thi
     const listItViaStatusStripe = () => {
       it('should list namespaces by clicking on status stripe widget', async () => {
         const res = await CLI.command('echo hi', this.app)
-        await ReplExpect.okWithString('hi')(res)
+        await ReplExpect.okWithPtyOutput('hi')(res)
 
         await this.app.client.click('#kui--status-stripe .kui--plugin-kubeui--current-namespace .clickable')
 
-        await ReplExpect.okWith('default')({ app: this.app, count: res.count + 1 })
+        // await ReplExpect.okWith('default')({ app: this.app, count: res.count + 1 })
+        await this.app.client.waitForExist(`${Selectors.OUTPUT_N(res.count + 1)} .bx--data-table-header__title`)
+        const title = await this.app.client.getText(
+          `${Selectors.OUTPUT_N(res.count + 1)} .bx--data-table-header__title`
+        )
+        strictEqual(title, 'Namespaces')
       })
     }
 

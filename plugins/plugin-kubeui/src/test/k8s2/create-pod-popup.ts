@@ -14,6 +14,9 @@
  * limitations under the License.
  */
 
+// temporary with disabled popup test
+/* eslint-disable @typescript-eslint/no-unused-vars */
+
 import { Common, Selectors } from '@kui-shell/test'
 import { waitForGreen, waitForRed, createNS } from '@kui-shell/plugin-kubeui/tests/lib/k8s/utils'
 
@@ -109,7 +112,7 @@ const pod = 'nginx'
 //
 // from here on are the tests...
 //
-Common.localDescribe(`popup create pod creating namespace ${ns1}`, function(this: Common.ISuite) {
+/* Common.localDescribe(`popup create pod creating namespace ${ns1}`, function(this: Common.ISuite) {
   before(Common.before(this, { popup: [kubectl, 'create', 'ns', ns1] }))
   after(Common.after(this))
 
@@ -185,4 +188,4 @@ Common.localDescribe(`popup create pod deleting namespace ${ns2}`, function(this
   after(Common.after(this))
 
   waitForDelete.bind(this)({ name: ns2 })
-})
+}) */

@@ -28,14 +28,6 @@ export default async (registrar: PreloadRegistrar) => {
   if (!isHeadless()) {
     const preloader = (await import('./non-headless-preload')).default
     await preloader(registrar)
-
-    const [{ default: currentContextUI }, { default: currentNamespaceUI }] = await Promise.all([
-      import('./lib/view/status-stripe/current-context'),
-      import('./lib/view/status-stripe/current-namespace')
-    ])
-    // careful: the order here matters; see the "careful" comment in current-context.ts
-    registrar.registerContext(currentContextUI())
-    registrar.registerContext(currentNamespaceUI())
   }
 }
 

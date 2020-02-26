@@ -84,10 +84,10 @@ describe(`helm commands ${process.env.MOCHA_RUN_TARGET || ''}`, function(this: C
   const checkHelmStatus = async (res: ReplExpect.AppAndCount) => {
     await ReplExpect.okWithAny(res)
 
-    const table = await this.app.client.getText(`${Selectors.OUTPUT_N(res.count)} .result-table-title`)
+    const table = await this.app.client.getText(`${Selectors.OUTPUT_N(res.count)} .bx--data-table-header__title`)
     assert.strict.equal(table.length, 6)
 
-    const text = await this.app.client.getText(`${Selectors.OUTPUT_N(res.count)} .kui--mixed-response--text`)
+    const text = await this.app.client.getText(`${Selectors.OUTPUT_N(res.count)} pre`)
     assert.ok(Array.isArray(text), 'expect more than one section of text output')
     if (Array.isArray(text)) {
       assert.ok(
@@ -118,14 +118,14 @@ describe(`helm commands ${process.env.MOCHA_RUN_TARGET || ''}`, function(this: C
 
   // confirm that helm list shows a row for our release
   it(`should list that new release via helm list`, () => {
-    return CLI.command(`helm list`, this.app)
+    return CLI.command(`helm list ${name}`, this.app)
       .then(ReplExpect.okWith(name))
       .catch(Common.oops(this))
   })
 
   // also confirm that there is a REVISION column in that row
   it(`should list that new release via helm list`, () => {
-    return CLI.command(`helm list`, this.app)
+    return CLI.command(`helm list ${name}`, this.app)
       .then(ReplExpect.okWithCustom({ selector: Selectors.TABLE_CELL(name, 'REVISION') }))
       .then(Util.expectText(this.app, '1'))
       .catch(Common.oops(this))
@@ -156,7 +156,7 @@ describe(`helm commands ${process.env.MOCHA_RUN_TARGET || ''}`, function(this: C
   })
 
   it(`should list empty releases via helm list again`, () => {
-    return CLI.command(`helm list`, this.app)
+    return CLI.command(`helm list ${name}`, this.app)
       .then(ReplExpect.blank)
       .catch(Common.oops(this))
   })

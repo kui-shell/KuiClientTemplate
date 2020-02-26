@@ -57,7 +57,6 @@ const outerCSSForKey = {
 
   COUNT: 'keep-with-sidecar',
 
-  UPDATED: 'min-width-date-like', // helm ls
   REVISION: 'hide-with-sidecar', // helm ls
   AGE: 'hide-with-sidecar very-narrow', // e.g. helm status and kubectl get svc
   'PORT(S)': 'entity-name-group entity-name-group-narrow hide-with-sidecar', // helm status for services
@@ -306,8 +305,8 @@ export const formatTable = <O extends KubeOptions>(
   return {
     header: rows[0],
     body: rows.slice(1),
-    noSort: true,
-    title: entityTypeFromRows || entityTypeFromCommandLine
+    noSort: true
+    // title: entityTypeFromRows || entityTypeFromCommandLine
   }
 }
 
