@@ -15,7 +15,6 @@
  */
 
 import { Tab, Table, ModeRegistration } from '@kui-shell/core'
-import { outerCSSForKey, cssForKey } from '@kui-shell/core/dist/webapp/util/ascii-to-table' // FIXME
 
 import { KubeResource } from '@kui-shell/plugin-kubeui'
 
@@ -63,21 +62,25 @@ function content(tab: Tab, resource: CRDBearer): Table {
     title: 'CRDs',
     header: {
       name: 'NAME',
-      outerCSS: outerCSSForKey.NAME,
-      css: cssForKey.NAME,
-      attributes: [{ value: 'KIND' }, { value: 'VERSION', outerCSS: outerCSSForKey.AGE }, { value: 'DESCRIPTION' }]
+      outerCSS: 'entity-name-group',
+      css: 'entity-name',
+      attributes: [
+        { value: 'KIND' },
+        { value: 'VERSION', outerCSS: 'hide-with-sidecar very-narrow' },
+        { value: 'DESCRIPTION' }
+      ]
     },
     body: resource.spec.customresourcedefinitions.owned.map(spec => ({
       name: spec.name,
-      outerCSS: outerCSSForKey.NAME,
-      css: cssForKey.NAME,
+      outerCSS: 'entity-name-group',
+      css: 'entity-name',
       attributes: [
         { key: 'KIND', value: spec.kind },
         {
           key: 'VERSION',
           value: spec.version,
-          outerCSS: outerCSSForKey.AGE,
-          css: cssForKey.AGE
+          outerCSS: 'hide-with-sidecar very-narrow',
+          css: 'slightly-deemphasize'
         },
         { key: 'DESCRIPTION', value: spec.description, css: 'pre-wrap' }
       ]

@@ -28,7 +28,12 @@ async function doList(args: Arguments<KubeOptions>) {
   }
 
   const preTables = preprocessTable(response.split(/^(?=LAST SEEN|NAMESPACE|NAME\s+)/m))
-  return formatTable('helm', 'get', undefined, args.parsedOptions, preTables[0])
+  if (preTables[0].length === 0) {
+    // nothing to list
+    return true
+  } else {
+    return formatTable('helm', 'get', undefined, args.parsedOptions, preTables[0])
+  }
 }
 
 export default (registrar: Registrar) => {

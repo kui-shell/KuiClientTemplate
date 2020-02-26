@@ -45,20 +45,15 @@ describe(`kubectl get pod ${process.env.MOCHA_RUN_TARGET || ''}`, function(this:
       // in any case, the containers tab should be selected now
       await this.app.client.waitForVisible(Selectors.SIDECAR_MODE_BUTTON_SELECTED('containers'))
 
-      const table = `${Selectors.SIDECAR} .bx--data-table`
+      const table = `${Selectors.SIDECAR_TAB_CONTENT} .bx--data-table`
       await this.app.client.waitForVisible(table)
 
       // check the conditions rows
-      await this.app.client.waitForVisible(`${table} .entity[data-name="nginx"] [data-key="ready"][data-value="true"]`)
+      await this.app.client.waitForVisible(`${table} [data-name="nginx"] [data-key="restartCount"]`)
 
       // check that the message shows the final state
-      const message = await this.app.client.getText(`${table} .entity[data-name="nginx"] [data-key="message"]`)
+      const message = await this.app.client.getText(`${table} [data-name="nginx"] [data-key="message"]`)
       assert.ok(!/Initializing/i.test(message))
-
-      // check that the ready check mark is green
-      await this.app.client.waitForVisible(
-        `${table} .entity[data-name="nginx"] [data-key="ready"].green-text .cell-inner.graphical-icon`
-      )
     }
 
     /* const testLogTabs = async () => {

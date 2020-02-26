@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import { Common, CLI, ReplExpect, Selectors } from '@kui-shell/test'
+import { Common, CLI, ReplExpect } from '@kui-shell/test'
 
 describe('k8s usage', function(this: Common.ISuite) {
   before(Common.before(this))
@@ -22,26 +22,11 @@ describe('k8s usage', function(this: Common.ISuite) {
 
   it('should give help for known outer command: kubectl', () =>
     CLI.command('kubectl', this.app)
-      .then(ReplExpect.errorWithPassthrough(500))
-      .then(N =>
-        Promise.all([
-          this.app.client.waitForExist(`${Selectors.OUTPUT_N(N)} h4.usage-error-title[data-title="Usage"]`),
-          this.app.client.waitForExist(
-            `${Selectors.OUTPUT_N(N)} .bx--breadcrumb-item .bx--no-link[data-label="kubectl"]`
-          )
-        ])
-      )
+      .then(ReplExpect.error(500, 'kubectl controls the Kubernetes cluster manager'))
       .catch(Common.oops(this)))
 
   it('should give help for known outer command: kubectl get -h', () =>
     CLI.command('kubectl get -h', this.app)
-      .then(ReplExpect.errorWithPassthrough(500))
-      .then(N =>
-        Promise.all([
-          this.app.client.waitForExist(`${Selectors.OUTPUT_N(N)} h4.usage-error-title[data-title="Options:"]`),
-          this.app.client.waitForExist(`${Selectors.OUTPUT_N(N)} .bx--breadcrumb-item .bx--no-link[data-label="get"]`),
-          this.app.client.waitForExist(`${Selectors.OUTPUT_N(N)} .bx--breadcrumb-item .bx--link[data-label="kubectl"]`)
-        ])
-      )
+      .then(ReplExpect.error(500, 'Display one or many resources'))
       .catch(Common.oops(this)))
 })

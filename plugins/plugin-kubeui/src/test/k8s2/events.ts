@@ -24,7 +24,7 @@ const inputBuffer = readFileSync(join(ROOT, 'data/k8s/event-generator.yaml'))
 const inputEncoded = inputBuffer.toString('base64')
 
 const podName = 'eventgen'
-const sleepTime = 10
+const sleepTime = 1
 
 const synonyms = ['kubectl']
 
@@ -44,7 +44,7 @@ describe(`kubectl get events ${process.env.MOCHA_RUN_TARGET || ''}`, function(th
     /** error handling starts */
     it('should create pod that generates events', () =>
       CLI.command(`echo ${inputEncoded} | base64 --decode | kubectl create -f - -n ${ns}`, this.app)
-        .then(ReplExpect.okWithString(podName))
+        .then(ReplExpect.okWithPtyOutput(podName))
         .catch(Common.oops(this, true)))
 
     it('should open pod in sidecar, then click on events button', async () => {
@@ -64,13 +64,13 @@ describe(`kubectl get events ${process.env.MOCHA_RUN_TARGET || ''}`, function(th
 
         await Promise.resolve({ app: this.app, count: res.count + 1 }).then(ReplExpect.okWithAny)
 
-        const table = `${Selectors.OUTPUT_N(res.count + 1)} .result-table`
+        const table = `${Selectors.OUTPUT_N(res.count + 1)} .bx--data-table`
 
         // test events table has correct header
         const header = ['TYPE', 'REASON', 'LAST SEEN', 'FIRST SEEN', 'MESSAGE']
         await Promise.all(
           header.map(async _header => {
-            await this.app.client.waitForExist(`${table} .header-row .header-cell .cell-inner[data-key="${_header}"]`)
+            await this.app.client.waitForExist(`${table} thead th[data-key="${_header}"]`)
           })
         )
 

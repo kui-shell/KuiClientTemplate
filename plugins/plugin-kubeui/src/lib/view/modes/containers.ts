@@ -16,7 +16,7 @@
 
 import Debug from 'debug'
 
-import { encodeComponent, i18n, Tab, Row, Table, ModeRegistration } from '@kui-shell/core'
+import { encodeComponent, i18n, Tab, Row, Cell, Table, ModeRegistration } from '@kui-shell/core'
 
 import KubeResource from '../../model/resource'
 import TrafficLight from '../../model/traffic-light'
@@ -31,21 +31,20 @@ const debug = Debug('k8s/view/modes/containers')
 const headerModel = (pod: KubeResource): Row => {
   const statuses = pod.status && pod.status.containerStatuses
 
-  const specAttrs = [{ value: 'PORTS', outerCSS: 'header-cell pretty-narrow' }]
+  const specAttrs: Cell[] = [{ value: 'PORTS', outerCSS: 'pretty-narrow' }]
 
-  const statusAttrs = !statuses
+  const statusAttrs: Cell[] = !statuses
     ? []
     : [
-        { value: 'RESTARTS', outerCSS: 'header-cell very-narrow' },
-        { value: 'READY', outerCSS: 'header-cell very-narrow' },
-        { value: 'STATE', outerCSS: 'header-cell pretty-narrow' },
-        { value: 'MESSAGE', outerCSS: 'header-cell' }
+        { value: 'RESTARTS', outerCSS: 'very-narrow' },
+        { value: 'READY', outerCSS: 'very-narrow' },
+        { value: 'STATE', outerCSS: 'pretty-narrow' },
+        { value: 'MESSAGE' }
       ]
 
   return {
     type: 'container',
     name: 'IMAGE',
-    outerCSS: 'header-cell not-too-wide',
     attributes: specAttrs.concat(statusAttrs)
   }
 }
@@ -113,14 +112,13 @@ const bodyModel = (tab: Tab, pod: KubeResource): Row[] => {
             },
             {
               key: 'message',
-              outerCSS: 'smaller-text not-too-wide',
+              outerCSS: 'smaller-text',
               value: stateBody.startedAt || stateBody.reason
             }
           ]
 
       const portsAttr = {
         key: 'ports',
-        outerCSS: 'not-too-wide',
         value: (container.ports || []).map(({ containerPort, protocol }) => `${containerPort}/${protocol}`).join(' ')
       }
 
@@ -156,8 +154,7 @@ async function renderContainers(tab: Tab, resource: KubeResource): Promise<Table
     return {
       header: headerModel(podResource),
       body: bodyModel(tab, podResource),
-      noSort: true,
-      title: 'Containers'
+      noSort: true
     }
   } catch (err) {
     if (err.code === 404) {

@@ -10,13 +10,14 @@
     "sample",
     "example"
   ],
-  "main": "dist/plugin.js",
+  "main": "dist/index.js",
+  "module": "mdist/index.js",
   "dependencies": {
-    "@kui-shell/core": "^6.0.15",
+    "@kui-shell/core": "^7.0.8",
     "@kui-shell/plugin-kubeui": "*",
     "bytes-iec": "3.1.0",
     "lorem-ipsum": "2.0.3",
-    "uuid": "3.4.0"
+    "uuid": "7.0.1"
   },
   "publishConfig": {
     "access": "public"

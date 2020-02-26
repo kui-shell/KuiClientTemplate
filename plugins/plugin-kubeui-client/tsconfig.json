@@ -4,7 +4,6 @@
   "compilerOptions": {
     "composite": true,
     "jsx": "react",
-    "noImplicitAny": true,
     "outDir": "dist",
     "rootDir": "src"
   }

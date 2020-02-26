@@ -51,6 +51,7 @@ export const podMode: ModeRegistration<KubeResource> = {
   when: hasPods,
   mode: {
     mode: 'pods',
+    label: 'Pods',
     content: renderPods
   }
 }

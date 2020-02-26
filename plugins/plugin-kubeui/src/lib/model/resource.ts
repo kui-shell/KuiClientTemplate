@@ -119,7 +119,7 @@ export type KubeResource<Status = KubeStatus> = ResourceWithMetadata &
     // TODO we should factor these out into a trait
     originatingCommand: string // the command that generated this raw data
     isSimulacrum?: boolean // is this a manufactured resource that does not exist on the api server?
-    isKubeResource: true // this tag helps `isKubeResource()` to distinguish `KubeResource` from open-ended structure response
+    isKubeResource: true // this tag helps `isKubeResource()` to check if an `Entity` is KubeResource
   }
 
 /** is the resource Namespaced? */

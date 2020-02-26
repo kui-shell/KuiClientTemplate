@@ -44,7 +44,7 @@ export const doNativeExec = (args: Arguments): Promise<RawResponse> =>
     const env = Object.assign({}, !inBrowser() ? process.env : {}, args.execOptions.env)
     delete env.DEBUG
 
-    if (args.parsedOptions.f || args.parsedOptions.filename) {
+    if ((args.parsedOptions.f || args.parsedOptions.filename) && typeof args.parsedOptions.f === 'string') {
       const filename = expandHomeDir(args.parsedOptions.f || args.parsedOptions.filename)
       const idx = args.argv.indexOf(args.parsedOptions.f ? '-f' : '--filename')
       if (idx >= 0) {

@@ -14,8 +14,7 @@
  * limitations under the License.
  */
 
-import { Arguments } from '@kui-shell/core'
-import { renderHelp } from '@kui-shell/plugin-kubeui'
+import { Arguments, CodedError } from '@kui-shell/core'
 
 import commandPrefix from '../command-prefix'
 
@@ -35,7 +34,12 @@ export function isUsage(args: Arguments) {
 }
 
 export function doHelp(response: string): void {
-  throw renderHelp(response, 'helm', 'get', 500)
+  // throw renderHelp(response, 'helm', 'get', 500)
+  const out = response
+  const exitCode = 500
+  const error: CodedError = new Error(out)
+  error.code = exitCode
+  throw error
 }
 
 export function doHelpIfRequested(args: Arguments, response: string) {

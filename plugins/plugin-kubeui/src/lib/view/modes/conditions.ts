@@ -111,7 +111,7 @@ export const renderConditions = async (tab: Tab, resource: KubeResource) => {
         value: (condition.status || condition.reason).toString(),
         outerCSS: 'text-center',
         fontawesome: success ? 'fas fa-check-circle' : failure ? 'fas fa-times-circle' : 'fas fa-question-circle',
-        css: 'larger-text ' + (success ? 'green-text' : failure ? 'red-text' : 'yellow-text')
+        css: success ? 'green-text' : failure ? 'red-text' : 'yellow-text'
       }
     ]
 
@@ -129,8 +129,7 @@ export const renderConditions = async (tab: Tab, resource: KubeResource) => {
   const tableModel: Table = {
     header: headerModel,
     body: bodyModel,
-    noSort: true,
-    title: 'Conditions'
+    noSort: true
   }
 
   // const view = formatTable(tab, tableModel)

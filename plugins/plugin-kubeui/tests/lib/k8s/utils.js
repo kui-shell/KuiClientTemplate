@@ -38,15 +38,9 @@ exports.singletonTablesHaveTitle = false
  */
 exports.waitForGreen = async (app, selector) => {
   const notRepeatingPulse = 'td:not(.repeating-pulse)'
-  const badge = `${selector} badge`
-  const greenBadge = `${selector} ${notRepeatingPulse} badge.green-background`
-  const yellowNotBlinkyBadge = `${selector} ${notRepeatingPulse} badge.yellow-background`
-  const yellowBadge = `${selector} badge.yellow-background`
-
-  // expecting a green badge or a blinky yellow badge
-  if (await app.client.isExisting(yellowNotBlinkyBadge)) {
-    throw Error(`caught a not blinky yellow badge: ${yellowNotBlinkyBadge}`)
-  }
+  const badge = `${selector} [data-tag="badge"]`
+  const greenBadge = `${selector} ${notRepeatingPulse} [data-tag="badge"].green-background`
+  const yellowBadge = `${selector} [data-tag="badge"].yellow-background`
 
   try {
     await app.client.waitForExist(yellowBadge, CLI.waitTimeout, true)
@@ -66,20 +60,14 @@ exports.waitForGreen = async (app, selector) => {
  */
 exports.waitForRed = async (app, selector) => {
   const notRepeatingPulse = 'td:not(.repeating-pulse)'
-  const badge = `${selector} ${notRepeatingPulse} badge.red-background`
-  const yellowNotBlinkyBadge = `${selector} ${notRepeatingPulse} badge.yellow-background`
-  const yellowBadge = `${selector} badge.yellow-background`
+  const badge = `${selector} ${notRepeatingPulse} [data-tag="badge"].red-background`
+  const yellowBadge = `${selector} [data-tag="badge"].yellow-background`
 
   // the green badge should disappear, wait for 5 seconds at max
   try {
     await app.client.waitForExist(badge.replace('red', 'green'), 5000, true)
   } catch (err) {
     console.log('Deletion is still green after 5000 ms')
-  }
-
-  // no green badge any more, expecting a red badge or a blinky yellow badge
-  if (await app.client.isExisting(yellowNotBlinkyBadge)) {
-    throw Error(`caught a not blinky yellow badge: ${yellowNotBlinkyBadge}`)
   }
 
   try {

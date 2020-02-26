@@ -36,7 +36,7 @@ describe(`kubectl exec vi ${process.env.MOCHA_RUN_TARGET || ''}`, function(this:
   const podName = 'vim'
   it(`should create sample pod from URL`, () => {
     return CLI.command(`echo ${inputEncoded} | base64 --decode | kubectl create -f - -n ${ns}`, this.app)
-      .then(ReplExpect.okWithString(podName))
+      .then(ReplExpect.okWithPtyOutput(podName))
       .catch(Common.oops(this))
   })
 
@@ -72,7 +72,7 @@ describe(`kubectl exec vi ${process.env.MOCHA_RUN_TARGET || ''}`, function(this:
       await this.app.client.waitForExist(rows)
 
       // wait for vi to come up in alt buffer mode
-      await this.app.client.waitForExist(`tab.visible.xterm-alt-buffer-mode`)
+      await this.app.client.waitForExist(`${Selectors.CURRENT_TAB}.xterm-alt-buffer-mode`)
 
       // enter insert mode, and wait for INSERT to appear at the bottom
       let iter = 0
@@ -120,7 +120,7 @@ describe(`kubectl exec vi ${process.env.MOCHA_RUN_TARGET || ''}`, function(this:
 
   it('should use kubectl exec to cat the file we just edited', async () => {
     return CLI.command(`kubectl exec ${podName} -n ${ns} -- cat ${filename}`, this.app)
-      .then(ReplExpect.okWithString(typeThisText))
+      .then(ReplExpect.okWithPtyOutput(typeThisText))
       .catch(Common.oops(this, true))
   })
 

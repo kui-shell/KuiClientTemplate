@@ -140,7 +140,7 @@ Common.localDescribe('electron context switching', function(this: Common.ISuite)
           const currentContextAsIndicatedByContextsTable = await CLI.command(`contexts`, this.app)
             .then(
               ReplExpect.okWithCustom({
-                selector: `.selected-row .entity-name[data-key="NAME"]`
+                selector: `.bx--data-table--selected .entity-name[data-key="NAME"]`
               })
             )
             .then(selector => this.app.client.getText(selector))
@@ -200,7 +200,7 @@ Common.localDescribe('electron context switching', function(this: Common.ISuite)
           await this.app.client.click(`${selector} .entity-name.clickable`)
 
           // the row in that first table had better now be selected
-          await this.app.client.waitForExist(`${selector} .selected-row`)
+          await this.app.client.waitForExist(`${selector}.bx--data-table--selected`)
 
           // and if we request a new contexts table, it'd better be selected there, too
           const selector2 = await CLI.command(`contexts`, this.app).then(
@@ -208,7 +208,7 @@ Common.localDescribe('electron context switching', function(this: Common.ISuite)
               selector: Selectors.BY_NAME(contextName)
             })
           )
-          await this.app.client.waitForExist(`${selector2} .selected-row`)
+          await this.app.client.waitForExist(`${selector2}.bx--data-table--selected`)
         } catch (err) {
           return Common.oops(this)(err)
         }

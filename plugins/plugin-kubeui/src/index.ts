@@ -32,6 +32,7 @@ export {
   isDeployment,
   KubeItems,
   isKubeItems,
+  KubeContext,
   Job,
   isJob,
   Resource
@@ -48,6 +49,8 @@ export { doExecRaw, doNativeExec } from './controller/kubectl/raw'
 export { default as commandPrefix } from './controller/command-prefix'
 
 export { default as defaultFlags } from './controller/kubectl/flags'
+
+export { getCurrentContext } from './controller/kubectl/contexts'
 
 export {
   KubeOptions,
