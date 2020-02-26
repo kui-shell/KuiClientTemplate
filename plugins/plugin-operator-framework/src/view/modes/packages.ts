@@ -15,7 +15,6 @@
  */
 
 import { Tab, Table, ModeRegistration } from '@kui-shell/core'
-import { outerCSSForKey, cssForKey } from '@kui-shell/core/dist/webapp/util/ascii-to-table' // FIXME
 import { KubeResource } from '@kui-shell/plugin-kubeui'
 
 interface PackageBearerStatus {
@@ -45,13 +44,13 @@ function content(tab: Tab, resource: PackageBearer): Table {
     title: 'Packages',
     header: {
       name: 'NAME',
-      outerCSS: outerCSSForKey.NAME,
-      css: cssForKey.NAME
+      outerCSS: 'entity-name-group',
+      css: 'entity-name'
     },
     body: resource.status.packages.split(/,/).map(name => ({
       name,
-      outerCSS: outerCSSForKey.NAME,
-      css: cssForKey.NAME
+      outerCSS: 'entity-name-group',
+      css: 'entity-name'
     }))
   }
 }

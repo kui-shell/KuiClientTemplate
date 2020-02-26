@@ -46,7 +46,6 @@ async function doGet(args: Arguments<KubeOptions>): Promise<string | MultiModalR
 
   const revision = match[1]
   const creationTimestamp = match[2]
-  const chart = match[3]
 
   const endOfBasicSection = Math.min(response.indexOf('USER-SUPPLIED VALUES'), response.indexOf('COMPUTED VALUES'))
 
@@ -65,6 +64,7 @@ async function doGet(args: Arguments<KubeOptions>): Promise<string | MultiModalR
     },
     isSimulacrum: true,
     originatingCommand: command,
+    isKubeResource: true,
     data: response,
     modes: []
   }

@@ -94,6 +94,7 @@ export async function doGetAsEntity(
         },
         isSimulacrum: true, // this is not a real crudable resource
         originatingCommand: args.command,
+        isKubeResource: true,
         modes: [],
         data
       }
@@ -103,6 +104,7 @@ export async function doGetAsEntity(
       prettyName,
       nameHash,
       originatingCommand: args.command,
+      isKubeResource: true,
       modes: [], // this tells Kui that we want the response to be interpreted as a MultiModalResponse
       data // also include the raw, uninterpreted data string we got back
     })

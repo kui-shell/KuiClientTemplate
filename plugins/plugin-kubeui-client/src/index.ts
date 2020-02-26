@@ -14,16 +14,18 @@
  * limitations under the License.
  */
 
-import { PreloadRegistrar, isHeadless } from '@kui-shell/core'
+import '../web/css/static/colors.css'
+
+import { render as ReactDomRender } from 'react-dom'
+import Client from './Client'
 
 /**
- * This is the capabilities registraion
+ * Use react-dom to render the client into the given container
  *
  */
-export default function(registrar: PreloadRegistrar) {
-  if (!isHeadless()) {
-    import('./view/widgets/cluster-utilization').then(({ default: clusterUtilization }) => {
-      registrar.registerMeter(clusterUtilization())
-    })
-  }
+function renderMain(container: Element) {
+  ReactDomRender(Client(), container)
 }
+
+/** boot Kui! */
+import('@kui-shell/core').then(_ => _.boot(renderMain))

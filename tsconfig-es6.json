@@ -2,11 +2,12 @@
   "extends": "./node_modules/@kui-shell/builder/tsconfig-base.json",
   "references": [
     { "path": "./plugins/plugin-kubeui/tsconfig-es6.json" },
+    { "path": "./plugins/plugin-view-utilization/tsconfig-es6.json" },
+    { "path": "./plugins/plugin-kubeui-client/tsconfig-es6.json" },
     { "path": "./plugins/plugin-helmui/tsconfig-es6.json" },
     { "path": "./plugins/plugin-logui/tsconfig-es6.json" },
     { "path": "./plugins/plugin-ibmcloud/tsconfig-es6.json" },
     { "path": "./plugins/plugin-tekton/tsconfig-es6.json" },
-    { "path": "./plugins/plugin-view-utilization/tsconfig-es6.json" },
     { "path": "./plugins/plugin-openshift/tsconfig-es6.json" },
     { "path": "./plugins/plugin-operator-framework/tsconfig-es6.json" }
   ]

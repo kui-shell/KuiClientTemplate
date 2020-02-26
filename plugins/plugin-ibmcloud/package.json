@@ -25,10 +25,10 @@
     "url": "git+https://github.com/kui-shell/plugin-kubeui.git"
   },
   "dependencies": {
-    "@kui-shell/core": "^6.0.15",
-    "@kui-shell/plugin-bash-like": "^6.0.15",
-    "@kui-shell/plugin-core-support": "^6.0.15",
-    "@kui-shell/plugin-editor": "^6.0.15",
+    "@kui-shell/core": "^7.0.2",
+    "@kui-shell/plugin-bash-like": "^7.0.2",
+    "@kui-shell/plugin-core-support": "^7.0.2",
+    "@kui-shell/plugin-editor": "^7.0.2",
     "@kui-shell/plugin-kubeui": "*",
     "debug": "4.1.1",
     "fs-extra": "8.1.0",

@@ -119,6 +119,7 @@ export type KubeResource<Status = KubeStatus> = ResourceWithMetadata &
     // TODO we should factor these out into a trait
     originatingCommand: string // the command that generated this raw data
     isSimulacrum?: boolean // is this a manufactured resource that does not exist on the api server?
+    isKubeResource: true // this tag helps `isKubeResource()` to check if an `Entity` is KubeResource
   }
 
 /** is the resource Namespaced? */
@@ -129,7 +130,12 @@ export function isNamespaced(resource: KubeResource) {
 /** is the command response a Kubernetes resource? note: excluding any ones we simulate in kubeui */
 export function isKubeResource(entity: ResourceWithMetadata): entity is KubeResource {
   const kube = entity as KubeResource
-  return kube.apiVersion !== undefined && kube.apiVersion !== kubeuiApiVersion && kube.kind !== undefined
+  return (
+    kube.isKubeResource === true &&
+    kube.apiVersion !== undefined &&
+    kube.apiVersion !== kubeuiApiVersion &&
+    kube.kind !== undefined
+  )
 }
 
 /** is the command response a kube resource that can responds to "kubectl delete", etc.? */

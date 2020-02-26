@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 IBM Corporation
+ * Copyright 2019 IBM Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,5 +14,7 @@
  * limitations under the License.
  */
 
-import './web/css/static/colors.css'
-require('@kui-shell/plugin-client-default')
+// this file defines the external API
+
+export { NodeSummary } from './controller/get-node-data'
+export { barContainer, BarColor, bar } from './view/bar'
