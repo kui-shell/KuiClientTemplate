@@ -110,6 +110,7 @@ const listContexts = async (args: Arguments): Promise<RawResponse<KubeContext[]>
         apiVersion,
         kind: 'Context',
         originatingCommand: args.command,
+        isKubeResource: true,
         metadata: {
           name: valueOf('NAME', _),
           namespace: valueOf('NAMESPACE', _)

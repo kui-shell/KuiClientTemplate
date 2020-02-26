@@ -101,6 +101,7 @@ const getPipeline = (jsons: KubeResource[]): Pipeline => {
           name: 'pipeline'
         },
         originatingCommand: undefined,
+        isKubeResource: true,
         spec: {
           tasks: tasks.map(task => ({
             name: task.metadata.name,
