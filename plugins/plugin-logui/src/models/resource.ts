@@ -50,6 +50,7 @@ export async function resourceFromLogEntry(
     kind,
     isSimulacrum: true,
     originatingCommand: undefined,
+    isKubeResource: true,
     metadata: {
       name: involvedObject.name,
       namespace: involvedObject.namespace
