@@ -306,8 +306,8 @@ export const formatTable = <O extends KubeOptions>(
   return {
     header: rows[0],
     body: rows.slice(1),
-    noSort: true,
-    title: entityTypeFromRows || entityTypeFromCommandLine
+    noSort: true
+    // title: entityTypeFromRows || entityTypeFromCommandLine
   }
 }
 
