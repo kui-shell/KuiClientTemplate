@@ -24,7 +24,7 @@ You may choose to consume prebuilt images: download and extract into
 your `~/.krew/bin`, make sure that directory is on your PATH, then
 issue `kubectl kubeui get pods`.
 
-[Latest Release](https://github.com/kui-shell/plugin-kubeui/releases/latest/) **|** [Mac](https://kubeui.kui-shell.org/v0.0.7/Kui-darwin-x64.tar.gz) **|** [Linux](https://kubeui.kui-shell.org/v0.0.7/Kui-linux-x64.tar.gz)
+[Latest Release](https://github.com/kui-shell/plugin-kubeui/releases/latest/) **|** [Mac](https://github.com/kui-shell/plugin-kubeui/releases/latest/download/Kui-darwin-x64.tar.bz2) **|** [Linux](https://github.com/kui-shell/plugin-kubeui/releases/latest/download/Kui-linux-x64.zip) **|** [Windows](https://github.com/kui-shell/plugin-kubeui/releases/latest/download/Kui-win32-x64.zip)
 
 # Code and Contribute
 
