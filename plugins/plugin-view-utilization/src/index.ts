@@ -17,4 +17,4 @@
 // this file defines the external API
 
 export { NodeSummary } from './controller/get-node-data'
-export { barContainer, BarColor, bar } from './view/bar'
+export { BarContainer, BarColor, Bar } from './view/bar'

@@ -21,7 +21,7 @@ import { ContextWidgets, MeterWidgets } from '@kui-shell/plugin-client-common'
 
 import { default as CurrentNamespace } from './view/status-stripe/current-namespace'
 import { default as CurrentContext } from './view/status-stripe/current-context'
-// import { default as ClusterUtilization } from './view/status-stripe/cluster-utilization'
+import { default as ClusterUtilization } from './view/status-stripe/cluster-utilization'
 
 /**
  * Format our body, with extra status stripe widgets
@@ -36,7 +36,7 @@ export default function renderMain() {
         <CurrentNamespace />
       </ContextWidgets>
       <MeterWidgets>
-        {/* <ClusterUtilization /> */}
+        <ClusterUtilization />
       </MeterWidgets>
     </DefaultClient>
   )
