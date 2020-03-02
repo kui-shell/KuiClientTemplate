@@ -44,7 +44,7 @@ describe(`kubectl get events ${process.env.MOCHA_RUN_TARGET || ''}`, function(th
     /** error handling starts */
     it('should create pod that generates events', () =>
       CLI.command(`echo ${inputEncoded} | base64 --decode | kubectl create -f - -n ${ns}`, this.app)
-        .then(ReplExpect.okWithString(podName))
+        .then(ReplExpect.okWithPtyOutput(podName))
         .catch(Common.oops(this, true)))
 
     it('should open pod in sidecar, then click on events button', async () => {
