@@ -30,7 +30,6 @@ import RawResponse from './response'
 import commandPrefix from '../command-prefix'
 import { KubeOptions, getNamespaceForArgv, getContextForArgv, fileOf, isHelpRequest } from './options'
 
-import { renderHelp } from '../../lib/util/help'
 import { FinalState } from '../../lib/model/states'
 import { stringToTable, KubeTableResponse } from '../../lib/view/formatTable'
 
@@ -100,9 +99,13 @@ const isKubectl = (args: Arguments<KubeOptions>) =>
 
 const isUsage = (args: Arguments<KubeOptions>) => isHelpRequest(args) || isKubectl(args)
 
-function doHelp<O extends KubeOptions>(args: Arguments<O>, response: RawResponse): void {
-  const verb = args.argvNoOptions.length >= 2 ? args.argvNoOptions[1] : ''
-  throw renderHelp(response.content.stdout, 'kubectl', verb, response.content.code)
+function doHelp<O extends KubeOptions>(args: Arguments<O>, response: RawResponse): string {
+  // const verb = args.argvNoOptions.length >= 2 ? args.argvNoOptions[1] : ''
+  // throw renderHelp(response.content.stdout, 'kubectl', verb, response.content.code)
+  const out = response.content.stdout
+  const error: CodedError = new Error(out)
+  error.code = exitCode
+  throw error
 }
 
 /**
@@ -123,7 +126,7 @@ export async function doExecWithPty<
     //
     if (isUsage(args)) {
       const response = await doExecWithoutPty(args, prepare)
-      doHelp(args, response)
+      return doHelp(args, response)
     } else {
       const commandToPTY = args.command.replace(/^k(\s)/, 'kubectl$1')
       return args.REPL.qexec<string | Response>(
