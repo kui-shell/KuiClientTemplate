@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import { Common, CLI, ReplExpect, SidecarExpect, Selectors } from '@kui-shell/test'
+import { Common, CLI, ReplExpect, SidecarExpect, Selectors, Util } from '@kui-shell/test'
 import { waitForGreen, waitForRed, createNS, waitTillNone } from '@kui-shell/plugin-kubeui/tests/lib/k8s/utils'
 
 const ns1: string = createNS()
@@ -28,11 +28,7 @@ describe(`kubectl namespace ${process.env.MOCHA_RUN_TARGET || ''}`, function(thi
   synonyms.forEach(kubectl => {
     /** return the editor text */
     const getText = () => {
-      return this.app.client
-        .execute(() => {
-          return document.querySelector('.monaco-editor-wrapper')['editor'].getValue()
-        })
-        .then(res => res.value)
+      return Util.getValueFromMonaco(this.app)
     }
 
     /** expect to see some familiar bits of a pod in the editor under the Describe tab */
