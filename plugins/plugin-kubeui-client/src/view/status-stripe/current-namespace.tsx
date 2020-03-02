@@ -41,6 +41,9 @@ export default class CurrentNamespace extends React.PureComponent<{}, State> {
 
   private async reportCurrentNamespace() {
     const tab = getCurrentTab()
+    if (!tab || !tab.REPL) {
+      return
+    }
 
     try {
       const currentContext = await getCurrentContext(tab)

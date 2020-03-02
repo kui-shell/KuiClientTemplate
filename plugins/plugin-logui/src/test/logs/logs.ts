@@ -35,6 +35,7 @@ describe(`kubectl logs getty ${process.env.MOCHA_RUN_TARGET || ''}`, function(th
       podName: 'vim',
       containerName: 'alpine',
       hasLogs: true,
+      expectString: true,
       cmdline: `echo ${inputEncoded} | base64 --decode | kubectl create -f - -n ${ns}`
     },
     {
@@ -42,14 +43,23 @@ describe(`kubectl logs getty ${process.env.MOCHA_RUN_TARGET || ''}`, function(th
       containerName: 'nginx',
       label: 'name=nginx',
       hasLogs: false,
+      expectString: false,
       cmdline: `kubectl create -f https://raw.githubusercontent.com/kubernetes/examples/master/staging/pod -n ${ns}`
     }
   ]
 
-  const createPod = (podName: string, cmdline: string) => {
-    it(`should create ${podName} pod`, () => {
+  const createPodExpectingString = (podName: string, cmdline: string) => {
+    it(`should create ${podName} pod expect string`, () => {
       return CLI.command(cmdline, this.app)
-        .then(ReplExpect.okWithString(podName))
+        .then(ReplExpect.okWithPtyOutput(podName))
+        .catch(Common.oops(this, true))
+    })
+  }
+
+  const createPodExpectingTable = (podName: string, cmdline: string) => {
+    it(`should create ${podName} pod expect table`, () => {
+      return CLI.command(cmdline, this.app)
+        .then(ReplExpect.okWith(podName))
         .catch(Common.oops(this, true))
     })
   }
@@ -92,7 +102,11 @@ describe(`kubectl logs getty ${process.env.MOCHA_RUN_TARGET || ''}`, function(th
 
   allocateNS(this, ns)
   inputs.forEach(_ => {
-    createPod(_.podName, _.cmdline)
+    if (_.expectString) {
+      createPodExpectingString(_.podName, _.cmdline)
+    } else {
+      createPodExpectingTable(_.podName, _.cmdline)
+    }
     waitForPod(_.podName)
     showLogs(_.podName, _.containerName, _.label, _.hasLogs)
   })

@@ -14,22 +14,14 @@
  * limitations under the License.
  */
 
-import { Common, CLI, ReplExpect, Selectors } from '@kui-shell/test'
+import { Common, CLI, ReplExpect } from '@kui-shell/test'
 
-describe('k8s usage', function(this: Common.ISuite) {
+describe('kubectl logs dash h', function(this: Common.ISuite) {
   before(Common.before(this))
   after(Common.after(this))
 
   it('should give help for known outer command: kubectl logs -h', () =>
     CLI.command('kubectl logs -h', this.app)
-      .then(ReplExpect.errorWithPassthrough(500))
-      .then(N =>
-        Promise.all([
-          this.app.client.waitForExist(`${Selectors.OUTPUT_N(N)} h4.usage-error-title[data-title="Options:"]`),
-          this.app.client.waitForExist(`${Selectors.OUTPUT_N(N)} h4.usage-error-title[data-title="Examples"]`),
-          this.app.client.waitForExist(`${Selectors.OUTPUT_N(N)} .bx--breadcrumb-item .bx--no-link[data-label="logs"]`),
-          this.app.client.waitForExist(`${Selectors.OUTPUT_N(N)} .bx--breadcrumb-item .bx--link[data-label="kubectl"]`)
-        ])
-      )
-      .catch(Common.oops(this)))
+      .then(ReplExpect.error(500, 'Print the logs'))
+      .catch(Common.oops(this, true)))
 })
