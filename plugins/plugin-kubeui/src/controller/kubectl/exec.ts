@@ -104,9 +104,13 @@ function doHelp<O extends KubeOptions>(args: Arguments<O>, response: RawResponse
   // throw renderHelp(response.content.stdout, 'kubectl', verb, response.content.code)
   const out = response.content.stdout
   const exitCode = response.content.code
-  const error: CodedError = new Error(out)
-  error.code = exitCode
-  throw error
+  if (exitCode !== 0) {
+    const error: CodedError = new Error(out)
+    error.code = exitCode
+    throw error
+  } else {
+    return out
+  }
 }
 
 /**
