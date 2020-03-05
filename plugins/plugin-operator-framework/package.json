@@ -27,7 +27,7 @@
     "marked": "0.8.0"
   },
   "devDependencies": {
-    "@types/marked": "0.7.2"
+    "@types/marked": "0.7.3"
   },
   "publishConfig": {
     "access": "public"
