@@ -15,7 +15,7 @@
  */
 
 import * as React from 'react'
-import { render as ReactDomRender } from 'react-dom'
+import { getCurrentTab } from '@kui-shell/core'
 
 export const enum BarColor {
   CPU = 'var(--color-latency-0)',
@@ -59,7 +59,7 @@ export function Bar(props: BarProps) {
  * @return the container DOM
  *
  */
-export function BarContainer(props: { children?: React.ReactNode, alignment?: 'space-between' | 'center' }) {
+export function BarContainer(props: { children?: React.ReactNode, alignment?: 'space-between' | 'center', onClick?: string }) {
   const style = {
     display: 'flex',
     flexDirection: 'column' as const,
@@ -68,7 +68,9 @@ export function BarContainer(props: { children?: React.ReactNode, alignment?: 's
     height: '1.375em'
   }
 
-  return <div style={style}>{props.children}</div>
+  return props.onClick ? (
+      <a style={style} href="#" onClick={() => getCurrentTab().REPL.pexec(props.onClick)}>{props.children}</a>
+  ) : <div style={style}>{props.children}</div>
 }
 
 /**
@@ -84,7 +86,5 @@ export function SingletonBar(props: BarProps) {
 }
 
 export function singletonBar(props: BarProps) {
-  const container = document.createElement('div')
-  ReactDomRender(<SingletonBar {...props}/>, container)
-  return container.firstElementChild
+  return <SingletonBar {...props}/>
 }

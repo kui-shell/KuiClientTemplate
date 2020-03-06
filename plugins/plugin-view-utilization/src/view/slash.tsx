@@ -14,19 +14,18 @@
  * limitations under the License.
  */
 
+import * as React from 'react'
+
 /**
  * Format a / b
  *
  */
-export default function slash(a: string, b: string): HTMLElement {
-  const display = document.createElement('span')
-  display.appendChild(document.createTextNode(a))
-
-  const slash = document.createElement('span')
-  slash.classList.add('even-lighter-text')
-  slash.innerText = '\uff0f'
-  display.appendChild(slash)
-
-  display.appendChild(document.createTextNode(b))
-  return display
+export default function slash(a: string, b: string) {
+  return (
+    <span>
+      {a}
+      <span className="even-lighter-text">{'\uff0f'}</span>
+      {b}
+    </span>
+  )
 }
