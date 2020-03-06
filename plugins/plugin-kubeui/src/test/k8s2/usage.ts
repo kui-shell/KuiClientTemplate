@@ -14,19 +14,27 @@
  * limitations under the License.
  */
 
-import { Common, CLI, ReplExpect } from '@kui-shell/test'
+import { Common } from '@kui-shell/test'
+import { doHelp } from '../../../tests/lib/k8s/utils'
 
-describe('k8s usage', function(this: Common.ISuite) {
+const commonModes = ['About', 'Usage']
+const kubectlModes = commonModes.concat(['Basic  (Beginner)'])
+const kubectlGetModes = commonModes.concat(['get pods'])
+
+describe('kubectl dash h', function(this: Common.ISuite) {
   before(Common.before(this))
   after(Common.after(this))
 
-  it('should give help for known outer command: kubectl', () =>
-    CLI.command('kubectl', this.app)
-      .then(ReplExpect.error(500, 'kubectl controls the Kubernetes cluster manager'))
-      .catch(Common.oops(this)))
+  const help = doHelp.bind(this)
 
-  it('should give help for known outer command: kubectl get -h', () =>
-    CLI.command('kubectl get -h', this.app)
-      .then(ReplExpect.error(500, 'Display one or many resources'))
-      .catch(Common.oops(this)))
+  help('k', 'kubectl', kubectlModes)
+
+  it('should refresh', () => Common.refresh(this))
+  help('kubectl', 'kubectl', kubectlModes)
+
+  it('should refresh', () => Common.refresh(this))
+  help('k get -h', 'kubectl get', kubectlGetModes)
+
+  it('should refresh', () => Common.refresh(this))
+  help('kubectl get -h', 'kubectl get', kubectlGetModes)
 })

@@ -14,7 +14,14 @@
  * limitations under the License.
  */
 
-import { UsageError } from '@kui-shell/core'
+/* eslint-disable @typescript-eslint/no-unused-vars */
+import * as Debug from 'debug' // DEBUG
+import { Arguments, NavResponse, Table, isNavResponse, MultiModalMode } from '@kui-shell/core'
+import { KubeOptions, isHelpRequest } from '../../controller/kubectl/options'
+import commandPrefix from '../../controller/command-prefix'
+import { doExecWithoutPty, Prepare, NoPrepare } from '../../controller/kubectl/exec'
+
+const debug = Debug('kubectl/help')
 
 /**
  * Some of the kubectl doc strings try to be polite have form
@@ -24,6 +31,18 @@ import { UsageError } from '@kui-shell/core'
  */
 const removeSolitaryAndTrailingPeriod = (str: string) => str.replace(/^\s*([^.]+)[.]\s*$/, '$1').trim()
 
+/** format a DetailedExample as markdown */
+function formatAsMarkdown({ command, docs }: { command: string; docs: string }): string {
+  return `
+### Example
+\`\`\`
+${command}
+\`\`\`
+
+${docs}
+`
+}
+
 /**
  * Pretty-print the kubectl help output
  *
@@ -31,25 +50,31 @@ const removeSolitaryAndTrailingPeriod = (str: string) => str.replace(/^\s*([^.]+
  * @param verb e.g. list versus get
  *
  */
-export const renderHelp = (out: string, command: string, verb: string, exitCode: number) => {
+export const renderHelp = (out: string, command: string, verb: string, exitCode: number): NavResponse => {
   // kube and helm help often have a `Use "this command" to do that operation`
   // let's pick those off and place them into the detailedExample model
-  const splitOutUse = out.match(/((Use[^\n]+\n)+)$/)
+  const splitOutUse = out.match(/^(Use\s+.+)$/gm)
   const nonUseOut = !splitOutUse ? out : out.substring(0, splitOutUse.index) // having stripped off the Use parts
-  const usePart = splitOutUse && splitOutUse[1].split(/\n/) // the Use parts, if any
+
+  // the Use parts, if any, formatted into a markdown list
+  const usePart =
+    splitOutUse &&
+    splitOutUse
+      .map(_ =>
+        _.replace(
+          /"([^"]+)"/g,
+          (_, command) => `[${command}](kui://exec?command=${encodeURIComponent(command)} "Execute ${command}")`
+        )
+      )
+      .map(_ => ` - ${_}`)
+      .join('\n')
 
   const rawSections = nonUseOut.split(/\n([^'\s].*:)\n/) // the non-use sections of the docs
-  const header = rawSections[0] // the first section is the top-level doc string
 
-  // form the detailedExample model from the use part we stripped out
-  const detailedExampleFromUsePart =
-    usePart &&
-    usePart
-      .filter(x => x)
-      .map(line => {
-        const [, command, docs] = line.split(/^Use "([^"]+)"\s+(.*)\s*$/)
-        return { command, docs }
-      })
+  // the first section is the top-level doc string
+  const headerEnd =
+    !splitOutUse || splitOutUse.length === 0 ? rawSections[0].length : rawSections[0].indexOf(splitOutUse[0])
+  const header = rawSections[0].slice(0, headerEnd)
 
   // for the remaining sections, form a [{ title, content }] model
   const _allSections: Section[] = rawSections.slice(1).reduce((S, _, idx, sections) => {
@@ -108,75 +133,186 @@ export const renderHelp = (out: string, command: string, verb: string, exitCode:
     }
   })
 
-  const detailedExample = (detailedExampleFromUsePart || []).concat(
-    (examplesSection ? examplesSection.content : '')
-      .split(/^\s*(?:#\s+)/gm)
-      .map(x => x.trim())
-      .filter(x => x)
-      .map(group => {
-        //
-        // Explanation: compare `kubectl completion -h` to `kubectl get -h`
-        // The former Examples section has a structure of (Summary, MultiLineDetail)
-        // while the latter is shaped like (DescriptionLine, CommandLine).
-        //
-        // The lack of symmetry is a bit odd (detail/description
-        // is second versus first), but understandable, given
-        // that the former's Detail takes up multiple lines
-        // whereas the latter has a pair of lines. Let's
-        // introduce some symmetry here.
-        //
-        const match = group.match(/(.*)[\n\r]([\s\S]+)/)
-        if (match && match.length === 3) {
-          const [, firstPartFull, secondPartFull] = match
+  const detailedExample = (examplesSection ? examplesSection.content : '')
+    .split(/^\s*(?:#\s+)/gm)
+    .map(x => x.trim())
+    .filter(x => x)
+    .map(group => {
+      //
+      // Explanation: compare `kubectl completion -h` to `kubectl get -h`
+      // The former Examples section has a structure of (Summary, MultiLineDetail)
+      // while the latter is shaped like (DescriptionLine, CommandLine).
+      //
+      // The lack of symmetry is a bit odd (detail/description
+      // is second versus first), but understandable, given
+      // that the former's Detail takes up multiple lines
+      // whereas the latter has a pair of lines. Let's
+      // introduce some symmetry here.
+      //
+      const match = group.match(/(.*)[\n\r]([\s\S]+)/)
+      if (match && match.length === 3) {
+        const [, firstPartFull, secondPartFull] = match
 
-          const firstPart = removeSolitaryAndTrailingPeriod(firstPartFull)
-          const secondPart = removeSolitaryAndTrailingPeriod(secondPartFull)
+        const firstPart = removeSolitaryAndTrailingPeriod(firstPartFull)
+        const secondPart = removeSolitaryAndTrailingPeriod(secondPartFull)
 
-          const secondPartIsMultiLine = secondPart.split(/[\n\r]/).length > 1
+        const secondPartIsMultiLine = secondPart.split(/[\n\r]/).length > 1
 
-          const command = secondPartIsMultiLine ? firstPart : secondPart
-          const docs = secondPartIsMultiLine ? secondPart : firstPart
+        const command = secondPartIsMultiLine ? firstPart : secondPart
+        const docs = secondPartIsMultiLine ? secondPart : firstPart
 
-          return {
-            command,
-            docs
-          }
+        return {
+          command,
+          docs
+        }
+      } else {
+        // see kubectl label -h for an example of a multi-line "firstPart"
+        return {
+          copyToNextLine: group
+        }
+      }
+    })
+    .reduce((lines, lineRecord, idx, A) => {
+      for (let jdx = idx - 1; jdx >= 0; jdx--) {
+        if (A[jdx].copyToNextLine) {
+          lineRecord.docs = `${A[jdx].copyToNextLine}\n${lineRecord.docs}`
         } else {
-          // see kubectl label -h for an example of a multi-line "firstPart"
+          break
+        }
+      }
+
+      if (!lineRecord.copyToNextLine) {
+        lines.push(lineRecord)
+      }
+      return lines
+    }, [])
+    .filter(x => x)
+
+  /* Here comes Usage NavResponse */
+
+  const commandDocTable = (rows: { command: string; docs: string }[]): Table => ({
+    noSort: true,
+    noEntityColors: true,
+    header: {
+      name: 'COMMAND',
+      attributes: [{ value: 'DOCS' }]
+    },
+    body: rows.map(({ command, docs }, idx) => ({
+      name: command,
+      outerCSS: idx === 0 ? 'semi-bold' : '',
+      css: 'lighter-text',
+      attributes: [{ key: 'DOCS', value: docs }]
+    }))
+  })
+
+  const kind = 'NavResponse'
+  const metadata = { name: 'usage' }
+
+  const baseModes = (): MultiModalMode[] => [
+    {
+      mode: 'About',
+      content: header
+        .concat('\n\n')
+        .concat(usePart)
+        .replace(/(--\S+)/g, '`$1`')
+        .replace(/^([^\n.]+)(\.?)/, '### $1'),
+      contentType: 'text/markdown'
+    },
+    {
+      mode: 'Usage',
+      content: `
+### Usage
+\`\`\`
+${usageSection[0].content.slice(0, usageSection[0].content.indexOf('\n')).trim()}
+\`\`\`
+${usePart}
+`,
+      contentType: 'text/markdown' // FIXME: text/markdown will turn [] to link, we should wrap the content with markdown code syntax
+    }
+  ]
+
+  const optionsMenuItems = (): MultiModalMode[] => {
+    if (sections.some(section => /Options/i.test(section.title))) {
+      return sections
+        .filter(section => /Options/i.test(section.title))
+        .map(section => {
           return {
-            copyToNextLine: group
+            mode: section.title.replace(':', ''),
+            content: commandDocTable(section.rows)
           }
-        }
-      })
-      .reduce((lines, lineRecord, idx, A) => {
-        for (let jdx = idx - 1; jdx >= 0; jdx--) {
-          if (A[jdx].copyToNextLine) {
-            lineRecord.docs = `${A[jdx].copyToNextLine}\n${lineRecord.docs}`
-          } else {
-            break
-          }
-        }
+        })
+    } else {
+      return []
+    }
+  }
 
-        if (!lineRecord.copyToNextLine) {
-          lines.push(lineRecord)
-        }
-        return lines
-      }, [])
-      .filter(x => x)
-  )
-
-  return new UsageError({
-    exitCode,
-    usage: {
-      commandPrefix: command, // for onclick handlers, e.g. when clicking on "get", we want to exec "kubectl get"
-      commandSuffix: '-h', // we really want "kubectl get -h"
-      breadcrumb: verb || command,
-      parents: verb ? [command] : [],
-      header,
-      intro,
-      sections,
-      detailedExample,
-      example: usageSection && usageSection[0] && usageSection[0].content.replace(/\s+$/, '')
+  /** headerNav contains sections: About and Usage */
+  const headerNav = (title: string) => ({
+    [title]: {
+      kind,
+      metadata,
+      modes: baseModes().concat(optionsMenuItems())
     }
   })
+
+  /** commandNav contains sections: Commands */
+  const commandNav = () => {
+    if (sections.some(section => /command/i.test(section.title))) {
+      return {
+        Commands: {
+          kind,
+          metadata,
+          modes: sections
+            .filter(section => /command/i.test(section.title))
+            .map(section => {
+              return {
+                mode: section.title.replace(/Command(s)/, '').replace(':', ''),
+                content: commandDocTable(section.rows)
+              }
+            })
+        }
+      }
+    }
+  }
+
+  /** header nav contains sections: Examples */
+  const exampleNav = () => {
+    if (detailedExample && detailedExample.length > 0) {
+      return {
+        Examples: {
+          kind,
+          metadata,
+          modes: detailedExample.map(_ => ({
+            mode: _.command.replace(/^kubectl\s+/, ''),
+            contentType: 'text/markdown',
+            content: formatAsMarkdown(_)
+          }))
+        }
+      }
+    }
+  }
+
+  const usageResponse = Object.assign(headerNav(verb ? `${command} ${verb}` : command), commandNav(), exampleNav())
+
+  debug('usageResponse', usageResponse)
+
+  return usageResponse
+}
+
+/** is the given string `str` the `kubectl` command? */
+const isKubectl = (args: Arguments<KubeOptions>) =>
+  (args.argvNoOptions.length === 1 && /^k(ubectl)?$/.test(args.argvNoOptions[0])) ||
+  (args.argvNoOptions.length === 2 &&
+    args.argvNoOptions[0] === commandPrefix &&
+    /^k(ubectl)?$/.test(args.argvNoOptions[1]))
+
+export const isUsage = (args: Arguments<KubeOptions>) => isHelpRequest(args) || isKubectl(args)
+
+export async function doHelp<O extends KubeOptions>(
+  args: Arguments<O>,
+  prepare: Prepare<O> = NoPrepare
+): Promise<NavResponse> {
+  const response = await doExecWithoutPty(args, prepare)
+  const verb = args.argvNoOptions.length >= 2 ? args.argvNoOptions[1] : ''
+  return renderHelp(response.content.stdout, 'kubectl', verb, response.content.code)
 }

@@ -14,14 +14,14 @@
  * limitations under the License.
  */
 
-import { Common, CLI, ReplExpect } from '@kui-shell/test'
+import { Common } from '@kui-shell/test'
+import { doHelp } from '@kui-shell/plugin-kubeui/tests/lib/k8s/utils'
 
 describe('kubectl logs dash h', function(this: Common.ISuite) {
   before(Common.before(this))
   after(Common.after(this))
 
-  it('should give help for known outer command: kubectl logs -h', () =>
-    CLI.command('kubectl logs -h', this.app)
-      .then(ReplExpect.error(500, 'Print the logs'))
-      .catch(Common.oops(this, true)))
+  const help = doHelp.bind(this)
+
+  help('kubectl logs -h', 'kubectl logs', ['About', 'Usage', 'logs nginx'])
 })

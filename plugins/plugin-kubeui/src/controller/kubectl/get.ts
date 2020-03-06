@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import { CodedError, Arguments, ExecType, Registrar, MultiModalResponse, isHeadless } from '@kui-shell/core'
+import { CodedError, Arguments, ExecType, Registrar, MultiModalResponse, isHeadless, KResponse } from '@kui-shell/core'
 
 import flags from './flags'
 import { exec } from './exec'
@@ -25,6 +25,7 @@ import extractAppAndName from '../../lib/util/name'
 import { KubeResource } from '../../lib/model/resource'
 import { KubeOptions, isEntityRequest, isTableRequest, formatOf, isWatchRequest, getNamespace } from './options'
 import { stringToTable, KubeTableResponse, isKubeTableResponse } from '../../lib/view/formatTable'
+import { isUsage, doHelp } from '../../lib/util/help'
 
 /**
  * For now, we handle watch ourselves, so strip these options off the command line
@@ -145,8 +146,13 @@ export function rawGet(args: Arguments<KubeOptions>, command = 'kubectl') {
  *
  */
 export const doGet = (command: string) =>
-  async function doGet(args: Arguments<KubeOptions>): Promise<string | KubeResource | KubeTableResponse> {
+  async function doGet(args: Arguments<KubeOptions>): Promise<KResponse> {
     // first, peel off some special cases:
+    if (isUsage(args)) {
+      // special case: get --help/-h
+      return doHelp(args, prepareArgsForGet)
+    }
+
     if (!isHeadless() && isWatchRequest(args)) {
       // special case: get --watch/watch-only
 

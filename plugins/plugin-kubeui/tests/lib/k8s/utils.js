@@ -18,7 +18,7 @@ const uuid = require('uuid/v4')
 const assert = require('assert')
 const { dirname, join } = require('path')
 
-const { Common, CLI, ReplExpect, Selectors } = require('@kui-shell/test')
+const { Common, CLI, ReplExpect, Selectors, SidecarExpect } = require('@kui-shell/test')
 const { makeCLI } = require('@kui-shell/core/tests/lib/headless')
 
 const ROOT = process.env.TEST_ROOT
@@ -194,3 +194,17 @@ exports.kubectl = makeCLI('kubectl kui', bindir)
 
 /** kubectl kui --ui impl */
 // exports.kubectlElectron = make CLI('kubectl kui', bindir, true) // the last true requests teeToFile mode
+
+/**
+ * Test Usage
+ *
+ */
+exports.doHelp = function doHelp(cmd, showing, modes) {
+  it(`should give help for known outer command=${cmd} showing=${showing}`, () =>
+    CLI.command(cmd, this.app)
+      .then(ReplExpect.justOK)
+      .then(SidecarExpect.open)
+      .then(SidecarExpect.showing(showing))
+      .then(() => Promise.all(modes.map(_ => this.app.client.waitForVisible(Selectors.SIDECAR_MODE_BUTTON_V2(_)))))
+      .catch(Common.oops(this, true)))
+}
