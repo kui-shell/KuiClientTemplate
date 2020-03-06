@@ -14,13 +14,25 @@
  * limitations under the License.
  */
 
-import { i18n, Tab, Table, Row, RawResponse, Arguments, ExecOptions, Registrar, UsageModel } from '@kui-shell/core'
+import {
+  i18n,
+  Tab,
+  Table,
+  Row,
+  RawResponse,
+  Arguments,
+  ExecOptions,
+  Registrar,
+  UsageModel,
+  KResponse
+} from '@kui-shell/core'
 
 import flags from './flags'
 import apiVersion from './apiVersion'
 import commandPrefix from '../command-prefix'
 import { doExecWithTable } from './exec'
 import { KubeContext } from '../../lib/model/resource'
+import { isUsage, doHelp } from '../../lib/util/help'
 
 const strings = i18n('plugin-kubeui')
 
@@ -131,7 +143,11 @@ const listContexts = async (args: Arguments): Promise<RawResponse<KubeContext[]>
  *
  */
 export default (commandTree: Registrar) => {
-  commandTree.listen(`/${commandPrefix}/kubectl/config/get-contexts`, doExecWithTable, flags)
+  commandTree.listen(
+    `/${commandPrefix}/kubectl/config/get-contexts`,
+    (args: Arguments): Promise<KResponse> => (isUsage(args) ? doHelp(args) : doExecWithTable(args)),
+    flags
+  )
 
   commandTree.listen(
     `/${commandPrefix}/context`,

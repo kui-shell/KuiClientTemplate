@@ -18,7 +18,14 @@ import Debug from 'debug'
 import PrettyPrintAnsiString from 'ansi_up'
 import * as colors from 'colors/safe'
 import { Abortable, Arguments, Registrar, Streamable } from '@kui-shell/core'
-import { KubeOptions, doExecWithPty, defaultFlags as flags, isHelpRequest } from '@kui-shell/plugin-kubeui'
+import {
+  isUsage,
+  doHelp,
+  KubeOptions,
+  doExecWithPty,
+  defaultFlags as flags,
+  isHelpRequest
+} from '@kui-shell/plugin-kubeui'
 
 import commandPrefix from '../command-prefix'
 
@@ -87,6 +94,11 @@ function decorateLogLines(lines: string): string {
  *
  */
 async function doLogs(args: Arguments<LogOptions>) {
+  if (isUsage(args)) {
+    // special case: get --help/-h
+    return doHelp(args)
+  }
+
   const streamed = args.parsedOptions.follow || args.parsedOptions.f
 
   // if we are streaming (logs -f), and the user did not specify a

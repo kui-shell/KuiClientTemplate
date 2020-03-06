@@ -14,14 +14,13 @@
  * limitations under the License.
  */
 
-import { Arguments, Registrar } from '@kui-shell/core'
+import { Arguments, Registrar, KResponse } from '@kui-shell/core'
 
 import flags from './flags'
 import { exec } from './exec'
 import commandPrefix from '../command-prefix'
 import { KubeOptions } from './options'
-import { KubeTableResponse } from '../../lib/view/formatTable'
-
+import { isUsage, doHelp } from '../../lib/util/help'
 import { doGetAsTable } from './get'
 
 const verb = 'top'
@@ -30,11 +29,15 @@ const verb = 'top'
  * This is the main handler for `kubectl top`.
  *
  */
-async function doTop(args: Arguments<KubeOptions>): Promise<KubeTableResponse> {
-  // first, we do the raw exec of the given command
-  const response = await exec(args)
+async function doTop(args: Arguments<KubeOptions>): Promise<KResponse> {
+  if (isUsage(args)) {
+    return doHelp(args)
+  } else {
+    // first, we do the raw exec of the given command
+    const response = await exec(args)
 
-  return doGetAsTable(args, response, verb)
+    return doGetAsTable(args, response, verb)
+  }
 }
 
 export default (commandTree: Registrar) => {

@@ -88,3 +88,9 @@ declare function typeSlowly(app: Application, txt: string): Promise<void>
 
 /** kubectl kui headless impl */
 declare var kubectl: headless
+
+/**
+ * Test Usage
+ *
+ */
+declare function doHelp(this: Common.ISuite, cmd: string, showing: string, modes: string[]): Promise<void>
