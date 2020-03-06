@@ -79,9 +79,8 @@ export default class ClusterUtilization extends React.PureComponent<{}, State> {
         text=""
         viewLevel={this.state.viewLevel}
         id="kui--plugin-view-utilization--cluster-utilization"
-        textOnclick="kubectl top node"
       >
-      <BarContainer>
+      <BarContainer onClick="kubectl top node">
         <Bar color={BarColor.CPU} fraction={this.state.cpuFrac} />
         <Bar color={BarColor.Memory} fraction={this.state.memFrac} />
         </BarContainer>
