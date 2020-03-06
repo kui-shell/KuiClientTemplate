@@ -14,10 +14,12 @@
  * limitations under the License.
  */
 
-import { inBrowser, hasProxy, Registrar } from '@kui-shell/core'
+import { inBrowser, hasProxy, Registrar, Arguments } from '@kui-shell/core'
 
 import { doExecWithPty } from './exec'
 import commandPrefix from '../command-prefix'
+import { KubeOptions } from './options'
+import { isUsage, doHelp } from '../../lib/util/help'
 
 /** is the given string `str` the `kubectl` command? */
 const isKubectl = (str: string) => /^k(ubectl)?$/.test(str)
@@ -36,7 +38,7 @@ export default (registrar: Registrar) => {
     (argv: string[]) => {
       return isKubectl(argv[0]) || (argv[0] === commandPrefix && isKubectl(argv[1]))
     },
-    doExecWithPty,
+    (args: Arguments<KubeOptions>) => (isUsage(args) ? doHelp(args) : doExecWithPty(args)),
     1, // priority
     { inBrowserOk: true }
   )

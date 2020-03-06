@@ -14,17 +14,27 @@
  * limitations under the License.
  */
 
-import { Registrar } from '@kui-shell/core'
+import { Registrar, Arguments } from '@kui-shell/core'
 
 import flags from './flags'
 import { doExecWithStatus } from './exec'
+import { KubeOptions } from './options'
 import commandPrefix from '../command-prefix'
 
 import { FinalState } from '../../lib/model/states'
+import { isUsage, doHelp } from '../../lib/util/help'
 
 const verbs = ['create', 'apply']
 
-export const doCreate = (verb: string, command = 'kubectl') => doExecWithStatus(verb, FinalState.OnlineLike, command)
+// export const doCreate = (verb: string, command = 'kubectl') => doExecWithStatus(verb, FinalState.OnlineLike, command)
+
+export const doCreate = (verb: string, command = 'kubectl') => async (args: Arguments<KubeOptions>) => {
+  if (isUsage(args)) {
+    return doHelp(args)
+  } else {
+    return doExecWithStatus(verb, FinalState.OnlineLike, command)(args)
+  }
+}
 
 export default (registrar: Registrar) => {
   verbs.forEach(verb => {

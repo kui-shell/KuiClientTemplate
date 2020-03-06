@@ -22,6 +22,7 @@ import { doExecWithStatus } from './exec'
 import commandPrefix from '../command-prefix'
 
 import { FinalState } from '../../lib/model/states'
+import { isUsage, doHelp } from '../../lib/util/help'
 
 /**
  * Prepare the command line for delete: by default, apparently,
@@ -37,11 +38,15 @@ function prepareArgsForDelete(args: Arguments<KubeOptions>) {
   }
 }
 
-export const doDelete = (command = 'kubectl') =>
-  doExecWithStatus('delete', FinalState.OfflineLike, command, prepareArgsForDelete)
+export const doDelete = (command = 'kubectl') => async (args: Arguments<KubeOptions>) => {
+  if (isUsage(args)) {
+    return doHelp(args, prepareArgsForDelete)
+  } else {
+    return doExecWithStatus('delete', FinalState.OfflineLike, command, prepareArgsForDelete)(args)
+  }
+}
 
 export default (registrar: Registrar) => {
-  const handler = doDelete()
-  registrar.listen(`/${commandPrefix}/kubectl/delete`, handler, flags)
-  registrar.listen(`/${commandPrefix}/k/delete`, handler, flags)
+  registrar.listen(`/${commandPrefix}/kubectl/delete`, doDelete(), flags)
+  registrar.listen(`/${commandPrefix}/k/delete`, doDelete(), flags)
 }

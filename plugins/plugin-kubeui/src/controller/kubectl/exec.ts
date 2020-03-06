@@ -28,7 +28,7 @@ import {
 
 import RawResponse from './response'
 import commandPrefix from '../command-prefix'
-import { KubeOptions, getNamespaceForArgv, getContextForArgv, fileOf, isHelpRequest } from './options'
+import { KubeOptions, getNamespaceForArgv, getContextForArgv, fileOf } from './options'
 
 import { FinalState } from '../../lib/model/states'
 import { stringToTable, KubeTableResponse } from '../../lib/view/formatTable'
@@ -39,7 +39,7 @@ const strings = i18n('plugin-kubeui')
 export type Prepare<O extends KubeOptions> = (args: Arguments<O>) => string
 
 /** No-op argument preparation */
-const NoPrepare = <O extends KubeOptions>(args: Arguments<O>) => args.command
+export const NoPrepare = <O extends KubeOptions>(args: Arguments<O>) => args.command
 
 /** Special case preparation for status */
 export type PrepareForStatus<O extends KubeOptions> = (cmd: string, args: Arguments<O>) => string
@@ -57,7 +57,7 @@ function DefaultPrepareForStatus<O extends KubeOptions>(cmd: string, args: Argum
  * are the same machine).
  *
  */
-function doExecWithoutPty<O extends KubeOptions>(
+export async function doExecWithoutPty<O extends KubeOptions>(
   args: Arguments<O>,
   prepare: Prepare<O> = NoPrepare,
   exec = 'kubectl'
@@ -90,25 +90,6 @@ export function doExecWithStdout<O extends KubeOptions>(
   return doExecWithoutPty(args, prepare, exec).then(_ => _.content.stdout)
 }
 
-/** is the given string `str` the `kubectl` command? */
-const isKubectl = (args: Arguments<KubeOptions>) =>
-  (args.argvNoOptions.length === 1 && /^k(ubectl)?$/.test(args.argvNoOptions[0])) ||
-  (args.argvNoOptions.length === 2 &&
-    args.argvNoOptions[0] === commandPrefix &&
-    /^k(ubectl)?$/.test(args.argvNoOptions[1]))
-
-const isUsage = (args: Arguments<KubeOptions>) => isHelpRequest(args) || isKubectl(args)
-
-function doHelp<O extends KubeOptions>(args: Arguments<O>, response: RawResponse): string {
-  // const verb = args.argvNoOptions.length >= 2 ? args.argvNoOptions[1] : ''
-  // throw renderHelp(response.content.stdout, 'kubectl', verb, response.content.code)
-  const out = response.content.stdout
-  const exitCode = response.content.code
-  const error: CodedError = new Error(out)
-  error.code = exitCode
-  throw error
-}
-
 /**
  * Execute the given command using a pty
  *
@@ -125,33 +106,28 @@ export async function doExecWithPty<
     // For commands `kubectl (--help/-h)` and `k (--help/-h)`, render usage model;
     // Otherwise, execute the given command using a pty
     //
-    if (isUsage(args)) {
-      const response = await doExecWithoutPty(args, prepare)
-      return doHelp(args, response)
-    } else {
-      const commandToPTY = args.command.replace(/^k(\s)/, 'kubectl$1')
-      return args.REPL.qexec<string | Response>(
-        `sendtopty ${commandToPTY}`,
-        args.block,
-        undefined,
-        args.execOptions.onInit
-          ? args.execOptions
-          : Object.assign({}, args.execOptions, {
-              rawResponse: true,
-              quiet:
-                args.execOptions.quiet === undefined
-                  ? args.execOptions.type === ExecType.TopLevel
-                    ? false
-                    : undefined
-                  : args.execOptions.quiet
-            })
-      ).catch((err: CodedError) => {
-        if (err.code === 500 || err.statusCode === 500) {
-          err.code = err.statusCode = 500
-        }
-        throw err
-      })
-    }
+    const commandToPTY = args.command.replace(/^k(\s)/, 'kubectl$1')
+    return args.REPL.qexec<string | Response>(
+      `sendtopty ${commandToPTY}`,
+      args.block,
+      undefined,
+      args.execOptions.onInit
+        ? args.execOptions
+        : Object.assign({}, args.execOptions, {
+            rawResponse: true,
+            quiet:
+              args.execOptions.quiet === undefined
+                ? args.execOptions.type === ExecType.TopLevel
+                  ? false
+                  : undefined
+                : args.execOptions.quiet
+          })
+    ).catch((err: CodedError) => {
+      if (err.code === 500 || err.statusCode === 500) {
+        err.code = err.statusCode = 500
+      }
+      throw err
+    })
   }
 }
 
@@ -175,11 +151,7 @@ export async function exec<O extends KubeOptions>(
     })
   } else {
     const response = await doExecWithoutPty(args, prepare, exec)
-    if (isUsage(args)) {
-      doHelp(args, response)
-    } else {
-      return response
-    }
+    return response
   }
 }
 
