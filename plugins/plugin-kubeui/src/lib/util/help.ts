@@ -200,7 +200,7 @@ export const renderHelp = (out: string, command: string, verb: string, exitCode:
     body: rows.map(({ command, docs }, idx) => ({
       name: command,
       outerCSS: idx === 0 ? 'semi-bold' : '',
-      css: 'lighter-text',
+      css: 'sub-text',
       attributes: [{ key: 'DOCS', value: docs }]
     }))
   })
