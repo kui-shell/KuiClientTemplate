@@ -14,9 +14,8 @@
  * limitations under the License.
  */
 
-/* eslint-disable @typescript-eslint/no-unused-vars */
-import * as Debug from 'debug' // DEBUG
-import { Arguments, NavResponse, Table, isNavResponse, MultiModalMode } from '@kui-shell/core'
+import * as Debug from 'debug'
+import { Arguments, NavResponse, Table, KResponse, MultiModalMode } from '@kui-shell/core'
 import { KubeOptions, isHelpRequest } from '../../controller/kubectl/options'
 import commandPrefix from '../../controller/command-prefix'
 import { doExecWithoutPty, Prepare, NoPrepare } from '../../controller/kubectl/exec'
@@ -43,6 +42,21 @@ ${docs}
 `
 }
 
+const commandDocTable = (rows: { command: string; docs: string }[], headerKey: string): Table => ({
+  noSort: true,
+  noEntityColors: true,
+  header: {
+    name: headerKey,
+    attributes: [{ value: 'DOCS' }]
+  },
+  body: rows.map(({ command, docs }, idx) => ({
+    name: command,
+    outerCSS: idx === 0 ? 'semi-bold' : '',
+    css: 'sub-text',
+    attributes: [{ key: 'DOCS', value: docs }]
+  }))
+})
+
 /**
  * Pretty-print the kubectl help output
  *
@@ -50,7 +64,7 @@ ${docs}
  * @param verb e.g. list versus get
  *
  */
-export const renderHelp = (out: string, command: string, verb: string, exitCode: number): NavResponse => {
+export const renderHelp = (out: string, command: string, verb: string): NavResponse | Table => {
   // kube and helm help often have a `Use "this command" to do that operation`
   // let's pick those off and place them into the detailedExample model
   const splitOutUse = out.match(/^(Use\s+.+)$/gm)
@@ -60,6 +74,7 @@ export const renderHelp = (out: string, command: string, verb: string, exitCode:
   const usePart =
     splitOutUse &&
     splitOutUse
+      .filter(_ => !_.includes('Use "kubectl options"')) // `kubectl options` is incorporated as one of the base modes of `kubectl` usage
       .map(_ =>
         _.replace(
           /"([^"]+)"/g,
@@ -75,6 +90,33 @@ export const renderHelp = (out: string, command: string, verb: string, exitCode:
   const headerEnd =
     !splitOutUse || splitOutUse.length === 0 ? rawSections[0].length : rawSections[0].indexOf(splitOutUse[0])
   const header = rawSections[0].slice(0, headerEnd)
+
+  const processSections = (section: Section) => ({
+    title: section.title,
+    nRowsInViewport: section.title.match(/Available Commands/i) ? 8 : undefined,
+    rows: section.content
+      .split(/[\n\r]/)
+      .filter(x => x)
+      .map(line => line.split(/(\t|(\s\s)+\s?)|(?=:\s)/).filter(x => x && !/(\t|\s\s)/.test(x)))
+      .map(([thisCommand, docs]) => {
+        if (thisCommand) {
+          return {
+            command: thisCommand.replace(/^\s*-\s+/, '').replace(/:\s*$/, ''),
+            docs: docs && docs.replace(/^\s*:\s*/, ''),
+            commandPrefix: /Commands/i.test(section.title) && `${command} ${verb || ''}`,
+            noclick: !section.title.match(/Common actions/i) && !section.title.match(/Commands/i)
+          }
+        }
+      })
+      .filter(x => x)
+  })
+
+  // return a table for `kubectl options`
+  if (verb === 'options') {
+    const optionDocs = header.split('\n\n')
+    const sections = processSections({ title: optionDocs[0], content: optionDocs[1].replace(/^\n/, '') })
+    return commandDocTable(sections.rows, 'OPTIONS')
+  }
 
   // for the remaining sections, form a [{ title, content }] model
   const _allSections: Section[] = rawSections.slice(1).reduce((S, _, idx, sections) => {
@@ -96,11 +138,6 @@ export const renderHelp = (out: string, command: string, verb: string, exitCode:
     _allSections.slice(1).sort((a, b) => -a.title.localeCompare(b.title))
   )
 
-  // sometimes, the first section is extra intro docs; sometimes it
-  // is a legitimate command/usage section
-  // const firstSectionIsCommandLike = /command/i.test(allSections[0].title) && !/to begin/i.test(allSections[0].title)
-  const intro = undefined // !firstSectionIsCommandLike && allSections[0]
-
   // pull off the Usage section and place it into our usage model
   const usageSection = allSections.filter(({ title }) => title === 'Usage:')
 
@@ -111,27 +148,7 @@ export const renderHelp = (out: string, command: string, verb: string, exitCode:
     // .slice(firstSectionIsCommandLike ? 0 : 1)
     .filter(({ title }) => title !== 'Usage:' && title !== 'Examples:')
 
-  const sections = remainingSections.map(({ title, content }) => {
-    return {
-      title,
-      nRowsInViewport: title.match(/Available Commands/i) ? 8 : undefined,
-      rows: content
-        .split(/[\n\r]/)
-        .filter(x => x)
-        .map(line => line.split(/(\t|(\s\s)+\s?)|(?=:\s)/).filter(x => x && !/(\t|\s\s)/.test(x)))
-        .map(([thisCommand, docs]) => {
-          if (thisCommand) {
-            return {
-              command: thisCommand.replace(/^\s*-\s+/, '').replace(/:\s*$/, ''),
-              docs: docs && docs.replace(/^\s*:\s*/, ''),
-              commandPrefix: /Commands/i.test(title) && `${command} ${verb || ''}`,
-              noclick: !title.match(/Common actions/i) && !title.match(/Commands/i)
-            }
-          }
-        })
-        .filter(x => x)
-    }
-  })
+  const sections = remainingSections.map(processSections)
 
   const detailedExample = (examplesSection ? examplesSection.content : '')
     .split(/^\s*(?:#\s+)/gm)
@@ -189,22 +206,6 @@ export const renderHelp = (out: string, command: string, verb: string, exitCode:
     .filter(x => x)
 
   /* Here comes Usage NavResponse */
-
-  const commandDocTable = (rows: { command: string; docs: string }[]): Table => ({
-    noSort: true,
-    noEntityColors: true,
-    header: {
-      name: 'COMMAND',
-      attributes: [{ value: 'DOCS' }]
-    },
-    body: rows.map(({ command, docs }, idx) => ({
-      name: command,
-      outerCSS: idx === 0 ? 'semi-bold' : '',
-      css: 'sub-text',
-      attributes: [{ key: 'DOCS', value: docs }]
-    }))
-  })
-
   const kind = 'NavResponse'
   const metadata = { name: 'usage' }
 
@@ -227,18 +228,26 @@ ${usageSection[0].content.slice(0, usageSection[0].content.indexOf('\n')).trim()
 \`\`\`
 ${usePart}
 `,
-      contentType: 'text/markdown' // FIXME: text/markdown will turn [] to link, we should wrap the content with markdown code syntax
+      contentType: 'text/markdown'
     }
   ]
 
   const optionsMenuItems = (): MultiModalMode[] => {
-    if (sections.some(section => /Options/i.test(section.title))) {
+    if (verb === '') {
+      // kubectl
+      return [
+        {
+          mode: 'Options',
+          contentFrom: 'kubectl options'
+        }
+      ]
+    } else if (sections.some(section => /Options/i.test(section.title))) {
       return sections
         .filter(section => /Options/i.test(section.title))
         .map(section => {
           return {
             mode: section.title.replace(':', ''),
-            content: commandDocTable(section.rows)
+            content: commandDocTable(section.rows, 'OPTIONS')
           }
         })
     } else {
@@ -267,7 +276,7 @@ ${usePart}
             .map(section => {
               return {
                 mode: section.title.replace(/Command(s)/, '').replace(':', ''),
-                content: commandDocTable(section.rows)
+                content: commandDocTable(section.rows, 'COMMAND')
               }
             })
         }
@@ -311,8 +320,8 @@ export const isUsage = (args: Arguments<KubeOptions>) => isHelpRequest(args) || 
 export async function doHelp<O extends KubeOptions>(
   args: Arguments<O>,
   prepare: Prepare<O> = NoPrepare
-): Promise<NavResponse> {
+): Promise<KResponse> {
   const response = await doExecWithoutPty(args, prepare)
   const verb = args.argvNoOptions.length >= 2 ? args.argvNoOptions[1] : ''
-  return renderHelp(response.content.stdout, 'kubectl', verb, response.content.code)
+  return renderHelp(response.content.stdout, 'kubectl', verb)
 }

@@ -51,7 +51,12 @@ function isTableFormat(format: OutputFormat): format is TableFormat {
 }
 
 export function isHelpRequest(args: Arguments<KubeOptions>) {
-  return args.parsedOptions.help || args.parsedOptions.h || args.argvNoOptions[1] === 'help'
+  return (
+    args.parsedOptions.help ||
+    args.parsedOptions.h ||
+    args.argvNoOptions[1] === 'help' ||
+    args.argvNoOptions[1] === 'options' // usage: `kubectl options`
+  )
 }
 
 export function isTableRequest(args: Arguments<KubeOptions>) {
