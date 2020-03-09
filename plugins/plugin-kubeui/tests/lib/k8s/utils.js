@@ -32,6 +32,11 @@ exports.defaultModeForGet = 'summary'
 /** Do singleton tables have a title decoration? */
 exports.singletonTablesHaveTitle = false
 
+/** Selectors of radio button */
+exports.RADIO_BUTTON = 'td.bx--table-column-checkbox.not-a-name'
+
+exports.RADIO_BUTTON_SELECTED = '.bx--data-table--selected'
+
 /**
  * Wait for a green badge
  *

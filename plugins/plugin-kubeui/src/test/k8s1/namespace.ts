@@ -16,7 +16,14 @@
 
 import { strictEqual } from 'assert'
 import { Common, CLI, ReplExpect, SidecarExpect, Selectors, Util } from '@kui-shell/test'
-import { waitForGreen, waitForRed, createNS, waitTillNone } from '@kui-shell/plugin-kubeui/tests/lib/k8s/utils'
+import {
+  waitForGreen,
+  waitForRed,
+  createNS,
+  waitTillNone,
+  RADIO_BUTTON,
+  RADIO_BUTTON_SELECTED
+} from '@kui-shell/plugin-kubeui/tests/lib/k8s/utils'
 
 const ns1: string = createNS()
 const ns2: string = createNS()
@@ -101,16 +108,19 @@ describe(`kubectl namespace ${process.env.MOCHA_RUN_TARGET || ''}`, function(thi
       })
 
       it(`should initiate namespace switch via click`, () => {
+        const radioButton = `${Selectors.BY_NAME('')} ${RADIO_BUTTON}`
+        const radioButtonSelected = `${Selectors.BY_NAME('')}${RADIO_BUTTON_SELECTED}`
+
         return CLI.command(`${kubectl} get ns ${ns1}`, this.app)
-          .then(ReplExpect.okWithCustom({ selector: `${Selectors.BY_NAME('')} .bx--radio-button` }))
+          .then(ReplExpect.okWithCustom({ selector: radioButton }))
           .then(selector =>
             this.app.client.waitUntil(async () => {
               await this.app.client.click(selector)
               const actualNamespace = await this.app.client.getText(
                 '#kui--status-stripe .kui--plugin-kubeui--current-namespace .kui--status-stripe-text'
               )
-              const isSelected = await this.app.client.isSelected(selector)
-              return actualNamespace === ns1 && isSelected
+              await this.app.client.waitForExist(selector.replace(radioButton, radioButtonSelected))
+              return actualNamespace === ns1
             })
           )
           .catch(Common.oops(this, true))

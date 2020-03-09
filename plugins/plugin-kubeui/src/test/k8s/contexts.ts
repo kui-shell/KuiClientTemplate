@@ -22,7 +22,13 @@ import * as assert from 'assert'
 
 import { expandHomeDir } from '@kui-shell/core'
 import { Common, CLI, ReplExpect, SidecarExpect, Selectors } from '@kui-shell/test'
-import { waitForGreen, waitForRed, createNS, waitTillNone } from '@kui-shell/plugin-kubeui/tests/lib/k8s/utils'
+import {
+  waitForGreen,
+  waitForRed,
+  createNS,
+  waitTillNone,
+  RADIO_BUTTON_SELECTED
+} from '@kui-shell/plugin-kubeui/tests/lib/k8s/utils'
 
 const synonyms = ['kubectl']
 
@@ -140,7 +146,7 @@ Common.localDescribe('electron context switching', function(this: Common.ISuite)
           const currentContextAsIndicatedByContextsTable = await CLI.command(`contexts`, this.app)
             .then(
               ReplExpect.okWithCustom({
-                selector: `.bx--data-table--selected .entity-name[data-key="NAME"]`
+                selector: `${RADIO_BUTTON_SELECTED} .entity-name[data-key="NAME"]`
               })
             )
             .then(selector => this.app.client.getText(selector))
@@ -200,7 +206,7 @@ Common.localDescribe('electron context switching', function(this: Common.ISuite)
           await this.app.client.click(`${selector} .entity-name.clickable`)
 
           // the row in that first table had better now be selected
-          await this.app.client.waitForExist(`${selector}.bx--data-table--selected`)
+          await this.app.client.waitForExist(`${selector}${RADIO_BUTTON_SELECTED}`)
 
           // and if we request a new contexts table, it'd better be selected there, too
           const selector2 = await CLI.command(`contexts`, this.app).then(
@@ -208,7 +214,7 @@ Common.localDescribe('electron context switching', function(this: Common.ISuite)
               selector: Selectors.BY_NAME(contextName)
             })
           )
-          await this.app.client.waitForExist(`${selector2}.bx--data-table--selected`)
+          await this.app.client.waitForExist(`${selector2}${RADIO_BUTTON_SELECTED}`)
         } catch (err) {
           return Common.oops(this)(err)
         }

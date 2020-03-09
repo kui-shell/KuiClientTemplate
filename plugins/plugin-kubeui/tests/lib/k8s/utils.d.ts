@@ -30,6 +30,11 @@ declare var defaultModeForGet: string
  */
 declare let singletonTablesHaveTitle: boolean
 
+/** Selectors of radio button */
+declare var RADIO_BUTTON: string
+
+declare var RADIO_BUTTON_SELECTED: string
+
 /**
  * Allocate a new unique namespace name
  *
