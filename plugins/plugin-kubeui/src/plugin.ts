@@ -16,6 +16,7 @@
 
 import { Registrar } from '@kui-shell/core'
 
+import apiResources from './controller/kubectl/api-resources'
 import contexts from './controller/kubectl/contexts'
 import create from './controller/kubectl/create'
 import describe from './controller/kubectl/describe'
@@ -31,6 +32,7 @@ import fetchFile from './controller/fetch-file'
 import catchall from './controller/kubectl/catchall'
 
 export default async (registrar: Registrar) => {
+  apiResources(registrar)
   contexts(registrar)
   create(registrar)
   describe(registrar)
