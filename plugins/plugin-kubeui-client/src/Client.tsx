@@ -28,9 +28,9 @@ import { default as ClusterUtilization } from './view/status-stripe/cluster-util
  *   - CurrentGitBranch
  *
  */
-export default function renderMain() {
+export default function renderMain(isPopup: boolean, commandLine?: string[]) {
   return (
-    <DefaultClient>
+    <DefaultClient isPopup commandLine={commandLine}>
       <ContextWidgets>
         <CurrentContext />
         <CurrentNamespace />

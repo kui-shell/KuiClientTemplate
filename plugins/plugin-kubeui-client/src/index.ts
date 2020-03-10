@@ -23,8 +23,8 @@ import Client from './Client'
  * Use react-dom to render the client into the given container
  *
  */
-function renderMain(container: Element) {
-  ReactDomRender(Client(), container)
+function renderMain(container: Element, isPopup: boolean, commandLine?: string[]) {
+  ReactDomRender(Client(isPopup, commandLine), container)
 }
 
 /** boot Kui! */
