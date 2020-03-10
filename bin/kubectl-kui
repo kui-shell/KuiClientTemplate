@@ -4,9 +4,6 @@
 process.argv.shift()
 
 process.argv.push('--command-context=["kubeui","kubectl"]')
-// process.argv.push('--ui')
 process.env.KUI_HEADLESS = true
-
-// process.env.DEFAULT_TO_UI = true
 
 require('@kui-shell/core').main(process.argv)
