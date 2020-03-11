@@ -49,9 +49,8 @@ const commandDocTable = (rows: { command: string; docs: string }[], headerKey: s
     name: headerKey,
     attributes: [{ value: 'DOCS' }]
   },
-  body: rows.map(({ command, docs }, idx) => ({
+  body: rows.map(({ command, docs }) => ({
     name: command,
-    outerCSS: idx === 0 ? 'semi-bold' : '',
     css: 'sub-text',
     attributes: [{ key: 'DOCS', value: docs }]
   }))
