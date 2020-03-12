@@ -15,7 +15,7 @@
  */
 
 import * as Debug from 'debug'
-import { Arguments, NavResponse, Table, KResponse, MultiModalMode } from '@kui-shell/core'
+import { Arguments, NavResponse, Table, TableStyle, KResponse, MultiModalMode } from '@kui-shell/core'
 import { KubeOptions, isHelpRequest } from '../../controller/kubectl/options'
 import commandPrefix from '../../controller/command-prefix'
 import { doExecWithoutPty, Prepare, NoPrepare } from '../../controller/kubectl/exec'
@@ -42,28 +42,42 @@ ${docs}
 `
 }
 
-const commandDocTable = (rows: { command: string; docs: string }[], headerKey: string): Table => ({
+const commandDocTable = (
+  rows: { command: string; docs: string }[],
+  kubeCommand: string,
+  verb: string,
+  headerKey: 'OPTIONS' | 'COMMAND',
+  style = TableStyle.Light
+): Table => ({
   noSort: true,
   noEntityColors: true,
+  style,
   header: {
     name: headerKey,
     attributes: [{ value: 'DOCS' }]
   },
   body: rows.map(({ command, docs }) => ({
     name: command,
-    css: 'sub-text',
-    attributes: [{ key: 'DOCS', value: docs }]
+    css: headerKey === 'COMMAND' ? 'clickable semi-bold map-key' : 'sub-text',
+    onclick: headerKey === 'COMMAND' ? `${kubeCommand} ${verb || ''} ${command} -h` : undefined,
+    attributes: [{ key: 'DOCS', value: docs, css: 'map-value' }]
   }))
 })
+
+interface Section {
+  title: string
+  content: string
+}
 
 /**
  * Pretty-print the kubectl help output
  *
  * @param command e.g. helm versus kubectl
  * @param verb e.g. list versus get
+ * @param entityType e.g. pod versus deployment
  *
  */
-export const renderHelp = (out: string, command: string, verb: string): NavResponse | Table => {
+export const renderHelp = (out: string, command: string, verb: string, entityType?: string): NavResponse | Table => {
   // kube and helm help often have a `Use "this command" to do that operation`
   // let's pick those off and place them into the detailedExample model
   const splitOutUse = out.match(/^(Use\s+.+)$/gm)
@@ -80,7 +94,7 @@ export const renderHelp = (out: string, command: string, verb: string): NavRespo
           (_, command) => `[${command}](kui://exec?command=${encodeURIComponent(command)} "Execute ${command}")`
         )
       )
-      .map(_ => ` - ${_}`)
+      // .map(_ => ` - ${_}`)
       .join('\n')
 
   const rawSections = nonUseOut.split(/\n([^'\s].*:)\n/) // the non-use sections of the docs
@@ -114,11 +128,11 @@ export const renderHelp = (out: string, command: string, verb: string): NavRespo
   if (verb === 'options') {
     const optionDocs = header.split('\n\n')
     const sections = processSections({ title: optionDocs[0], content: optionDocs[1].replace(/^\n/, '') })
-    return commandDocTable(sections.rows, 'OPTIONS')
+    return commandDocTable(sections.rows, command, verb, 'OPTIONS', TableStyle.Medium)
   }
 
   // for the remaining sections, form a [{ title, content }] model
-  const _allSections: Section[] = rawSections.slice(1).reduce((S, _, idx, sections) => {
+  const allSections: Section[] = rawSections.slice(1).reduce((S, _, idx, sections) => {
     if (idx % 2 === 0) {
       S.push({
         title: sections[idx],
@@ -128,14 +142,6 @@ export const renderHelp = (out: string, command: string, verb: string): NavRespo
 
     return S
   }, [])
-
-  interface Section {
-    title: string
-    content: string
-  }
-  const allSections: Section[] = [_allSections[0]].concat(
-    _allSections.slice(1).sort((a, b) => -a.title.localeCompare(b.title))
-  )
 
   // pull off the Usage section and place it into our usage model
   const usageSection = allSections.filter(({ title }) => title === 'Usage:')
@@ -210,23 +216,20 @@ export const renderHelp = (out: string, command: string, verb: string): NavRespo
 
   const baseModes = (): MultiModalMode[] => [
     {
-      mode: 'About',
+      mode: 'Introduction',
       content: header
         .concat('\n\n')
-        .concat(usePart)
         .replace(/(--\S+)/g, '`$1`')
-        .replace(/^([^\n.]+)(\.?)/, '### $1'),
-      contentType: 'text/markdown'
-    },
-    {
-      mode: 'Usage',
-      content: `
+        .replace(/^([^\n.]+)(\.?)/, '### About\n$1')
+        .concat(
+          `
 ### Usage
 \`\`\`
 ${usageSection[0].content.slice(0, usageSection[0].content.indexOf('\n')).trim()}
 \`\`\`
-${usePart}
-`,
+`
+        )
+        .concat(usePart.length > 0 ? `### Guide\n${usePart}` : ''),
       contentType: 'text/markdown'
     }
   ]
@@ -246,7 +249,7 @@ ${usePart}
         .map(section => {
           return {
             mode: section.title.replace(':', ''),
-            content: commandDocTable(section.rows, 'OPTIONS')
+            content: commandDocTable(section.rows, command, verb, 'OPTIONS', TableStyle.Medium)
           }
         })
     } else {
@@ -275,7 +278,7 @@ ${usePart}
             .map(section => {
               return {
                 mode: section.title.replace(/Command(s)/, '').replace(':', ''),
-                content: commandDocTable(section.rows, 'COMMAND')
+                content: commandDocTable(section.rows, command, verb, 'COMMAND')
               }
             })
         }
@@ -291,7 +294,10 @@ ${usePart}
           kind,
           metadata,
           modes: detailedExample.map(_ => ({
-            mode: _.command.replace(/^kubectl\s+/, ''),
+            // e.g.
+            //  - kubectl get ... -> get ...
+            //  - kubectl create clusterrole ... -> clusterrole ...
+            mode: _.command.replace(new RegExp(`^${command}\\s+${entityType ? verb : ''}`), ''),
             contentType: 'text/markdown',
             content: formatAsMarkdown(_)
           }))
@@ -300,7 +306,11 @@ ${usePart}
     }
   }
 
-  const usageResponse = Object.assign(headerNav(verb ? `${command} ${verb}` : command), commandNav(), exampleNav())
+  const usageResponse = Object.assign(
+    headerNav(verb ? `${entityType ? '' : `${command} `}${verb}${entityType ? ` ${entityType} ` : ''}` : command),
+    commandNav(),
+    exampleNav()
+  )
 
   debug('usageResponse', usageResponse)
 
@@ -322,5 +332,6 @@ export async function doHelp<O extends KubeOptions>(
 ): Promise<KResponse> {
   const response = await doExecWithoutPty(args, prepare)
   const verb = args.argvNoOptions.length >= 2 ? args.argvNoOptions[1] : ''
-  return renderHelp(response.content.stdout, 'kubectl', verb)
+  const entityType = args.argvNoOptions.length >= 3 ? args.argvNoOptions[2] : ''
+  return renderHelp(response.content.stdout, 'kubectl', verb, entityType)
 }
