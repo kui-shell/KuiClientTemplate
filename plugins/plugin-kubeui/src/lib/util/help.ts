@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 IBM Corporation
+ * Copyright 2018-20 IBM Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -363,11 +363,12 @@ const isKubectl = (args: Arguments<KubeOptions>) =>
 export const isUsage = (args: Arguments<KubeOptions>) => isHelpRequest(args) || isKubectl(args)
 
 export async function doHelp<O extends KubeOptions>(
+  command: string,
   args: Arguments<O>,
   prepare: Prepare<O> = NoPrepare
 ): Promise<KResponse> {
-  const response = await doExecWithoutPty(args, prepare)
+  const response = await doExecWithoutPty(args, prepare, command)
   const verb = args.argvNoOptions.length >= 2 ? args.argvNoOptions[1] : ''
   const entityType = args.argvNoOptions.length >= 3 ? args.argvNoOptions[2] : ''
-  return renderHelp(response.content.stdout, 'kubectl', verb, entityType)
+  return renderHelp(response.content.stdout, command, verb, entityType)
 }

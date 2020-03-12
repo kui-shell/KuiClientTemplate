@@ -40,7 +40,7 @@ function prepareArgsForDelete(args: Arguments<KubeOptions>) {
 
 export const doDelete = (command = 'kubectl') => async (args: Arguments<KubeOptions>) => {
   if (isUsage(args)) {
-    return doHelp(args, prepareArgsForDelete)
+    return doHelp(command, args, prepareArgsForDelete)
   } else {
     return doExecWithStatus('delete', FinalState.OfflineLike, command, prepareArgsForDelete)(args)
   }

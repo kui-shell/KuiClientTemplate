@@ -25,7 +25,7 @@ import { isUsage, doHelp } from '../../lib/util/help'
 
 export const doGet = (command: string) => async (args: Arguments<KubeOptions>): Promise<KResponse> => {
   if (isUsage(args)) {
-    return doHelp(args)
+    return doHelp(command, args)
   } else {
     // first, we do the raw exec of the given command
     const response = await exec(args, undefined, command)
