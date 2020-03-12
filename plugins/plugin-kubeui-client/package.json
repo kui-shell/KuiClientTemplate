@@ -7,8 +7,8 @@
   "main": "dist/index.js",
   "module": "mdist/index.js",
   "dependencies": {
-    "@kui-shell/plugin-client-common": "^7.0.38",
-    "@kui-shell/plugin-client-default": "^7.0.38",
+    "@kui-shell/plugin-client-common": "^7.0.39",
+    "@kui-shell/plugin-client-default": "^7.0.39",
     "@kui-shell/plugin-view-utilization": "*",
     "@kui-shell/plugin-kubeui": "*"
   },
