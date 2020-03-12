@@ -17,7 +17,7 @@
 import { Common } from '@kui-shell/test'
 import { doHelp } from '../../../tests/lib/k8s/utils'
 
-const commonModes = ['About', 'Usage']
+const commonModes = ['Introduction']
 const kubectlModes = commonModes.concat(['Basic  (Beginner)'])
 const kubectlGetModes = commonModes.concat(['get pods'])
 

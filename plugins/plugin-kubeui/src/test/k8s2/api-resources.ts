@@ -17,7 +17,7 @@
 import { Common, CLI, Selectors, ReplExpect } from '@kui-shell/test'
 import { createNS, allocateNS, doHelp } from '../../../tests/lib/k8s/utils'
 
-const commonModes = ['About', 'Usage', 'Options']
+const commonModes = ['Introduction', 'Options']
 const kubectlApiResourcesModes = commonModes.concat(['api-resources'])
 
 describe('kubectl api-resources', function(this: Common.ISuite) {
