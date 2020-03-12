@@ -15,12 +15,13 @@
  */
 
 import * as Debug from 'debug'
-import { Arguments, NavResponse, Table, TableStyle, KResponse, MultiModalMode } from '@kui-shell/core'
+import { Arguments, NavResponse, Table, TableStyle, KResponse, MultiModalMode, Menu, Link, i18n } from '@kui-shell/core'
 import { KubeOptions, isHelpRequest } from '../../controller/kubectl/options'
 import commandPrefix from '../../controller/command-prefix'
 import { doExecWithoutPty, Prepare, NoPrepare } from '../../controller/kubectl/exec'
 
 const debug = Debug('kubectl/help')
+const strings = i18n('plugin-kubeui')
 
 /**
  * Some of the kubectl doc strings try to be polite have form
@@ -59,7 +60,7 @@ const commandDocTable = (
   body: rows.map(({ command, docs }) => ({
     name: command,
     css: headerKey === 'COMMAND' ? 'clickable semi-bold map-key' : 'sub-text',
-    onclick: headerKey === 'COMMAND' ? `${kubeCommand} ${verb || ''} ${command} -h` : undefined,
+    onclick: headerKey === 'COMMAND' ? `${kubeCommand}${verb ? ` ${verb}` : ''} ${command} -h` : undefined,
     attributes: [{ key: 'DOCS', value: docs, css: 'map-value' }]
   }))
 })
@@ -211,16 +212,27 @@ export const renderHelp = (out: string, command: string, verb: string, entityTyp
     .filter(x => x)
 
   /* Here comes Usage NavResponse */
-  const kind = 'NavResponse'
+  const kind = 'MultiModalResponse'
   const metadata = { name: 'usage' }
 
   const baseModes = (): MultiModalMode[] => [
     {
-      mode: 'Introduction',
+      mode: strings('Introduction'),
       content: header
+        .replace(/\n\s*(IMPORTANT:)([^\n]+)/, `\n> **$1**$2`)
+        .replace(/(\s)(NOT)(\s)/g, '$1**$2**$3')
+        .replace(
+          /(:\n\n\s*)((([^,\n])+,)+[^,\n]+)/g,
+          (_, m1, m2) =>
+            `${m1}${m2
+              .split(/,/)
+              .map(_ => ` - ${_}`)
+              .join('\n')}\n`
+        )
         .concat('\n\n')
         .replace(/(--\S+)/g, '`$1`')
-        .replace(/^([^\n.]+)(\.?)/, '### About\n$1')
+        .replace(/^([^\n.]+)(\.?)/, '### About\n#### $1')
+        .replace(/\n\s*(Find more information at:)\s+([^\n]+)/, '') // [Find more information] will be in links below the menus
         .concat(
           `
 ### Usage
@@ -239,7 +251,7 @@ ${usageSection[0].content.slice(0, usageSection[0].content.indexOf('\n')).trim()
       // kubectl
       return [
         {
-          mode: 'Options',
+          mode: strings('Options'),
           contentFrom: 'kubectl options'
         }
       ]
@@ -258,7 +270,7 @@ ${usageSection[0].content.slice(0, usageSection[0].content.indexOf('\n')).trim()
   }
 
   /** headerNav contains sections: About and Usage */
-  const headerNav = (title: string) => ({
+  const headerMenu = (title: string): Menu => ({
     [title]: {
       kind,
       metadata,
@@ -267,10 +279,10 @@ ${usageSection[0].content.slice(0, usageSection[0].content.indexOf('\n')).trim()
   })
 
   /** commandNav contains sections: Commands */
-  const commandNav = () => {
+  const commandMenu = (): Menu => {
     if (sections.some(section => /command/i.test(section.title))) {
       return {
-        Commands: {
+        [strings('Commands')]: {
           kind,
           metadata,
           modes: sections
@@ -287,10 +299,10 @@ ${usageSection[0].content.slice(0, usageSection[0].content.indexOf('\n')).trim()
   }
 
   /** header nav contains sections: Examples */
-  const exampleNav = () => {
+  const exampleMenu = () => {
     if (detailedExample && detailedExample.length > 0) {
       return {
-        Examples: {
+        [strings('Examples')]: {
           kind,
           metadata,
           modes: detailedExample.map(_ => ({
@@ -306,15 +318,39 @@ ${usageSection[0].content.slice(0, usageSection[0].content.indexOf('\n')).trim()
     }
   }
 
-  const usageResponse = Object.assign(
-    headerNav(verb ? `${entityType ? '' : `${command} `}${verb}${entityType ? ` ${entityType} ` : ''}` : command),
-    commandNav(),
-    exampleNav()
-  )
+  const menus = [
+    headerMenu(verb ? `${entityType ? '' : `${command} `}${verb}${entityType ? ` ${entityType} ` : ''}` : command),
+    commandMenu(),
+    exampleMenu()
+  ].filter(x => x)
 
-  debug('usageResponse', usageResponse)
+  debug('menus', menus)
 
-  return usageResponse
+  // parse links from help
+  const getLinksFromHelp = (): Link[] => {
+    // parse `Find more information at:` link from header
+    const getMoreInfoLinkFromHeader = (header: string) => {
+      const moreInfoTerm = 'Find more information at: '
+      const splitOutNonLink = () => {
+        return header.split(moreInfoTerm)[1].split('\n')[0]
+      }
+
+      if (header.includes(moreInfoTerm)) {
+        return {
+          label: strings('More Information'),
+          href: splitOutNonLink()
+        }
+      }
+    }
+    return [getMoreInfoLinkFromHeader(header)].filter(x => x)
+  }
+
+  return {
+    apiVersion: 'kui-shell/v1',
+    kind: 'NavResponse',
+    menus,
+    links: getLinksFromHelp()
+  }
 }
 
 /** is the given string `str` the `kubectl` command? */

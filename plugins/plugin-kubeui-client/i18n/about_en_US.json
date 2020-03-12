@@ -4,5 +4,6 @@
   "theme": "Themes",
   "Configure": "Configure",
   "tutorial": "Getting Started",
-  "version": "Version"
+  "version": "Version",
+  "Kubectl Help": "Kubectl Help"
 }
