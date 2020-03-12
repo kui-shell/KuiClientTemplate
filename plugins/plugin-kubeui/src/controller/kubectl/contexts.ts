@@ -145,7 +145,7 @@ const listContexts = async (args: Arguments): Promise<RawResponse<KubeContext[]>
 export default (commandTree: Registrar) => {
   commandTree.listen(
     `/${commandPrefix}/kubectl/config/get-contexts`,
-    (args: Arguments): Promise<KResponse> => (isUsage(args) ? doHelp(args) : doExecWithTable(args)),
+    (args: Arguments): Promise<KResponse> => (isUsage(args) ? doHelp('kubectl', args) : doExecWithTable(args)),
     flags
   )
 

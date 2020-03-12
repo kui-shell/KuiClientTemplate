@@ -35,7 +35,7 @@ function prepareArgsForStatus(cmd: string, args: Arguments<KubeOptions>) {
 
 export const doRun = (command = 'kubectl') => (args: Arguments<KubeOptions>): Promise<KResponse> => {
   if (isUsage(args)) {
-    return doHelp(args)
+    return doHelp(command, args)
   } else {
     return doExecWithStatus('run', FinalState.OnlineLike, command, undefined, prepareArgsForStatus)(args)
   }

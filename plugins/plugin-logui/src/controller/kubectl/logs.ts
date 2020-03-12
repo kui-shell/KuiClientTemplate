@@ -96,7 +96,7 @@ function decorateLogLines(lines: string): string {
 async function doLogs(args: Arguments<LogOptions>) {
   if (isUsage(args)) {
     // special case: get --help/-h
-    return doHelp(args)
+    return doHelp('kubectl', args)
   }
 
   const streamed = args.parsedOptions.follow || args.parsedOptions.f

@@ -150,7 +150,7 @@ export const doGet = (command: string) =>
     // first, peel off some special cases:
     if (isUsage(args)) {
       // special case: get --help/-h
-      return doHelp(args, prepareArgsForGet)
+      return doHelp(command, args, prepareArgsForGet)
     }
 
     if (!isHeadless() && isWatchRequest(args)) {

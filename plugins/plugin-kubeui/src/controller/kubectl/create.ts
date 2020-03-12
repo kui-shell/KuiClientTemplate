@@ -30,7 +30,7 @@ const verbs = ['create', 'apply']
 
 export const doCreate = (verb: string, command = 'kubectl') => async (args: Arguments<KubeOptions>) => {
   if (isUsage(args)) {
-    return doHelp(args)
+    return doHelp(command, args)
   } else {
     return doExecWithStatus(verb, FinalState.OnlineLike, command)(args)
   }
