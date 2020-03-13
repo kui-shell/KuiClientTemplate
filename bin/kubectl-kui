@@ -3,7 +3,4 @@
 // get node off the argv
 process.argv.shift()
 
-process.argv.push('--command-context=["kubeui","kubectl"]')
-process.env.KUI_HEADLESS = true
-
 require('@kui-shell/core').main(process.argv)
