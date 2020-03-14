@@ -26,6 +26,26 @@ issue `kubectl kubeui get pods`.
 
 [Latest Release](https://github.com/kui-shell/plugin-kubeui/releases/latest/) **|** [Mac](https://github.com/kui-shell/plugin-kubeui/releases/latest/download/Kui-darwin-x64.tar.bz2) **|** [Linux](https://github.com/kui-shell/plugin-kubeui/releases/latest/download/Kui-linux-x64.zip) **|** [Windows](https://github.com/kui-shell/plugin-kubeui/releases/latest/download/Kui-win32-x64.zip)
 
+# Kubectl Plugin
+
+To run Kui as a `kubectl` plugin, first download Kui, unpack
+the download, and add the unpacked directory to your PATH. At this
+point, you should be ready to Kui as a plugin. For example, on MacOS,
+the steps would be:
+
+```
+curl -L https://macos-tarball.kui-shell.org | tar jxf -
+export PATH=$PWD/Kui-darwin-x64:$PATH
+kubectl kui get pods
+```
+
+After the final command, you should see a popup window listing pods in
+your current namespace.
+
+**Note**: at the moment, we have only finished `kubectl` plugin
+support for Linux and MacOS. For Windows, we will need to complete
+writing a small Powershell wrapper.
+
 # Code and Contribute
 
 ```bash

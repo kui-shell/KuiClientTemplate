@@ -18,8 +18,8 @@ function darwin {
     set -e
 
     echo "zipping for darwin"
-    gzip -9 /tmp/Kui-darwin-x64-tmp.tar
-    mv -f /tmp/Kui-darwin-x64-tmp.tar.gz ../dist/electron/Kui-darwin-x64.tar.gz
+    bzip2 -9 /tmp/Kui-darwin-x64-tmp.tar
+    mv -f /tmp/Kui-darwin-x64-tmp.tar.bz2 ../dist/electron/Kui-darwin-x64.tar.bz2
 }
 
 function linux {
