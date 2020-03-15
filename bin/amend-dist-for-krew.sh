@@ -14,7 +14,7 @@ function darwin {
 
     echo "updating tarball for darwin"
     set +e
-    tar -C krew -uvf /tmp/Kui-darwin-x64-tmp.tar Kui-darwin-x64
+    (cd krew && tar uvf /tmp/Kui-darwin-x64-tmp.tar Kui-darwin-x64)
     set -e
 
     echo "zipping for darwin"
