@@ -14,9 +14,10 @@
  * limitations under the License.
  */
 
-import { i18n, Tab, ModeRegistration } from '@kui-shell/core'
+import { i18n, Tab, ModeRegistration, encodeComponent } from '@kui-shell/core'
 
 import { CustomResourceDefinition, isCustomResourceDefinition } from '../../model/resource'
+import { fqn } from '../../../controller/kubectl/fqn'
 
 const strings = i18n('plugin-kubeui')
 
@@ -25,7 +26,12 @@ const strings = i18n('plugin-kubeui')
  *
  */
 export function command(tab: Tab, crd: CustomResourceDefinition) {
-  return `kubectl get ${tab.REPL.encodeComponent(crd.metadata.name)}`
+  return `kubectl get ${fqn(
+    crd.apiVersion,
+    encodeComponent(crd.kind),
+    encodeComponent(crd.metadata.name),
+    encodeComponent(crd.metadata.namespace || 'default')
+  )}`
 }
 
 /**
