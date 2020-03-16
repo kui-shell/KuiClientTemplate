@@ -29,20 +29,21 @@ const verb = 'top'
  * This is the main handler for `kubectl top`.
  *
  */
-async function doTop(args: Arguments<KubeOptions>): Promise<KResponse> {
-  if (isUsage(args)) {
-    return doHelp('kubectl', args)
-  } else {
-    // first, we do the raw exec of the given command
-    const response = await exec(args)
+const doTop = (command: string) =>
+  async function _doTop(args: Arguments<KubeOptions>): Promise<KResponse> {
+    if (isUsage(args)) {
+      return doHelp(command, args)
+    } else {
+      // first, we do the raw exec of the given command
+      const response = await exec(args)
 
-    return doGetAsTable(args, response, verb)
+      return doGetAsTable(command, args, response, verb)
+    }
   }
-}
 
 export default (commandTree: Registrar) => {
-  commandTree.listen(`/${commandPrefix}/kubectl/${verb}/node`, doTop, flags)
-  commandTree.listen(`/${commandPrefix}/k/${verb}/node`, doTop, flags)
-  commandTree.listen(`/${commandPrefix}/kubectl/${verb}/pod`, doTop, flags)
-  commandTree.listen(`/${commandPrefix}/k/${verb}/pod`, doTop, flags)
+  commandTree.listen(`/${commandPrefix}/kubectl/${verb}/node`, doTop('kubectl'), flags)
+  commandTree.listen(`/${commandPrefix}/k/${verb}/node`, doTop('k'), flags)
+  commandTree.listen(`/${commandPrefix}/kubectl/${verb}/pod`, doTop('kubectl'), flags)
+  commandTree.listen(`/${commandPrefix}/k/${verb}/pod`, doTop('k'), flags)
 }
