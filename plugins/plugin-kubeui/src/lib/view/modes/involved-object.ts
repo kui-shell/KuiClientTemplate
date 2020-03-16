@@ -16,6 +16,7 @@
 
 import { i18n, encodeComponent, Tab, ModeRegistration } from '@kui-shell/core'
 
+import { fqn } from '../../../controller/kubectl/fqn'
 import { hasInvolvedObject, KubeResourceWithInvolvedObject } from '../../model/resource'
 
 const strings = i18n('plugin-kubeui')
@@ -24,9 +25,12 @@ const strings = i18n('plugin-kubeui')
  * Extract the events
  *
  */
-function command(tab: Tab, { involvedObject: { kind, name, namespace } }: KubeResourceWithInvolvedObject) {
-  return `kubectl get ${encodeComponent(kind)} ${encodeComponent(name)} -n ${encodeComponent(
-    namespace || 'default'
+function command(tab: Tab, { involvedObject: { apiVersion, kind, name, namespace } }: KubeResourceWithInvolvedObject) {
+  return `kubectl get ${fqn(
+    apiVersion,
+    encodeComponent(kind),
+    encodeComponent(name),
+    encodeComponent(namespace || 'default')
   )} -o yaml`
 }
 

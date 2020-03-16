@@ -339,7 +339,12 @@ class StatusWatcher implements Abortable, Watcher {
         onclick: `kubectl get ${fqnOfRef(ref)} -o yaml`,
         onclickSilence: true,
         attributes: this.nsAttr(namespace, anyNonDefaultNamespaces).concat([
-          { key: 'KIND', value: kind + (group.length > 0 ? `.${group}.${version}` : ''), outerCSS: '', css: '' },
+          {
+            key: 'KIND',
+            value: kind + (group.length > 0 ? `.${group}${version ? `.${version}` : ''}` : ''),
+            outerCSS: '',
+            css: ''
+          },
           { key: 'STATUS', tag: 'badge', value: strings('Pending'), outerCSS: '', css: TrafficLight.Yellow }
           // { key: 'MESSAGE', value: '', outerCSS: 'hide-with-sidecar' }
         ])
