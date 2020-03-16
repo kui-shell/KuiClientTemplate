@@ -43,12 +43,16 @@ function prepareArgsForGet(args: Arguments<KubeOptions>) {
  * `kubectl get` as a table response
  *
  */
-export function doGetAsTable(args: Arguments<KubeOptions>, response: RawResponse, verb = 'get'): KubeTableResponse {
+export function doGetAsTable(
+  command: string,
+  args: Arguments<KubeOptions>,
+  response: RawResponse,
+  verb = 'get'
+): KubeTableResponse {
   const {
     content: { stderr, stdout }
   } = response
 
-  const command = 'kubectl'
   const entityType = args.argvNoOptions[args.argvNoOptions.indexOf(verb) + 1]
 
   return stringToTable(stdout, stderr, args, command, verb, entityType)
@@ -173,7 +177,7 @@ export const doGet = (command: string) =>
       return doGetAsEntity(args, response)
     } else if (isTableRequest(args)) {
       // case 2: get-as-table
-      return doGetAsTable(args, response)
+      return doGetAsTable(command, args, response)
     } else {
       // case 3: get-as-custom
       return doGetCustom(args, response)
