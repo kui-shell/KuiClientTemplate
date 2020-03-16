@@ -28,13 +28,13 @@ import { summarizeNamespaceOnSwitch } from '@kui-shell/client/config.d/kubectl.j
  * Special table for namespaces
  *
  */
-async function doGetNamespaceTable(args: Arguments<KubeOptions>) {
+async function doGetNamespaceTable(command: string, args: Arguments<KubeOptions>) {
   const [
     baseTable,
     {
       metadata: { namespace: currentNamespace }
     }
-  ] = await Promise.all([doGetAsTable(args, await rawGet(args)), getCurrentContext(args.tab)])
+  ] = await Promise.all([doGetAsTable(command, args, await rawGet(args)), getCurrentContext(args.tab)])
 
   // user asked for a table, and *did not* ask for a watchable table?
   // then decorate the table as a row-selectable table
@@ -103,11 +103,11 @@ async function doGetNamespaceTable(args: Arguments<KubeOptions>) {
  * table, or the default get impl.
  *
  */
-function doGetNamespace(args: Arguments<KubeOptions>) {
+const doGetNamespace = (command: string) => (args: Arguments<KubeOptions>) => {
   if (isTableRequest(args) && !isWatchRequest(args) && args.execOptions.type !== ExecType.Nested) {
-    return doGetNamespaceTable(args)
+    return doGetNamespaceTable(command, args)
   } else {
-    return doGet('kubectl')(args)
+    return doGet(command)(args)
   }
 }
 
@@ -190,12 +190,12 @@ async function doGetCurrentNamespace({ tab }: Arguments<KubeOptions>) {
 }
 
 export default (commandTree: Registrar) => {
-  commandTree.listen(`/${commandPrefix}/kubectl/get/namespaces`, doGetNamespace, flags)
-  commandTree.listen(`/${commandPrefix}/k/get/namespaces`, doGetNamespace, flags)
-  commandTree.listen(`/${commandPrefix}/kubectl/get/namespace`, doGetNamespace, flags)
-  commandTree.listen(`/${commandPrefix}/k/get/namespace`, doGetNamespace, flags)
-  commandTree.listen(`/${commandPrefix}/kubectl/get/ns`, doGetNamespace, flags)
-  commandTree.listen(`/${commandPrefix}/k/get/ns`, doGetNamespace, flags)
+  commandTree.listen(`/${commandPrefix}/kubectl/get/namespaces`, doGetNamespace('kubectl'), flags)
+  commandTree.listen(`/${commandPrefix}/k/get/namespaces`, doGetNamespace('k'), flags)
+  commandTree.listen(`/${commandPrefix}/kubectl/get/namespace`, doGetNamespace('kubectl'), flags)
+  commandTree.listen(`/${commandPrefix}/k/get/namespace`, doGetNamespace('k'), flags)
+  commandTree.listen(`/${commandPrefix}/kubectl/get/ns`, doGetNamespace('kubectl'), flags)
+  commandTree.listen(`/${commandPrefix}/k/get/ns`, doGetNamespace('k'), flags)
 
   commandTree.listen(`/${commandPrefix}/namespace/current`, doGetCurrentNamespace, flags)
   commandTree.listen(`/${commandPrefix}/namespace/summarize`, doSummarizeNamespace, flags)
