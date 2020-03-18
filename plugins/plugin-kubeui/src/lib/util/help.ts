@@ -15,7 +15,19 @@
  */
 
 import * as Debug from 'debug'
-import { Arguments, NavResponse, Table, TableStyle, KResponse, MultiModalMode, Menu, Link, i18n } from '@kui-shell/core'
+import {
+  Arguments,
+  NavResponse,
+  Table,
+  TableStyle,
+  KResponse,
+  MultiModalMode,
+  Menu,
+  Link,
+  i18n,
+  Breadcrumb
+} from '@kui-shell/core'
+
 import { KubeOptions, isHelpRequest } from '../../controller/kubectl/options'
 import commandPrefix from '../../controller/command-prefix'
 import { doExecWithoutPty, Prepare, NoPrepare } from '../../controller/kubectl/exec'
@@ -68,6 +80,11 @@ const commandDocTable = (
 interface Section {
   title: string
   content: string
+}
+
+/** Produce a Breadcrumb */
+function breadcrumb(label: string, hasCommand = true, ...commandContext: string[]): Breadcrumb[] {
+  return !label ? [] : [{ label, command: hasCommand ? `${commandContext.join(' ')} ${label} -h` : undefined }]
 }
 
 /**
@@ -318,11 +335,7 @@ ${usageSection[0].content.slice(0, usageSection[0].content.indexOf('\n')).trim()
     }
   }
 
-  const menus = [
-    headerMenu(verb ? `${entityType ? '' : `${command} `}${verb}${entityType ? ` ${entityType} ` : ''}` : command),
-    commandMenu(),
-    exampleMenu()
-  ].filter(x => x)
+  const menus = [headerMenu(strings('Usage')), commandMenu(), exampleMenu()].filter(x => x)
 
   debug('menus', menus)
 
@@ -345,10 +358,19 @@ ${usageSection[0].content.slice(0, usageSection[0].content.indexOf('\n')).trim()
     return [getMoreInfoLinkFromHeader(header)].filter(x => x)
   }
 
+  // notes: the second breadcrumb hasCommand only if we have an
+  // entityType; e.g. `kubectl create` -> the second breadcrumb should
+  // not be a clickable; whereas with `kubectl create clusterrole` ->
+  // the second breadcrumb should be clickable
+  const breadcrumbs = breadcrumb(command)
+    .concat(breadcrumb(verb, !!entityType, command))
+    .concat(breadcrumb(entityType, false, command, verb))
+
   return {
     apiVersion: 'kui-shell/v1',
     kind: 'NavResponse',
     menus,
+    breadcrumbs,
     links: getLinksFromHelp()
   }
 }

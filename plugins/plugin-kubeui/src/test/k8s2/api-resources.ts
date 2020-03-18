@@ -43,5 +43,5 @@ describe('kubectl api-resources', function(this: Common.ISuite) {
       .catch(Common.oops(this, true)))
 
   const help = doHelp.bind(this)
-  help('kubectl api-resources -h', 'kubectl api-resources', kubectlApiResourcesModes)
+  help('kubectl api-resources -h', ['kubectl', 'api-resources'], kubectlApiResourcesModes)
 })

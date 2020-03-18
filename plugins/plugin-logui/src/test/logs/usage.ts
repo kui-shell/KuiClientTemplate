@@ -23,5 +23,5 @@ describe('kubectl logs dash h', function(this: Common.ISuite) {
 
   const help = doHelp.bind(this)
 
-  help('kubectl logs -h', 'kubectl logs', ['Introduction', 'logs nginx'])
+  help('kubectl logs -h', ['kubectl', 'logs'], ['Introduction', 'logs nginx'])
 })
