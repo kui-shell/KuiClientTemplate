@@ -27,14 +27,14 @@ describe('kubectl dash h', function(this: Common.ISuite) {
 
   const help = doHelp.bind(this)
 
-  help('k', 'kubectl', kubectlModes)
+  help('k', ['kubectl'], kubectlModes)
 
   it('should refresh', () => Common.refresh(this))
-  help('kubectl', 'kubectl', kubectlModes)
+  help('kubectl', ['kubectl'], kubectlModes)
 
   it('should refresh', () => Common.refresh(this))
-  help('k get -h', 'kubectl get', kubectlGetModes)
+  help('k get -h', ['kubectl', 'get'], kubectlGetModes)
 
   it('should refresh', () => Common.refresh(this))
-  help('kubectl get -h', 'kubectl get', kubectlGetModes)
+  help('kubectl get -h', ['kubectl', 'get'], kubectlGetModes)
 })

@@ -95,7 +95,11 @@ declare function typeSlowly(app: Application, txt: string): Promise<void>
 declare var kubectl: headless
 
 /**
- * Test Usage
+ * Test Usage rendering
+ *
+ * @param cmd command to issue to the terminal
+ * @param breadcrumbs array of expected breadcrumbs
+ * @param modes array of expected nav menus (can be a subset)
  *
  */
-declare function doHelp(this: Common.ISuite, cmd: string, showing: string, modes: string[]): Promise<void>
+declare function doHelp(this: Common.ISuite, cmd: string, breadcrumbs: string[], modes: string[]): Promise<void>
