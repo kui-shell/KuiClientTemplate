@@ -229,7 +229,8 @@ export const doExecWithStatus = <O extends KubeOptions>(
 
     const statusArgs = prepareForStatus(cmd, args)
 
-    const statusCmd = `${commandPrefix} status ${statusArgs} ${watchArgs} ${contextArgs} ${errorReportingArgs}`
+    const commandArgs = `--command ${command}`
+    const statusCmd = `${commandPrefix} status ${statusArgs} ${watchArgs} ${contextArgs} ${errorReportingArgs} ${commandArgs}`
     return args.REPL.qexec(statusCmd, args.block)
   }
 }

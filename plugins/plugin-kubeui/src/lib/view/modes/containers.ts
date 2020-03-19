@@ -20,6 +20,7 @@ import { encodeComponent, i18n, Tab, Row, Table, ModeRegistration } from '@kui-s
 
 import KubeResource from '../../model/resource'
 import TrafficLight from '../../model/traffic-light'
+import { getCommandFromArgs } from '../../util/util'
 
 const strings = i18n('plugin-kubeui')
 const debug = Debug('k8s/view/modes/containers')
@@ -54,19 +55,19 @@ const headerModel = (pod: KubeResource): Row => {
  * Return a drilldown function that shows container logs
  *
  */
-const showLogs = (tab: Tab, { pod, container }) => {
+const showLogs = (tab: Tab, { pod, container }, args: { argvNoOptions: string[] }) => {
   const podName = encodeComponent(pod.metadata.name)
   const containerName = encodeComponent(container.name)
   const ns = encodeComponent(pod.metadata.namespace)
 
-  return `kubectl logs ${podName} ${containerName} -n ${ns}`
+  return `${getCommandFromArgs(args)} logs ${podName} ${containerName} -n ${ns}`
 }
 
 /**
  * Render the table body model
  *
  */
-const bodyModel = (tab: Tab, pod: KubeResource): Row[] => {
+const bodyModel = (tab: Tab, pod: KubeResource, args: { argvNoOptions: string[] }): Row[] => {
   const statuses = pod.status && pod.status.containerStatuses
 
   const bodyModel: Row[] = pod.spec.containers
@@ -129,7 +130,7 @@ const bodyModel = (tab: Tab, pod: KubeResource): Row[] => {
       return {
         type: 'container',
         name: container.name,
-        onclick: showLogs(tab, { pod, container }),
+        onclick: showLogs(tab, { pod, container }, args),
         attributes: specAttrs.concat(statusAttrs)
       }
     })
@@ -143,8 +144,8 @@ const bodyModel = (tab: Tab, pod: KubeResource): Row[] => {
  * Render the tabular containers view
  *
  */
-async function renderContainers(tab: Tab, resource: KubeResource): Promise<Table> {
-  const fetchPod = `kubectl get pod ${encodeComponent(resource.metadata.name)} -n "${
+async function renderContainers(tab: Tab, resource: KubeResource, args: { argvNoOptions: string[] }): Promise<Table> {
+  const fetchPod = `${getCommandFromArgs(args)} get pod ${encodeComponent(resource.metadata.name)} -n "${
     resource.metadata.namespace
   }" -o json`
   debug('issuing command', fetchPod)
@@ -155,7 +156,7 @@ async function renderContainers(tab: Tab, resource: KubeResource): Promise<Table
 
     return {
       header: headerModel(podResource),
-      body: bodyModel(tab, podResource),
+      body: bodyModel(tab, podResource, args),
       noSort: true,
       title: 'Containers'
     }

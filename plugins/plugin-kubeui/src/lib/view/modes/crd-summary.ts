@@ -27,7 +27,7 @@ const debug = Debug('plugin-kubeui/view/modes/crd-summary')
  * Extract the events
  *
  */
-async function content(tab: Tab, crd: CustomResourceDefinition) {
+async function content(tab: Tab, crd: CustomResourceDefinition, args: { argvNoOptions: string[] }) {
   const { group, version, scope } = crd.spec
   const kind = crd.spec.names.kind
 
@@ -44,7 +44,7 @@ async function content(tab: Tab, crd: CustomResourceDefinition) {
   try {
     const [{ safeDump }, { body: resources }] = await Promise.all([
       import('js-yaml'),
-      tab.REPL.qexec<Table>(`${command(tab, crd)} -o custom-columns=NAME:.metadata.name`)
+      tab.REPL.qexec<Table>(`${command(tab, crd, args)} -o custom-columns=NAME:.metadata.name`)
     ])
 
     const countObj = { 'resource count': resources.length }

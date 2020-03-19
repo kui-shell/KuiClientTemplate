@@ -17,6 +17,7 @@
 import { Tab } from '@kui-shell/core'
 import { KubeResource } from '../../model/resource'
 import { fqnOf } from '../../../controller/kubectl/fqn'
+import { getCommandFromArgs } from '../../../lib/util/util'
 
 /** makeButton is passed a subset of SidecarMode */
 interface BaseInfo {
@@ -26,7 +27,8 @@ interface BaseInfo {
   balloon?: string
 }
 
-export const renderButton = (mode: string) => (tab: Tab, resource: KubeResource) => `kubectl ${mode} ${fqnOf(resource)}`
+export const renderButton = (mode: string) => (tab: Tab, resource: KubeResource, args: { argvNoOptions: string[] }) =>
+  `${getCommandFromArgs(args)} ${mode} ${fqnOf(resource)}`
 
 const makeButton = (overrides: BaseInfo) => ({
   mode: overrides.mode,

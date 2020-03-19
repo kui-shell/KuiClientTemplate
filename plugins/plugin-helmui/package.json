@@ -27,7 +27,7 @@
   "main": "dist/index.js",
   "module": "mdist/index.js",
   "dependencies": {
-    "@kui-shell/core": "^6.0.15",
+    "@kui-shell/core": "^6.0.17",
     "@kui-shell/plugin-kubeui": "^1.0.12",
     "debug": "4.1.1"
   },

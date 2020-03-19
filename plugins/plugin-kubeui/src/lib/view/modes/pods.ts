@@ -18,17 +18,18 @@ import { Tab, ModeRegistration, Table } from '@kui-shell/core'
 
 import { selectorToString } from '../../util/selectors'
 import { KubeResource } from '../../model/resource'
+import { getCommandFromArgs } from '../../util/util'
 
 /**
  * Render the tabular pods view
  *
  */
-async function renderPods(tab: Tab, resource: KubeResource): Promise<Table> {
+async function renderPods(tab: Tab, resource: KubeResource, args): Promise<Table> {
   const { selector } = resource.spec
 
   const getPods = selector
-    ? `kubectl get pods ${selectorToString(selector)} -n "${resource.metadata.namespace}"`
-    : `kubectl get pods ${resource.status.podName} -n "${resource.metadata.namespace}"`
+    ? `${getCommandFromArgs(args)} get pods ${selectorToString(selector)} -n "${resource.metadata.namespace}"`
+    : `${getCommandFromArgs(args)} get pods ${resource.status.podName} -n "${resource.metadata.namespace}"`
 
   const tableModel = tab.REPL.qexec<Table>(getPods)
   return tableModel
