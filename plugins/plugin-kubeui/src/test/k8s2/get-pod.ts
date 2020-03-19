@@ -26,13 +26,16 @@ import {
 
 import * as assert from 'assert'
 
-const synonyms = ['kubectl']
+const commands = ['kubectl']
+if (process.env.NEEDS_OC) {
+  commands.push('oc')
+}
 
-describe(`kubectl get pod ${process.env.MOCHA_RUN_TARGET || ''}`, function(this: Common.ISuite) {
-  before(Common.before(this))
-  after(Common.after(this))
+commands.forEach(command => {
+  describe(`${command} get pod ${process.env.MOCHA_RUN_TARGET || ''}`, function(this: Common.ISuite) {
+    before(Common.before(this))
+    after(Common.after(this))
 
-  synonyms.forEach(kubectl => {
     /**
      * Interact with the Containers tab
      *
@@ -80,21 +83,21 @@ describe(`kubectl get pod ${process.env.MOCHA_RUN_TARGET || ''}`, function(this:
     /** error handling starts */
     it('should error out when getting non-existent pod', () => {
       const noName = 'shouldNotExist'
-      return CLI.command(`${kubectl} get pod ${noName}`, this.app)
+      return CLI.command(`${command} get pod ${noName}`, this.app)
         .then(ReplExpect.error(404, `Error from server (NotFound): pods "${noName}" not found`))
         .catch(Common.oops(this, true))
     })
 
     it('should error out when getting non-existent pod, with incorrect comment space', () => {
       const noName = 'shouldNotExist#comment'
-      return CLI.command(`${kubectl} get pod ${noName}`, this.app)
+      return CLI.command(`${command} get pod ${noName}`, this.app)
         .then(ReplExpect.error(404, `Error from server (NotFound): pods "${noName}" not found`))
         .catch(Common.oops(this, true))
     })
 
     it('should error out when getting non-existent pod, with correct comment', () => {
       const noName = 'shouldNotExist'
-      return CLI.command(`${kubectl} get pod ${noName} #comment`, this.app)
+      return CLI.command(`${command} get pod ${noName} #comment`, this.app)
         .then(ReplExpect.error(404, `Error from server (NotFound): pods "${noName}" not found`))
         .catch(Common.oops(this, true))
     })
@@ -111,13 +114,13 @@ describe(`kubectl get pod ${process.env.MOCHA_RUN_TARGET || ''}`, function(this:
     it('should error out when getting 2 non-existent pods', () => {
       const noName1 = 'shouldNotExist1'
       const noName2 = 'shouldNotExist2'
-      return CLI.command(`${kubectl} get pod ${noName1} ${noName2}`, this.app)
+      return CLI.command(`${command} get pod ${noName1} ${noName2}`, this.app)
         .then(ReplExpect.error(404))
         .catch(Common.oops(this, true))
     })
 
     it('should error out when getting pods with incorrect comments', () => {
-      return CLI.command(`${kubectl} get pod# comment #comment`, this.app)
+      return CLI.command(`${command} get pod# comment #comment`, this.app)
         .then(ReplExpect.error(404, 'error: the server doesn\'t have a resource type "pod#"'))
         .catch(Common.oops(this, true))
     })
@@ -170,7 +173,7 @@ describe(`kubectl get pod ${process.env.MOCHA_RUN_TARGET || ''}`, function(this:
     it(`should show ready containers if we click after creation`, async () => {
       try {
         const selector: string = await CLI.command(
-          `${kubectl} create -f https://raw.githubusercontent.com/kubernetes/examples/master/staging/pod ${inNamespace}`,
+          `${command} create -f https://raw.githubusercontent.com/kubernetes/examples/master/staging/pod ${inNamespace}`,
           this.app
         ).then(ReplExpect.okWithCustom({ selector: Selectors.BY_NAME('nginx') }))
 
@@ -191,7 +194,7 @@ describe(`kubectl get pod ${process.env.MOCHA_RUN_TARGET || ''}`, function(this:
       }
     })
 
-    const getListAsYAMLCommand = `${kubectl} get pods -o yaml ${inNamespace}`
+    const getListAsYAMLCommand = `${command} get pods -o yaml ${inNamespace}`
     it(`should get a list of pods in yaml form via ${getListAsYAMLCommand}`, () => {
       return CLI.command(getListAsYAMLCommand, this.app)
         .then(ReplExpect.justOK)
@@ -201,9 +204,9 @@ describe(`kubectl get pod ${process.env.MOCHA_RUN_TARGET || ''}`, function(this:
         .catch(Common.oops(this, true))
     })
 
-    it(`should delete the sample pod from URL via ${kubectl}`, () => {
+    it(`should delete the sample pod from URL via ${command}`, () => {
       return CLI.command(
-        `${kubectl} delete -f https://raw.githubusercontent.com/kubernetes/examples/master/staging/pod ${inNamespace}`,
+        `${command} delete -f https://raw.githubusercontent.com/kubernetes/examples/master/staging/pod ${inNamespace}`,
         this.app
       )
         .then(ReplExpect.okWithCustom({ selector: Selectors.BY_NAME('nginx') }))
@@ -211,9 +214,9 @@ describe(`kubectl get pod ${process.env.MOCHA_RUN_TARGET || ''}`, function(this:
         .catch(Common.oops(this, true))
     })
 
-    it(`should create sample pod from URL via ${kubectl}`, () => {
+    it(`should create sample pod from URL via ${command}`, () => {
       return CLI.command(
-        `${kubectl} create -f https://raw.githubusercontent.com/kubernetes/examples/master/staging/pod ${inNamespace}`,
+        `${command} create -f https://raw.githubusercontent.com/kubernetes/examples/master/staging/pod ${inNamespace}`,
         this.app
       )
         .then(ReplExpect.okWithCustom({ selector: Selectors.BY_NAME('nginx') }))
@@ -223,16 +226,16 @@ describe(`kubectl get pod ${process.env.MOCHA_RUN_TARGET || ''}`, function(this:
 
     // this test ensures that having '-n myNamespace' *before* the
     // 'pod nginx' part works properly
-    it(`should get the pod with ${kubectl} ${inNamespace} pod`, () => {
-      return CLI.command(`${kubectl} get ${inNamespace} pod nginx`, this.app)
+    it(`should get the pod with ${command} ${inNamespace} pod`, () => {
+      return CLI.command(`${command} get ${inNamespace} pod nginx`, this.app)
         .then(ReplExpect.okWithCustom({ selector: Selectors.BY_NAME('nginx') }))
         .then((selector: string) => waitForGreen(this.app, selector))
         .catch(Common.oops(this, true))
     })
 
-    it(`should list pods via ${kubectl} then click`, async () => {
+    it(`should list pods via ${command} then click`, async () => {
       try {
-        const selector: string = await CLI.command(`${kubectl} get pods ${inNamespace}`, this.app).then(
+        const selector: string = await CLI.command(`${command} get pods ${inNamespace}`, this.app).then(
           ReplExpect.okWithCustom({ selector: Selectors.BY_NAME('nginx') })
         )
 
@@ -277,7 +280,7 @@ describe(`kubectl get pod ${process.env.MOCHA_RUN_TARGET || ''}`, function(this:
 
     it(`should be able to show table with grep`, async () => {
       try {
-        const res = await CLI.command(`${kubectl} get pods ${inNamespace} | grep nginx`, this.app)
+        const res = await CLI.command(`${command} get pods ${inNamespace} | grep nginx`, this.app)
         const rows = Selectors.xtermRows(res.count)
 
         await this.app.client.waitForExist(rows)
@@ -287,9 +290,9 @@ describe(`kubectl get pod ${process.env.MOCHA_RUN_TARGET || ''}`, function(this:
       }
     })
 
-    it(`should delete the sample pod from URL via ${kubectl}`, () => {
+    it(`should delete the sample pod from URL via ${command}`, () => {
       return CLI.command(
-        `${kubectl} delete -f https://raw.githubusercontent.com/kubernetes/examples/master/staging/pod ${inNamespace}`,
+        `${command} delete -f https://raw.githubusercontent.com/kubernetes/examples/master/staging/pod ${inNamespace}`,
         this.app
       )
         .then(ReplExpect.okWithCustom({ selector: Selectors.BY_NAME('nginx') }))

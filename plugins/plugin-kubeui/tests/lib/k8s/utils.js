@@ -89,22 +89,22 @@ exports.waitForRed = async (app, selector) => {
 
 exports.createNS = (prefix = '') => `${prefix}${uuid()}-kui`
 
-exports.allocateNS = (ctx, ns, theCli = CLI) => {
+exports.allocateNS = (ctx, ns, command = 'kubectl', theCli = CLI) => {
   it(`should create a namespace ${ns} for test: ${ctx.title}`, () => {
     return theCli
-      .command(`kubectl create namespace ${ns}`, ctx.app)
+      .command(`${command} create namespace ${ns}`, ctx.app)
       .then(ReplExpect.okWithCustom({ selector: Selectors.BY_NAME(ns) }))
       .then(selector => exports.waitForGreen(ctx.app, selector))
       .catch(Common.oops(ctx, true))
   })
 }
 
-exports.deleteNS = (ctx, ns, theCli = CLI) => {
+exports.deleteNS = (ctx, ns, command = 'kubectl', theCli = CLI) => {
   if (!process.env.TRAVIS_JOB_ID) {
     // to save travis test time
     it(`should delete the namespace ${ns}`, () => {
       return theCli
-        .command(`kubectl delete namespace ${ns}`, ctx.app)
+        .command(`${command} delete namespace ${ns}`, ctx.app)
         .then(ReplExpect.okWithCustom({ selector: Selectors.BY_NAME(ns) }))
         .then(selector => exports.waitForRed(ctx.app, selector))
         .catch(Common.oops(ctx, true))

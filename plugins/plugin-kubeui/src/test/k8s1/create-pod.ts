@@ -27,26 +27,27 @@ import {
 import { dirname } from 'path'
 const ROOT = dirname(require.resolve('@kui-shell/plugin-kubeui/tests/package.json'))
 
-const synonyms = ['kubectl', 'k']
+const commands = ['kubectl']
+if (process.env.NEEDS_OC) {
+  commands.push('oc')
+}
 const dashFs = ['-f', '--filename']
 
-describe(`kubectl create pod ${process.env.MOCHA_RUN_TARGET || ''}`, function(this: Common.ISuite) {
-  before(Common.before(this))
-  after(Common.after(this))
+commands.forEach(command => {
+  describe(`${command} create pod ${process.env.MOCHA_RUN_TARGET || ''}`, function(this: Common.ISuite) {
+    before(Common.before(this))
+    after(Common.after(this))
 
-  // repeat the tests for kubectl, k, etc. i.e. any built-in
-  // synonyms/aliases we have for "kubectl"
-  synonyms.forEach(kubectl => {
     dashFs.forEach(dashF => {
       const ns: string = createNS()
       const inNamespace = `-n ${ns}`
 
-      allocateNS(this, ns)
+      allocateNS(this, ns, command)
 
-      it(`should create sample pod from URL via ${kubectl}`, async () => {
+      it(`should create sample pod from URL via ${command}`, async () => {
         try {
           const selector = await CLI.command(
-            `${kubectl} create ${dashF} https://raw.githubusercontent.com/kubernetes/examples/master/staging/pod ${inNamespace}`,
+            `${command} create ${dashF} https://raw.githubusercontent.com/kubernetes/examples/master/staging/pod ${inNamespace}`,
             this.app
           ).then(ReplExpect.okWithCustom({ selector: Selectors.BY_NAME('nginx') }))
 
@@ -63,9 +64,9 @@ describe(`kubectl create pod ${process.env.MOCHA_RUN_TARGET || ''}`, function(th
         }
       })
 
-      it(`should delete the sample pod from URL via ${kubectl}`, () => {
+      it(`should delete the sample pod from URL via ${command}`, () => {
         return CLI.command(
-          `${kubectl} delete ${dashF} https://raw.githubusercontent.com/kubernetes/examples/master/staging/pod ${inNamespace}`,
+          `${command} delete ${dashF} https://raw.githubusercontent.com/kubernetes/examples/master/staging/pod ${inNamespace}`,
           this.app
         )
           .then(ReplExpect.okWithCustom({ selector: Selectors.BY_NAME('nginx') }))
@@ -73,21 +74,21 @@ describe(`kubectl create pod ${process.env.MOCHA_RUN_TARGET || ''}`, function(th
           .catch(Common.oops(this))
       })
 
-      it(`should create sample pod from local file via ${kubectl}`, () => {
-        return CLI.command(`${kubectl} create ${dashF} "${ROOT}/data/k8s/headless/pod.yaml" ${inNamespace}`, this.app)
+      it(`should create sample pod from local file via ${command}`, () => {
+        return CLI.command(`${command} create ${dashF} "${ROOT}/data/k8s/headless/pod.yaml" ${inNamespace}`, this.app)
           .then(ReplExpect.okWithCustom({ selector: Selectors.BY_NAME('nginx') }))
           .then(selector => waitForGreen(this.app, selector))
           .catch(Common.oops(this))
       })
 
-      it(`should delete the sample pod by name via ${kubectl}`, () => {
-        return CLI.command(`${kubectl} delete pod nginx ${inNamespace}`, this.app)
+      it(`should delete the sample pod by name via ${command}`, () => {
+        return CLI.command(`${command} delete pod nginx ${inNamespace}`, this.app)
           .then(ReplExpect.okWithCustom({ selector: Selectors.BY_NAME('nginx') }))
           .then(selector => waitForRed(this.app, selector))
           .catch(Common.oops(this))
       })
 
-      deleteNS(this, ns)
+      deleteNS(this, ns, command)
     })
   })
 })

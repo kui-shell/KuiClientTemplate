@@ -24,16 +24,19 @@ import {
   deleteNS
 } from '@kui-shell/plugin-kubeui/tests/lib/k8s/utils'
 
-const synonyms = ['kubectl']
+const commands = ['kubectl', 'k']
+if (process.env.NEEDS_OC) {
+  commands.push('oc')
+}
 
-// this test is still oddly buggy with webpack+proxy, hence the localDescribe
-Common.localDescribe(`kubectl get summary tab describe ${process.env.MOCHA_RUN_TARGET || ''}`, function(
-  this: Common.ISuite
-) {
-  before(Common.before(this))
-  after(Common.after(this))
+commands.forEach(command => {
+  // this test is still oddly buggy with webpack+proxy, hence the localDescribe
+  Common.localDescribe(`${command} get summary tab describe ${process.env.MOCHA_RUN_TARGET || ''}`, function(
+    this: Common.ISuite
+  ) {
+    before(Common.before(this))
+    after(Common.after(this))
 
-  synonyms.forEach(kubectl => {
     const ns: string = createNS()
 
     /**
@@ -79,20 +82,20 @@ Common.localDescribe(`kubectl get summary tab describe ${process.env.MOCHA_RUN_T
       })
     }
 
-    allocateNS(this, ns)
+    allocateNS(this, ns, command)
 
     // this one sometimes times out in webpack in travis; not sure why yet [nickm 20190810]
     // localIt will have it run only in electron for now
-    Common.localIt(`should fail with 404 for unknown resource type via ${kubectl}`, () => {
+    Common.localIt(`should fail with 404 for unknown resource type via ${command}`, () => {
       const fakeType = 'yoyoyo1334u890724'
-      return CLI.command(`${kubectl} get ${fakeType} productPage -o yaml`, this.app)
+      return CLI.command(`${command} get ${fakeType} productPage -o yaml`, this.app)
         .then(ReplExpect.error(404))
         .catch(Common.oops(this, true))
     })
 
-    it(`should create sample pod from URL via ${kubectl}`, () => {
+    it(`should create sample pod from URL via ${command}`, () => {
       return CLI.command(
-        `${kubectl} create -f https://raw.githubusercontent.com/kubernetes/examples/master/staging/pod -n ${ns}`,
+        `${command} create -f https://raw.githubusercontent.com/kubernetes/examples/master/staging/pod -n ${ns}`,
         this.app
       )
         .then(ReplExpect.okWithCustom({ selector: Selectors.BY_NAME('nginx') }))
@@ -100,8 +103,8 @@ Common.localDescribe(`kubectl get summary tab describe ${process.env.MOCHA_RUN_T
         .catch(Common.oops(this, true))
     })
 
-    it(`should summarize that pod via ${kubectl}`, () => {
-      return CLI.command(`${kubectl} get pod nginx -n ${ns} -o yaml`, this.app)
+    it(`should summarize that pod via ${command}`, () => {
+      return CLI.command(`${command} get pod nginx -n ${ns} -o yaml`, this.app)
         .then(ReplExpect.justOK)
         .then(SidecarExpect.open)
         .then(SidecarExpect.mode(defaultModeForGet))
@@ -158,6 +161,6 @@ Common.localDescribe(`kubectl get summary tab describe ${process.env.MOCHA_RUN_T
       }
     })
 
-    deleteNS(this, ns)
+    deleteNS(this, ns, command)
   })
 })
