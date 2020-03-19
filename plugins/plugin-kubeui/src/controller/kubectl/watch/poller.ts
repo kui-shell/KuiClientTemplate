@@ -40,7 +40,8 @@ export default function pollUntil404(
   name: string,
   namespace: string,
   offline: (rowKey: string) => void,
-  { REPL }: Arguments<KubeOptions>
+  { REPL }: Arguments<KubeOptions>,
+  command: string
 ) {
   let done = false
   let currentTimeout: NodeJS.Timeout
@@ -49,7 +50,7 @@ export default function pollUntil404(
     // we don't need to fetch anything, really; the KIND custom column
     // is just my idea of something very lightweight to fetch, so that
     // we can see if we get a 404 back
-    const cmd = `kubectl get ${fqn(apiVersion, kind, name, namespace)} -o custom-columns=KIND:.kind`
+    const cmd = `${command} get ${fqn(apiVersion, kind, name, namespace)} -o custom-columns=KIND:.kind`
     debug('poll for termination', cmd)
     REPL.qexec<KubeResource>(cmd)
       .then(() => {

@@ -18,8 +18,8 @@ import { i18n, Tab, Table, ModeRegistration } from '@kui-shell/core'
 
 import toMap from './table-to-map'
 import { fqnOf } from '../../../controller/kubectl/fqn'
-import commandPrefix from '../../../controller/command-prefix'
 import { KubeResource, isSummarizableKubeResource, isKubeResourceWithItsOwnSummary } from '../../model/resource'
+import { getCommandFromArgs } from '../../util/util'
 
 const strings = i18n('plugin-kubeui')
 
@@ -39,8 +39,7 @@ async function renderSummary(
   }
 
   // a command that will fetch a single-row table
-  const command = args.argvNoOptions[0] === commandPrefix ? args.argvNoOptions[1] : args.argvNoOptions[0]
-  const cmd = `${command} get ${fqnOf(resource)} -o wide`
+  const cmd = `${getCommandFromArgs(args)} get ${fqnOf(resource)} -o wide`
 
   // in parallel, fetch the table model and the safeDump function from js-yaml
   const [map, { safeDump }] = await Promise.all([tab.REPL.qexec<Table>(cmd).then(toMap), import('js-yaml')])

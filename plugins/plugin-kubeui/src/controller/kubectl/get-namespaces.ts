@@ -62,7 +62,7 @@ async function doGetNamespaceTable(command: string, args: Arguments<KubeOptions>
           value: ns,
           outerCSS: 'entity-name-group',
           css: 'entity-name',
-          onclick: `kubectl get ns ${ns} -o yaml`
+          onclick: `${command} get ns ${ns} -o yaml`
         }
 
         const newRow: Row = {

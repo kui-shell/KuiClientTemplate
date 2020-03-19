@@ -80,6 +80,11 @@ const usage = (command: string) => ({
       docs: 'The initial response from the CRUD command'
     },
     {
+      name: '--command',
+      string: true,
+      docs: 'The initial command from the CRUD command'
+    },
+    {
       name: '--watching',
       hidden: true,
       boolean: true,
@@ -174,6 +179,7 @@ class StatusPoller implements Abortable {
     private readonly done: () => void,
     private readonly pusher: WatchPusher,
     private readonly contextArgs: string,
+    private readonly command: string,
     pollInterval = 1000,
     private readonly ladder = StatusPoller.calculateLadder(pollInterval)
   ) {
@@ -185,7 +191,7 @@ class StatusPoller implements Abortable {
     debug('pollOnce', this.ref, sleepTime, fqnOfRef(this.ref))
 
     try {
-      const table = await this.tab.REPL.qexec<Table>(`kubectl get ${fqnOfRef(this.ref)} ${this.contextArgs}`)
+      const table = await this.tab.REPL.qexec<Table>(`${this.command} get ${fqnOfRef(this.ref)} ${this.contextArgs}`)
       debug('pollOnce table', table)
       if (table && table.body && table.body.length === 1) {
         const row = table.body[0]
@@ -271,7 +277,8 @@ class StatusWatcher implements Abortable, Watcher {
     private readonly tab: Tab,
     private readonly resourcesToWaitFor: ResourceRef[],
     private readonly finalState: FinalState,
-    private readonly contextArgs: string
+    private readonly contextArgs: string,
+    private readonly command: string
   ) {}
 
   /**
@@ -309,7 +316,7 @@ class StatusWatcher implements Abortable, Watcher {
     this.resourcesToWaitFor
       .map((_, idx) => {
         const row = this.initialBody[idx]
-        return new StatusPoller(this.tab, _, row, this.finalState, done, pusher, this.contextArgs)
+        return new StatusPoller(this.tab, _, row, this.finalState, done, pusher, this.contextArgs, this.command)
       })
       .forEach(_ => {
         this.pollers.push(_)
@@ -336,7 +343,7 @@ class StatusWatcher implements Abortable, Watcher {
       const { group = '', version = '', kind, name, namespace } = ref
       return {
         name,
-        onclick: `kubectl get ${fqnOfRef(ref)} -o yaml`,
+        onclick: `${this.command} get ${fqnOfRef(ref)} -o yaml`,
         onclickSilence: true,
         attributes: this.nsAttr(namespace, anyNonDefaultNamespaces).concat([
           {
@@ -365,16 +372,18 @@ class StatusWatcher implements Abortable, Watcher {
 }
 
 interface FinalStateOptions extends Options {
+  command: string
   response?: string
   'final-state'?: FinalState
 }
 
-async function doStatus(args: Arguments<FinalStateOptions>): Promise<string | Table> {
+const doStatus = (command: string) => async (args: Arguments<FinalStateOptions>): Promise<string | Table> => {
   const rest = args.argvNoOptions.slice(args.argvNoOptions.indexOf('status') + 1)
+  const commandArg = command || args.parsedOptions.command
   const file = fileOf(args)
   const contextArgs = getContextForArgv(args)
   // const fileArgs = file ? `-f ${file}` : ''
-  // const cmd = `kubectl get ${rest} --watch ${fileArgs} ${contextArgs}`
+  // const cmd = `${command} get ${rest} --watch ${fileArgs} ${contextArgs}`
 
   try {
     const resourcesToWaitFor = file
@@ -391,7 +400,7 @@ async function doStatus(args: Arguments<FinalStateOptions>): Promise<string | Ta
     // the desired final state of the specified resources
     const finalState = args.parsedOptions['final-state']
 
-    return new StatusWatcher(args.tab, resourcesToWaitFor, finalState, contextArgs).initialTable()
+    return new StatusWatcher(args.tab, resourcesToWaitFor, finalState, contextArgs, commandArg).initialTable()
   } catch (err) {
     console.error('error constructing StatusWatcher', err)
 
@@ -424,7 +433,7 @@ export default (registrar: Registrar) => {
     flags(['watching'])
   )
 
-  registrar.listen(`/${commandPrefix}/kubectl/status`, doStatus, opts)
-  registrar.listen(`/${commandPrefix}/k/status`, doStatus, opts)
-  registrar.listen(`/${commandPrefix}/status`, doStatus, opts)
+  registrar.listen(`/${commandPrefix}/kubectl/status`, doStatus('kubectl'), opts)
+  registrar.listen(`/${commandPrefix}/k/status`, doStatus('k'), opts)
+  registrar.listen(`/${commandPrefix}/status`, doStatus(''), opts)
 }

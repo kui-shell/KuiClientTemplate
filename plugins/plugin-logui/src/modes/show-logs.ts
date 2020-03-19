@@ -15,7 +15,7 @@
  */
 
 import { i18n, Tab } from '@kui-shell/core'
-import { KubeResource, isJob, isDeployment, isPod } from '@kui-shell/plugin-kubeui'
+import { KubeResource, isJob, isDeployment, isPod, getCommandFromArgs } from '@kui-shell/plugin-kubeui'
 
 const strings = i18n('plugin-logui')
 
@@ -23,24 +23,28 @@ const strings = i18n('plugin-logui')
  * Drill down to deployment logs
  *
  */
-function deploymentLogs(tab: Tab, resource: KubeResource) {
-  return `kubectl logs deployment/${resource.metadata.name} -n ${resource.metadata.namespace} --all-containers --tail 20`
+function deploymentLogs(tab: Tab, resource: KubeResource, args: { argvNoOptions: string[] }) {
+  return `${getCommandFromArgs(args)} logs deployment/${resource.metadata.name} -n ${
+    resource.metadata.namespace
+  } --all-containers --tail 20`
 }
 
 /**
  * Drill down to job logs
  *
  */
-function jobLogs(tab: Tab, resource: KubeResource) {
-  return `kubectl logs job/${resource.metadata.name} -n ${resource.metadata.namespace} --tail 20`
+function jobLogs(tab: Tab, resource: KubeResource, args: { argvNoOptions: string[] }) {
+  return `${getCommandFromArgs(args)} logs job/${resource.metadata.name} -n ${resource.metadata.namespace} --tail 20`
 }
 
 /**
  * Drill down to pod logs
  *
  */
-function podLogs(tab: Tab, resource: KubeResource) {
-  return `kubectl logs ${resource.metadata.name} -n ${resource.metadata.namespace} --all-containers --tail 20`
+function podLogs(tab: Tab, resource: KubeResource, args: { argvNoOptions: string[] }) {
+  return `${getCommandFromArgs(args)} logs ${resource.metadata.name} -n ${
+    resource.metadata.namespace
+  } --all-containers --tail 20`
 }
 
 /**
@@ -55,13 +59,13 @@ function hasLogs(resource: KubeResource): boolean {
  * Log renderer
  *
  */
-const renderLogs = (tab: Tab, resource: KubeResource) => {
+const renderLogs = (tab: Tab, resource: KubeResource, args: { argvNoOptions: string[] }) => {
   if (isDeployment(resource)) {
-    return deploymentLogs(tab, resource)
+    return deploymentLogs(tab, resource, args)
   } else if (isPod(resource)) {
-    return podLogs(tab, resource)
+    return podLogs(tab, resource, args)
   } else if (isJob(resource)) {
-    return jobLogs(tab, resource)
+    return jobLogs(tab, resource, args)
   } else {
     return ''
   }

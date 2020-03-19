@@ -127,7 +127,8 @@ async function doGetCustom(args: Arguments<KubeOptions>, response: RawResponse):
   return response.content.stdout.trim()
 }
 
-export function rawGet(args: Arguments<KubeOptions>, command = 'kubectl') {
+export function rawGet(args: Arguments<KubeOptions>, _command = 'kubectl') {
+  const command = _command === 'k' ? 'kubectl' : _command
   return exec(args, prepareArgsForGet, command).catch((err: CodedError) => {
     // Notes: we are using statusCode internally to this plugin;
     // delete it before rethrowing the error, because the core would

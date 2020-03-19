@@ -15,6 +15,7 @@
  */
 
 /* eslint-disable @typescript-eslint/explicit-member-accessibility */
+import commandPrefix from '../../controller/command-prefix'
 
 export interface TypedEntityName {
   type: string
@@ -108,4 +109,8 @@ export class NotFoundError extends StatusError {
     super(message)
     this.code = code
   }
+}
+
+export const getCommandFromArgs = (args: { argvNoOptions: string[] }) => {
+  return args.argvNoOptions[0] === commandPrefix ? args.argvNoOptions[1] : args.argvNoOptions[0]
 }
