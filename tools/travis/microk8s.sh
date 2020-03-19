@@ -14,7 +14,7 @@ pushd /tmp
   (curl -LO https://storage.googleapis.com/kubernetes-release/release/v${TRAVIS_KUBE_VERSION}/bin/linux/amd64/kubectl && \
        sudo cp kubectl /usr/local/bin/kubectl && \
        sudo chmod a+rx /usr/local/bin/kubectl) &
-  
+
   # Download and install helm
   #  curl https://raw.githubusercontent.com/kubernetes/helm/master/scripts/get > get_helm.sh && chmod +x get_helm.sh && ./get_helm.sh
   if [ -n "$NEEDS_HELM" ]; then
@@ -27,6 +27,16 @@ pushd /tmp
       sudo cp ${PLATFORM}-amd64/helm /usr/local/bin
       sudo cp ${PLATFORM}-amd64/tiller /usr/local/bin
       sudo chmod +x /usr/local/bin/{helm,tiller}
+  fi
+
+  # Download and install openshift-client
+  if [ -n "$NEEDS_OC" ]; then
+      PLATFORM=`uname | tr '[:upper:]' '[:lower:]'`
+      echo "Downloading this oc: https://mirror.openshift.com/pub/openshift-v4/clients/ocp/${TRAVIS_OC_VERISON}/openshift-client-${PLATFORM}.tar.gz"
+      curl -L "https://mirror.openshift.com/pub/openshift-v4/clients/ocp/${TRAVIS_OC_VERISON}/openshift-client-${PLATFORM}.tar.gz" | tar zxf -
+      sudo cp oc /usr/local/bin
+      sudo chmod +x /usr/local/bin/oc
+      oc version
   fi
 
   # wait for the kubectl download and socat installation
@@ -71,7 +81,7 @@ if [ -n "$NEEDS_HELM" ]; then
 
     if [ $TIMEOUT -eq $TIMEOUT_COUNT ]; then
         echo "Failed to install tiller"
-        
+
         # Dump lowlevel logs to help diagnose failure to start tiller
         $HOME/dind-cluster.sh dump
         kubectl -n kube-system describe pods
