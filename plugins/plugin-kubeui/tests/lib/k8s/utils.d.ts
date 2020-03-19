@@ -47,13 +47,13 @@ declare function createNS (prefix?: string): string
  * Install a mocha test to allocate the given namespace `ns`
  *
  */
-declare function allocateNS (ctx: Common.ISuite, ns: string, theCli?: headless): string
+declare function allocateNS (ctx: Common.ISuite, ns: string, command?: string, theCli?: headless): string
 
 /**
  * Install a mocha test to delete the given namespace `ns`
  *
  */
-declare function deleteNS (ctx: Common.ISuite, ns: string, theCli?: headless): void
+declare function deleteNS (ctx: Common.ISuite, ns: string, command?: string, theCli?: headless): void
 
 /**
  * Keep poking the given kind till no more such entities exist

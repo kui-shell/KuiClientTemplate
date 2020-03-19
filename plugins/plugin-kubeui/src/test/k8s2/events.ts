@@ -26,30 +26,33 @@ const inputEncoded = inputBuffer.toString('base64')
 const podName = 'eventgen'
 const sleepTime = 1
 
-const synonyms = ['kubectl']
+const commands = ['kubectl']
+if (process.env.NEEDS_OC) {
+  commands.push('oc')
+}
 
 /** sleep for N seconds */
 function sleep(N: number) {
   return new Promise(resolve => setTimeout(resolve, N * 1000))
 }
 
-describe(`kubectl get events ${process.env.MOCHA_RUN_TARGET || ''}`, function(this: Common.ISuite) {
-  before(Common.before(this))
-  after(Common.after(this))
+commands.forEach(command => {
+  describe(`${command} get events ${process.env.MOCHA_RUN_TARGET || ''}`, function(this: Common.ISuite) {
+    before(Common.before(this))
+    after(Common.after(this))
 
-  synonyms.forEach(kubectl => {
     const ns: string = createNS()
     allocateNS(this, ns)
 
     /** error handling starts */
     it('should create pod that generates events', () =>
-      CLI.command(`echo ${inputEncoded} | base64 --decode | kubectl create -f - -n ${ns}`, this.app)
+      CLI.command(`echo ${inputEncoded} | base64 --decode | ${command} create -f - -n ${ns}`, this.app)
         .then(ReplExpect.okWithPtyOutput(podName))
         .catch(Common.oops(this, true)))
 
     it('should open pod in sidecar, then click on events button', async () => {
       try {
-        const res = await CLI.command(`${kubectl} get pod ${podName} -n ${ns} -o yaml`, this.app)
+        const res = await CLI.command(`${command} get pod ${podName} -n ${ns} -o yaml`, this.app)
 
         await Promise.resolve(res)
           .then(ReplExpect.justOK)
