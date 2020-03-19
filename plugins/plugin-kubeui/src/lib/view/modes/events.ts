@@ -19,6 +19,7 @@ import { i18n, Tab, BadgeRegistration, ModeRegistration } from '@kui-shell/core'
 import cssForValue from '../css-for-value'
 import TrafficLight from '../../model/traffic-light'
 import { Event, isEvent, KubeResource, isCrudableKubeResource, isNamespaced } from '../../model/resource'
+import { getCommandFromArgs } from '../../util/util'
 
 const strings = i18n('plugin-kubeui')
 
@@ -26,8 +27,10 @@ const strings = i18n('plugin-kubeui')
  * Extract the events
  *
  */
-function command(tab: Tab, resource: KubeResource) {
-  const cmdGetPodEvents = `kubectl get events --field-selector involvedObject.name=${resource.metadata.name},involvedObject.namespace=${resource.metadata.namespace} -n ${resource.metadata.namespace}`
+function command(tab: Tab, resource: KubeResource, args: { argvNoOptions: string[] }) {
+  const cmdGetPodEvents = `${getCommandFromArgs(args)} get events --field-selector involvedObject.name=${
+    resource.metadata.name
+  },involvedObject.namespace=${resource.metadata.namespace} -n ${resource.metadata.namespace}`
 
   // mimic the events table shown in the 'kubectl describe' output
   const customColumns = 'wide'

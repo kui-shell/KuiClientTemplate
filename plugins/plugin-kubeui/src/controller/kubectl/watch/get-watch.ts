@@ -21,6 +21,7 @@ import fqn from '../fqn'
 import { formatOf, KubeOptions, KubeExecOptions } from '../options'
 
 import { preprocessTable, Pair } from '../../../lib/view/formatTable'
+import { getCommandFromArgs } from '../../../lib/util/util'
 
 const debug = Debug('plugin-kubeui/controller/watch/watcher')
 
@@ -170,7 +171,7 @@ class KubectlWatcher implements Abortable, Watcher {
             try {
               const [{ value: name }, { value: kind }, { value: apiVersion }, { value: namespace }] = row
 
-              const getCommand = `kubectl get ${fqn(apiVersion, kind, name, namespace)} ${
+              const getCommand = `${getCommandFromArgs(this.args)} get ${fqn(apiVersion, kind, name, namespace)} ${
                 this.output ? `-o ${this.output}` : ''
               }`
 

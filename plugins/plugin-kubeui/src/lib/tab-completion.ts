@@ -16,6 +16,7 @@
 
 import { Tab, CommandLine } from '@kui-shell/core'
 import { registerTabCompletionEnumerator, TabCompletionSpec } from '@kui-shell/plugin-core-support/tab-completion'
+import { getCommandFromArgs } from './util/util'
 
 /**
  * Invoke an enumeration command and return the filtered list of matching strings
@@ -48,6 +49,7 @@ function optionals(commandLine: CommandLine, filter: (key: string) => boolean = 
  */
 async function completeResourceNames(tab: Tab, commandLine: CommandLine, spec: TabCompletionSpec): Promise<string[]> {
   const { argvNoOptions, argv, parsedOptions } = commandLine
+  const command = getCommandFromArgs({ argvNoOptions })
 
   // index of the arg just before the one to be completed
   const previous = spec.toBeCompletedIdx === -1 ? commandLine.argv.length - 1 : spec.toBeCompletedIdx - 1
@@ -55,10 +57,10 @@ async function completeResourceNames(tab: Tab, commandLine: CommandLine, spec: T
     //
     // then we are being asked to complete a namespace
     //
-    const cmd = `kubectl get ns ${optionals(commandLine, _ => _ !== '-n' && _ !== '--namespace')} -o name`
+    const cmd = `${command} get ns ${optionals(commandLine, _ => _ !== '-n' && _ !== '--namespace')} -o name`
     return getMatchingStrings(tab, cmd, spec)
   } else if (
-    (argvNoOptions[0] === 'kubectl' || argvNoOptions[0] === 'k') &&
+    (argvNoOptions[0] === 'kubectl' || argvNoOptions[0] === 'k' || argvNoOptions[0] === 'oc') &&
     (argvNoOptions[1] === 'get' ||
       argvNoOptions[1] === 'describe' ||
       argvNoOptions[1] === 'annotate' ||
@@ -70,7 +72,7 @@ async function completeResourceNames(tab: Tab, commandLine: CommandLine, spec: T
     //
     const entityType = argvNoOptions[2]
 
-    const cmd = `kubectl get ${entityType} ${optionals(commandLine)} -o name`
+    const cmd = `${command} get ${entityType} ${optionals(commandLine)} -o name`
     return getMatchingStrings(tab, cmd, spec)
   }
 }
