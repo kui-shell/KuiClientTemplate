@@ -15,7 +15,7 @@
  */
 
 import * as React from 'react'
-import { getCurrentTab, eventBus, wireToStandardEvents } from '@kui-shell/core'
+import { getCurrentTab, eventChannelUnsafe, wireToStandardEvents } from '@kui-shell/core'
 import { ViewLevel, TextWithIconWidget } from '@kui-shell/plugin-client-common'
 import { KubeContext, getCurrentContext } from '@kui-shell/plugin-kubeui'
 
@@ -47,7 +47,7 @@ export default class CurrentNamespace extends React.PureComponent<{}, State> {
 
     try {
       const currentContext = await getCurrentContext(tab)
-      eventBus.emit('/kubeui/context/current', currentContext)
+      eventChannelUnsafe.emit('/kubeui/context/current', currentContext)
 
       this.setState({
         text: currentContext === undefined ? '' : this.renderNamespace(currentContext),

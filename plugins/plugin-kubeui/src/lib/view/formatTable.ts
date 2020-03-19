@@ -185,7 +185,8 @@ export const formatTable = <O extends KubeOptions>(
       : undefined) || undefined
 
   // helm doesn't support --output
-  const drilldownFormat = drilldownCommand === 'kubectl' && drilldownVerb === 'get' ? '-o yaml' : ''
+  const drilldownFormat =
+    (drilldownCommand === 'kubectl' || drilldownCommand === 'oc') && drilldownVerb === 'get' ? '-o yaml' : ''
 
   const drilldownNamespace =
     options.n || options.namespace ? `-n ${encodeComponent(options.n || options.namespace)}` : ''

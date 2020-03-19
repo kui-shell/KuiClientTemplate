@@ -15,7 +15,7 @@
  */
 
  import * as React from 'react'
- import { Tab, eventBus, wireToStandardEvents } from '@kui-shell/core'
+ import { Tab, eventChannelUnsafe, wireToStandardEvents } from '@kui-shell/core'
  import { ViewLevel, TextWithIconWidget } from '@kui-shell/plugin-client-common'
  import { KubeContext } from '@kui-shell/plugin-kubeui'
 
@@ -42,7 +42,7 @@ export default class CurrentContext extends React.PureComponent<{}, State> {
   private async reportCurrentContext() {
     // careful: this impl assumes that current-context is registered
     // *before* current-namespace (in preload.ts)
-    eventBus.once('/kubeui/context/current', (context: KubeContext) => {
+    eventChannelUnsafe.once('/kubeui/context/current', (context: KubeContext) => {
       try {
         this.setState({
           text: this.renderName(context.metadata.name),

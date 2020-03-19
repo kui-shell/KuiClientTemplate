@@ -18,6 +18,7 @@ import { i18n, Tab, ModeRegistration, encodeComponent } from '@kui-shell/core'
 
 import { CustomResourceDefinition, isCustomResourceDefinition } from '../../model/resource'
 import { fqn } from '../../../controller/kubectl/fqn'
+import { getCommandFromArgs } from '../../../lib/util/util'
 
 const strings = i18n('plugin-kubeui')
 
@@ -25,8 +26,8 @@ const strings = i18n('plugin-kubeui')
  * Extract the events
  *
  */
-export function command(tab: Tab, crd: CustomResourceDefinition) {
-  return `kubectl get ${fqn(
+export function command(tab: Tab, crd: CustomResourceDefinition, args: { argvNoOptions: string[] }) {
+  return `${getCommandFromArgs(args)} get ${fqn(
     crd.apiVersion,
     encodeComponent(crd.kind),
     encodeComponent(crd.metadata.name),

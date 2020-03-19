@@ -69,6 +69,8 @@ export { formatTable, preprocessTable } from './lib/view/formatTable'
 
 export { isUsage, doHelp } from './lib/util/help'
 
+export { getCommandFromArgs } from './lib/util/util'
+
 export { fetchFileString } from './lib/util/fetch-file'
 
 export { fqnOf, fqn } from './controller/kubectl/fqn'
