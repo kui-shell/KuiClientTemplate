@@ -29,10 +29,10 @@ jobs:
     - env: S=logs T=electron
     - env: S=logs T=webpack
     - env: S=k8s T=electron
-    - env: S=k8s1 T=electron
-    - env: S=k8s1 T=webpack
-    - env: S=k8s2 T=electron NEEDS_TOP=true
-    - env: S=k8s2 T=webpack NEEDS_TOP=true
+    - env: S=k8s1 T=electron NEEDS_OC=true
+    - env: S=k8s1 T=webpack NEEDS_OC=true
+    - env: S=k8s2 T=electron NEEDS_TOP=true NEEDS_OC=true
+    - env: S=k8s2 T=webpack NEEDS_TOP=true NEEDS_OC=true
     - env: S=helm T=electron NEEDS_HELM=true
     - env: S=helm T=webpack NEEDS_HELM=true
 #    - stage: release
@@ -45,6 +45,7 @@ env:
   global:
     - TRAVIS_KUBE_VERSION=1.15.7
     - TRAVIS_HELM_VERSION=2.13.0
+    - TRAVIS_OC_VERISON=4.3.3
     - WINDOW_WIDTH=1400
     - WINDOW_HEIGHT=1050
     - PATH=bin:$PATH
