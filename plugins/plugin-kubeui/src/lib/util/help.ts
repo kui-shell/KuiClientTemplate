@@ -128,8 +128,8 @@ export const renderHelp = (out: string, command: string, verb: string, entityTyp
     rows: section.content
       .split(/[\n\r]/)
       .filter(x => x)
-      .map(line => line.split(/(\t|(\s\s)+\s?)|(?=:\s)/).filter(x => x && !/(\t|\s\s)/.test(x)))
-      .map(([thisCommand, docs]) => {
+      .map(line => {
+        const [_, thisCommand, docs] = line.match(/\s*(\S+)\s+(.*)/) // eslint-disable-line @typescript-eslint/no-unused-vars
         if (thisCommand) {
           return {
             command: thisCommand.replace(/^\s*-\s+/, '').replace(/:\s*$/, ''),
