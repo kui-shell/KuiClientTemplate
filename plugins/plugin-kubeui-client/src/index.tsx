@@ -16,9 +16,9 @@
 
 import * as React from 'react'
 
-import { DefaultClient } from '@kui-shell/plugin-client-default/mdist/Client'
-import { ContextWidgets, MeterWidgets } from '@kui-shell/plugin-client-common'
+import { Kui, KuiProps, ContextWidgets, MeterWidgets } from '@kui-shell/plugin-client-common'
 
+import { CurrentGitBranch } from '@kui-shell/plugin-git'
 import { default as CurrentNamespace } from './view/status-stripe/current-namespace'
 import { default as CurrentContext } from './view/status-stripe/current-context'
 import { default as ClusterUtilization } from './view/status-stripe/cluster-utilization'
@@ -28,16 +28,17 @@ import { default as ClusterUtilization } from './view/status-stripe/cluster-util
  *   - CurrentGitBranch
  *
  */
-export default function renderMain(isPopup: boolean, commandLine?: string[]) {
+export default function KuiWithKubectlWidgets(props: KuiProps) {
   return (
-    <DefaultClient isPopup commandLine={commandLine}>
+    <Kui {...props}>
       <ContextWidgets>
+        <CurrentGitBranch />
         <CurrentContext />
         <CurrentNamespace />
       </ContextWidgets>
       <MeterWidgets>
         <ClusterUtilization />
       </MeterWidgets>
-    </DefaultClient>
+    </Kui>
   )
 }
