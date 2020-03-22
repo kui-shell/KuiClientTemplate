@@ -6,8 +6,9 @@
   "author": "Mengting Yan",
   "main": "dist/index.js",
   "module": "mdist/index.js",
+  "types": "mdist/index.d.ts",
   "dependencies": {
-    "@kui-shell/plugin-client-common": "^8.0.0",
+    "@kui-shell/plugin-client-common": "^8.0.3",
     "@kui-shell/plugin-client-default": "^7.0.47",
     "@kui-shell/plugin-view-utilization": "*",
     "@kui-shell/plugin-kubeui": "*"

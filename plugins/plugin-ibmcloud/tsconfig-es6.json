@@ -1,8 +1,0 @@
-{
-  "extends": "./tsconfig.json",
-  "compilerOptions": {
-    "outDir": "mdist",
-    "module": "esnext"
-  },
-  "references": [{ "path": "./ks/tsconfig-es6.json" }, { "path": "./plugin/tsconfig-es6.json" }]
-}
