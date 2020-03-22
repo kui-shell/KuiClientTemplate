@@ -24,5 +24,6 @@
     "url": "git+https://github.com/kui-shell/plugin-kubeui.git"
   },
   "main": "dist/index.js",
-  "module": "mdist/index.js"
+  "module": "mdist/index.js",
+  "types": "mdist/index.d.ts"
 }

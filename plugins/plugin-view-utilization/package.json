@@ -12,8 +12,9 @@
   ],
   "main": "dist/index.js",
   "module": "mdist/index.js",
+  "types": "mdist/index.d.ts",
   "dependencies": {
-    "@kui-shell/core": "^8.0.0",
+    "@kui-shell/core": "^8.0.3",
     "@kui-shell/plugin-kubeui": "*",
     "bytes-iec": "3.1.0",
     "lorem-ipsum": "2.0.3",

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import * as Debug from 'debug'
+import Debug from 'debug'
 import {
   Arguments,
   NavResponse,
@@ -25,7 +25,7 @@ import {
   Menu,
   Link,
   i18n,
-  Breadcrumb
+  Breadcrumb,
 } from '@kui-shell/core'
 
 import { KubeOptions, isHelpRequest } from '../../controller/kubectl/options'
@@ -67,14 +67,14 @@ const commandDocTable = (
   style,
   header: {
     name: headerKey,
-    attributes: [{ value: 'DOCS' }]
+    attributes: [{ value: 'DOCS' }],
   },
   body: rows.map(({ command, docs }) => ({
     name: command,
     css: headerKey === 'COMMAND' ? 'clickable semi-bold map-key' : 'sub-text',
     onclick: headerKey === 'COMMAND' ? `${kubeCommand}${verb ? ` ${verb}` : ''} ${command} -h` : undefined,
-    attributes: [{ key: 'DOCS', value: docs, css: 'map-value' }]
-  }))
+    attributes: [{ key: 'DOCS', value: docs, css: 'map-value' }],
+  })),
 })
 
 interface Section {
@@ -105,8 +105,8 @@ export const renderHelp = (out: string, command: string, verb: string, entityTyp
   const usePart =
     splitOutUse &&
     splitOutUse
-      .filter(_ => !_.includes('Use "kubectl options"')) // `kubectl options` is incorporated as one of the base modes of `kubectl` usage
-      .map(_ =>
+      .filter((_) => !_.includes('Use "kubectl options"')) // `kubectl options` is incorporated as one of the base modes of `kubectl` usage
+      .map((_) =>
         _.replace(
           /"([^"]+)"/g,
           (_, command) => `[${command}](kui://exec?command=${encodeURIComponent(command)} "Execute ${command}")`
@@ -135,11 +135,11 @@ export const renderHelp = (out: string, command: string, verb: string, entityTyp
             command: thisCommand.replace(/^\s*-\s+/, '').replace(/:\s*$/, ''),
             docs: docs && docs.replace(/^\s*:\s*/, ''),
             commandPrefix: /Commands/i.test(section.title) && `${command} ${verb || ''}`,
-            noclick: !section.title.match(/Common actions/i) && !section.title.match(/Commands/i)
+            noclick: !section.title.match(/Common actions/i) && !section.title.match(/Commands/i),
           }
         }
       })
-      .filter(x => x)
+      .filter((x) => x),
   })
 
   // return a table for `kubectl options`
@@ -154,7 +154,7 @@ export const renderHelp = (out: string, command: string, verb: string, entityTyp
     if (idx % 2 === 0) {
       S.push({
         title: sections[idx],
-        content: sections[idx + 1].replace(/^\n/, '')
+        content: sections[idx + 1].replace(/^\n/, ''),
       })
     }
 
@@ -175,9 +175,9 @@ export const renderHelp = (out: string, command: string, verb: string, entityTyp
 
   const detailedExample = (examplesSection ? examplesSection.content : '')
     .split(/^\s*(?:#\s+)/gm)
-    .map(x => x.trim())
-    .filter(x => x)
-    .map(group => {
+    .map((x) => x.trim())
+    .filter((x) => x)
+    .map((group) => {
       //
       // Explanation: compare `kubectl completion -h` to `kubectl get -h`
       // The former Examples section has a structure of (Summary, MultiLineDetail)
@@ -203,12 +203,12 @@ export const renderHelp = (out: string, command: string, verb: string, entityTyp
 
         return {
           command,
-          docs
+          docs,
         }
       } else {
         // see kubectl label -h for an example of a multi-line "firstPart"
         return {
-          copyToNextLine: group
+          copyToNextLine: group,
         }
       }
     })
@@ -226,7 +226,7 @@ export const renderHelp = (out: string, command: string, verb: string, entityTyp
       }
       return lines
     }, [])
-    .filter(x => x)
+    .filter((x) => x)
 
   /* Here comes Usage NavResponse */
   const kind = 'MultiModalResponse'
@@ -243,7 +243,7 @@ export const renderHelp = (out: string, command: string, verb: string, entityTyp
           (_, m1, m2) =>
             `${m1}${m2
               .split(/,/)
-              .map(_ => ` - ${_}`)
+              .map((_) => ` - ${_}`)
               .join('\n')}\n`
         )
         .concat('\n\n')
@@ -259,8 +259,8 @@ ${usageSection[0].content.slice(0, usageSection[0].content.indexOf('\n')).trim()
 `
         )
         .concat(usePart.length > 0 ? `### Guide\n${usePart}` : ''),
-      contentType: 'text/markdown'
-    }
+      contentType: 'text/markdown',
+    },
   ]
 
   const optionsMenuItems = (): MultiModalMode[] => {
@@ -269,16 +269,16 @@ ${usageSection[0].content.slice(0, usageSection[0].content.indexOf('\n')).trim()
       return [
         {
           mode: strings('Options'),
-          contentFrom: 'kubectl options'
-        }
+          contentFrom: 'kubectl options',
+        },
       ]
-    } else if (sections.some(section => /Options/i.test(section.title))) {
+    } else if (sections.some((section) => /Options/i.test(section.title))) {
       return sections
-        .filter(section => /Options/i.test(section.title))
-        .map(section => {
+        .filter((section) => /Options/i.test(section.title))
+        .map((section) => {
           return {
             mode: section.title.replace(':', ''),
-            content: commandDocTable(section.rows, command, verb, 'OPTIONS', TableStyle.Medium)
+            content: commandDocTable(section.rows, command, verb, 'OPTIONS', TableStyle.Medium),
           }
         })
     } else {
@@ -291,26 +291,26 @@ ${usageSection[0].content.slice(0, usageSection[0].content.indexOf('\n')).trim()
     [title]: {
       kind,
       metadata,
-      modes: baseModes().concat(optionsMenuItems())
-    }
+      modes: baseModes().concat(optionsMenuItems()),
+    },
   })
 
   /** commandNav contains sections: Commands */
   const commandMenu = (): Menu => {
-    if (sections.some(section => /command/i.test(section.title))) {
+    if (sections.some((section) => /command/i.test(section.title))) {
       return {
         [strings('Commands')]: {
           kind,
           metadata,
           modes: sections
-            .filter(section => /command/i.test(section.title))
-            .map(section => {
+            .filter((section) => /command/i.test(section.title))
+            .map((section) => {
               return {
                 mode: section.title.replace(/Command(s)/, '').replace(':', ''),
-                content: commandDocTable(section.rows, command, verb, 'COMMAND')
+                content: commandDocTable(section.rows, command, verb, 'COMMAND'),
               }
-            })
-        }
+            }),
+        },
       }
     }
   }
@@ -322,20 +322,20 @@ ${usageSection[0].content.slice(0, usageSection[0].content.indexOf('\n')).trim()
         [strings('Examples')]: {
           kind,
           metadata,
-          modes: detailedExample.map(_ => ({
+          modes: detailedExample.map((_) => ({
             // e.g.
             //  - kubectl get ... -> get ...
             //  - kubectl create clusterrole ... -> clusterrole ...
             mode: _.command.replace(new RegExp(`^${command}\\s+${entityType ? verb : ''}`), ''),
             contentType: 'text/markdown',
-            content: formatAsMarkdown(_)
-          }))
-        }
+            content: formatAsMarkdown(_),
+          })),
+        },
       }
     }
   }
 
-  const menus = [headerMenu(strings('Usage')), commandMenu(), exampleMenu()].filter(x => x)
+  const menus = [headerMenu(strings('Usage')), commandMenu(), exampleMenu()].filter((x) => x)
 
   debug('menus', menus)
 
@@ -351,11 +351,11 @@ ${usageSection[0].content.slice(0, usageSection[0].content.indexOf('\n')).trim()
       if (header.includes(moreInfoTerm)) {
         return {
           label: strings('More Information'),
-          href: splitOutNonLink()
+          href: splitOutNonLink(),
         }
       }
     }
-    return [getMoreInfoLinkFromHeader(header)].filter(x => x)
+    return [getMoreInfoLinkFromHeader(header)].filter((x) => x)
   }
 
   // notes: the second breadcrumb hasCommand only if we have an
@@ -371,7 +371,7 @@ ${usageSection[0].content.slice(0, usageSection[0].content.indexOf('\n')).trim()
     kind: 'NavResponse',
     menus,
     breadcrumbs,
-    links: getLinksFromHelp()
+    links: getLinksFromHelp(),
   }
 }
 
