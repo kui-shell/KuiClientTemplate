@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import { Arguments, Registrar, KResponse } from '@kui-shell/core'
+import { Arguments, Registrar, KResponse, isTable } from '@kui-shell/core'
 
 import flags from './flags'
 import { exec } from './exec'
@@ -31,10 +31,21 @@ export const doGet = (command: string) => async (args: Arguments<KubeOptions>): 
     const response = await exec(args, undefined, command)
 
     const {
-      content: { stderr, stdout }
+      content: { stderr, stdout },
     } = response
 
-    return stringToTable(stdout, stderr, args, command, 'explain')
+    const table = stringToTable(stdout, stderr, args, command, 'explain')
+
+    if (isTable(table)) {
+      table.body.forEach((_) => {
+        const name = (_.attributes[3] && _.attributes[3].value) || _.name
+        _.onclick = `${command} explain ${name}`
+      })
+
+      table.body.sort((a, b) => a.name.localeCompare(b.name))
+    }
+
+    return table
   }
 }
 

@@ -20,6 +20,7 @@ import apiResources from './controller/kubectl/api-resources'
 import contexts from './controller/kubectl/contexts'
 import create from './controller/kubectl/create'
 import describe from './controller/kubectl/describe'
+import explain from './controller/kubectl/explain'
 import kdelete from './controller/kubectl/delete'
 import kget from './controller/kubectl/get'
 import kgetNs from './controller/kubectl/get-namespaces'
@@ -36,6 +37,7 @@ export default async (registrar: Registrar) => {
   contexts(registrar)
   create(registrar)
   describe(registrar)
+  explain(registrar)
   kdelete(registrar)
   kget(registrar)
   kgetNs(registrar)
