@@ -348,7 +348,7 @@ class StatusWatcher implements Abortable, Watcher {
         attributes: this.nsAttr(namespace, anyNonDefaultNamespaces).concat([
           {
             key: 'KIND',
-            value: kind + (group.length > 0 ? `.${group}${version ? `.${version}` : ''}` : ''),
+            value: kind + (group.length > 0 ? `.${version}.${group}` : ''),
             outerCSS: '',
             css: ''
           },

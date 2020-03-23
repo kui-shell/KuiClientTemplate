@@ -41,7 +41,6 @@ commands.forEach(command => {
     const inNamespace = `-n ${ns}`
     const crdName = 'crontabs.stable.example.com'
     const kind = 'CustomResourceDefinition'
-    const apiGroup = 'apiextensions.k8s.io'
 
     allocateNS(this, ns, command)
 
@@ -121,8 +120,7 @@ commands.forEach(command => {
 
     it('should open crd in sidecar, then click on Show Resources button', async () => {
       try {
-        const res = await CLI.command(`${command} get ${kind}.${apiGroup} -n ${ns} ${crdName} -o yaml`, this.app)
-
+        const res = await CLI.command(`${command} get ${kind} -n ${ns} ${crdName} -o yaml`, this.app)
         console.error(`${command} apply crd 7`)
         await Promise.resolve(res)
           .then(ReplExpect.justOK)
