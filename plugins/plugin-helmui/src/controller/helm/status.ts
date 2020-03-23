@@ -15,30 +15,21 @@
  */
 
 import Debug from 'debug'
-import { Arguments, ExecOptions, MixedResponse, Registrar } from '@kui-shell/core'
+import { Arguments, ExecOptions, Menu, Registrar, i18n } from '@kui-shell/core'
 import { isUsage, doHelp, preprocessTable, formatTable, KubeOptions } from '@kui-shell/plugin-kubeui'
 
 import doExecWithStdout from './exec'
 import commandPrefix from '../command-prefix'
 
+const strings = i18n('plugin-kubeui')
+const strings2 = i18n('plugin-helmui')
 const debug = Debug('k8s/view/helm-status')
-
-/**
- * Approximate character width of the given table
- *
- */
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-const width = (table: any[]): number => {
-  return table.reduce((max, { name, attributes }) => {
-    return Math.max(max, name.length + attributes.reduce((sum, { value }) => sum + value.length, 0))
-  }, 0)
-}
 
 /**
  * Format the output of a helm status command
  *
  */
-export const format = async (options: KubeOptions, response: string, execOptions: ExecOptions) => {
+export const format = async (name: string, options: KubeOptions, response: string, execOptions: ExecOptions) => {
   const command = 'kubectl'
   const verb = 'get'
 
@@ -93,45 +84,102 @@ export const format = async (options: KubeOptions, response: string, execOptions
     })
 
   debug('resources', resources)
-  const resourcesOut = resources
-    .map(({ kind, table }) => {
+
+  if (execOptions.nested) {
+    debug('returning tables for nested call')
+    return resources.map(({ kind, table }) => {
       table.title = kind
       return table
     })
-    .sort((a, b) => {
-      // number of columns
-      const diff1 = a.header.attributes.length - b.header.attributes.length
-
-      if (diff1 === 0) {
-        return -(width(a.body) - width(b.body))
-      } else {
-        return -diff1
-      }
-    })
-
-  if (execOptions.nested) {
-    debug('returning tables for nested call', resourcesOut)
-    return resourcesOut
   } else {
-    const result: MixedResponse = []
+    const notesMatch =
+      notesString &&
+      notesString.match(
+        /^NOTES:\n(\S+) can be accessed via port (\d+) on the following DNS name from within your cluster:\n(\S+)(.+)?/s
+      )
 
-    // helm status sometimes emits some text before the tables
-    if (headerString) {
-      result.push(await headerString)
+    const statusMatch = headerString.match(/LAST DEPLOYED: (.*)\nNAMESPACE: (.*)\nSTATUS: (.*)/)
+    const status = !statusMatch
+      ? headerString
+      : `### ${strings2('Last Deployed')}
+${statusMatch[1]}
+
+### ${strings2('Namespace')}
+${statusMatch[2]}
+
+### ${strings('status')}
+\`${statusMatch[3]}\`
+`
+
+    const summary = !notesMatch
+      ? notesString
+      : `### Chart Name
+${notesMatch[1]}
+
+### Port
+\`${notesMatch[2]}\`
+
+### DNS Name
+${notesMatch[3]}`
+
+    const notes = notesMatch && notesMatch[4]
+
+    const overviewMenu: Menu[] = [
+      {
+        Overview: {
+          modes: [
+            {
+              mode: 'status',
+              label: strings('status'),
+              content: status,
+              contentType: 'text/markdown',
+            },
+          ]
+            .concat(
+              !summary
+                ? []
+                : [
+                    {
+                      mode: 'summary',
+                      label: strings('summary'),
+                      content: summary,
+                      contentType: 'text/markdown',
+                    },
+                  ]
+            )
+            .concat(
+              !notes
+                ? []
+                : [
+                    {
+                      mode: 'notes',
+                      label: strings2('Notes'),
+                      content: notes,
+                      contentType: 'text/markdown',
+                    },
+                  ]
+            ),
+        },
+      },
+    ]
+
+    const resourcesMenu: Menu[] = [
+      {
+        Resources: {
+          modes: resources.map((_) => ({
+            mode: _.kind,
+            content: _.table,
+          })),
+        },
+      },
+    ]
+
+    return {
+      apiVersion: 'kui-shell/v1',
+      kind: 'NavResponse',
+      breadcrumbs: [{ label: 'helm' }, { label: 'release', command: `helm ls` }, { label: name }],
+      menus: overviewMenu.concat(resourcesMenu),
     }
-
-    if (Array.isArray(resourcesOut)) {
-      resourcesOut.forEach((_) => result.push(_))
-    } else {
-      result.push(resourcesOut)
-    }
-
-    // helm status sometimes emits a "Notes" section after the tables
-    if (notesString) {
-      result.push(await notesString)
-    }
-
-    return result
   }
 }
 
@@ -140,8 +188,15 @@ async function doStatus(args: Arguments<KubeOptions>) {
     return doHelp('helm', args)
   }
 
+  const name = args.argvNoOptions[args.argvNoOptions.indexOf('status') + 1]
   const response = await doExecWithStdout(args)
-  return format(args.parsedOptions, response, args.execOptions)
+
+  try {
+    return format(name, args.parsedOptions, response, args.execOptions)
+  } catch (err) {
+    console.error('error formatting status', err)
+    return response
+  }
 }
 
 export default (registrar: Registrar) => {
