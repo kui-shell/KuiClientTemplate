@@ -60,7 +60,7 @@ const outerCSSForKey = {
   REVISION: 'hide-with-sidecar', // helm ls
   AGE: 'hide-with-sidecar very-narrow', // e.g. helm status and kubectl get svc
   'PORT(S)': 'entity-name-group entity-name-group-narrow hide-with-sidecar', // helm status for services
-  SUBOBJECT: 'entity-name-group entity-name-group-extra-narrow' // helm ls
+  SUBOBJECT: 'entity-name-group entity-name-group-extra-narrow', // helm ls
 }
 
 const cssForKey = {
@@ -74,13 +74,13 @@ const cssForKey = {
   AGE: 'slightly-deemphasize',
 
   'APP VERSION': 'pre-wrap slightly-deemphasize', // helm ls
-  UPDATED: 'slightly-deemphasize somewhat-smaller-text'
+  UPDATED: 'slightly-deemphasize somewhat-smaller-text',
 }
 
 const tagForKey = {
   // READY: 'badge', // e.g. deployments
   REASON: 'badge', // k get events
-  STATUS: 'badge'
+  STATUS: 'badge',
 }
 
 const cssForKeyValue = {}
@@ -98,7 +98,7 @@ const split = (str: string, splits: number[], headerCells?: string[]): Pair[] =>
   return splits.map((splitIndex, idx) => {
     return {
       key: headerCells && headerCells[idx],
-      value: str.substring(splitIndex, splits[idx + 1] || str.length).trim()
+      value: str.substring(splitIndex, splits[idx + 1] || str.length).trim(),
     }
   })
 }
@@ -114,12 +114,12 @@ const detabbify = (str: string) => str.replace(/\t/g, '   ')
  *
  */
 export const preprocessTable = (raw: string[]): Pair[][][] => {
-  return raw.map(table => {
+  return raw.map((table) => {
     const header = detabbify(table.substring(0, table.indexOf('\n')))
     const headerCells = header
       .split(/(\s\s)+\s?/)
-      .map(x => x && x.trim())
-      .filter(x => x)
+      .map((x) => x && x.trim())
+      .filter((x) => x)
 
     const columnStarts: number[] = []
     for (let idx = 0, jdx = 0; idx < headerCells.length; idx++) {
@@ -137,9 +137,9 @@ export const preprocessTable = (raw: string[]): Pair[][][] => {
 
     return table
       .split(/\n/)
-      .filter(x => x)
+      .filter((x) => x)
       .map(detabbify)
-      .map(line => split(line, columnStarts, headerCells))
+      .map((line) => split(line, columnStarts, headerCells))
   })
 }
 
@@ -236,7 +236,7 @@ export const formatTable = <O extends KubeOptions>(
       const rowValue = rows[0].value
       const rowCSS = [
         (cssForKeyValue[rowKey] && cssForKeyValue[rowKey][rowValue]) || '',
-        rowIsSelected ? 'selected-row' : ''
+        rowIsSelected ? 'selected-row' : '',
       ]
 
       // if there isn't a global namespace specifier, maybe there is a row namespace specifier
@@ -255,7 +255,6 @@ export const formatTable = <O extends KubeOptions>(
               nameForDrilldown
             )} ${drilldownFormat} ${ns}`
           : false
-
       const header = idx === 0 ? 'header-cell' : ''
 
       // for `k get events`, show REASON and MESSAGE columns when sidecar open
@@ -295,10 +294,10 @@ export const formatTable = <O extends KubeOptions>(
                 ((idx > 0 && cssForKey[key]) || '') +
                 ' ' +
                 (cssForValue[column] || (key === 'READY' && cssForReadyCount(column)) || maybeRed(column)),
-              value: key === 'STATUS' && idx > 0 ? capitalize(column) : column
+              value: key === 'STATUS' && idx > 0 ? capitalize(column) : column,
             })
           )
-          .concat(fillTo(rows.length, maxColumns))
+          .concat(fillTo(rows.length, maxColumns)),
       }
     }
   )
@@ -306,7 +305,7 @@ export const formatTable = <O extends KubeOptions>(
   return {
     header: rows[0],
     body: rows.slice(1),
-    noSort: true
+    noSort: true,
     // title: entityTypeFromRows || entityTypeFromCommandLine
   }
 }
@@ -350,7 +349,7 @@ export const stringToTable = <O extends KubeOptions>(
       }
       return T
     } else {
-      return preTables.map(preTable => {
+      return preTables.map((preTable) => {
         const T = formatTable(command, verb, entityType, args.parsedOptions, preTable)
         if (args.execOptions.filter) {
           T.body = args.execOptions.filter(T.body)

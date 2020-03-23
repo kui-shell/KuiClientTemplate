@@ -28,7 +28,7 @@
   "module": "mdist/index.js",
   "types": "mdist/index.d.ts",
   "dependencies": {
-    "@kui-shell/core": "8.0.3",
+    "@kui-shell/core": "8.0.5",
     "@kui-shell/plugin-kubeui": "*",
     "debug": "4.1.1"
   },
