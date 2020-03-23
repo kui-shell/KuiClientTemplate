@@ -15,31 +15,30 @@
  */
 
 import { Arguments, Registrar } from '@kui-shell/core'
-import { KubeOptions } from '@kui-shell/plugin-kubeui'
+import { isUsage, doHelp, KubeOptions } from '@kui-shell/plugin-kubeui'
 
 import doExecWithStdout from './exec'
-import { doHelp, isUsage } from './help'
 import commandPrefix from '../command-prefix'
 
 const name = /^NAME:\s+([\w-]+)/
 
 async function doInstall(args: Arguments<KubeOptions>) {
+  if (isUsage(args)) {
+    return doHelp('helm', args)
+  }
+
   const response = await doExecWithStdout(args)
 
-  if (isUsage(args)) {
-    doHelp(response)
-  } else {
-    const releaseName = response.match(name)[1]
-    return args.REPL.qexec(`helm get ${args.REPL.encodeComponent(releaseName)}`).catch(err => {
-      // oops, we tried to be clever and failed; return the original response
-      console.error('error in helm get for helm install', err)
-      return response
-    })
-  }
+  const releaseName = response.match(name)[1]
+  return args.REPL.qexec(`helm get ${args.REPL.encodeComponent(releaseName)}`).catch((err) => {
+    // oops, we tried to be clever and failed; return the original response
+    console.error('error in helm get for helm install', err)
+    return response
+  })
 }
 
 export default (registrar: Registrar) => {
   registrar.listen(`/${commandPrefix}/helm/install`, doInstall, {
-    inBrowserOk: true
+    inBrowserOk: true,
   })
 }

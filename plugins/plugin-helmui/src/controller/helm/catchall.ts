@@ -15,10 +15,9 @@
  */
 
 import { inBrowser, hasProxy, Arguments, Registrar } from '@kui-shell/core'
-import { KubeOptions } from '@kui-shell/plugin-kubeui'
+import { isUsage, doHelp, KubeOptions } from '@kui-shell/plugin-kubeui'
 
-import doExecWithStdout from './exec'
-import { doHelpIfRequested } from './help'
+import doExecWithPty from './exec'
 import commandPrefix from '../command-prefix'
 
 /** is the given string `str` the `helm` command? */
@@ -38,9 +37,7 @@ export default (registrar: Registrar) => {
     (argv: string[]) => {
       return isHelm(argv[0]) || (argv[0] === commandPrefix && isHelm(argv[1]))
     },
-    async (args: Arguments<KubeOptions>) => {
-      return doHelpIfRequested(args, await doExecWithStdout(args))
-    },
+    (args: Arguments<KubeOptions>) => (isUsage(args) ? doHelp('helm', args) : doExecWithPty(args)),
     1, // priority
     { inBrowserOk: true }
   )

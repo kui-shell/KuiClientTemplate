@@ -15,17 +15,17 @@
  */
 
 import { Arguments, Registrar } from '@kui-shell/core'
-import { preprocessTable, formatTable, KubeOptions } from '@kui-shell/plugin-kubeui'
+import { isUsage, doHelp, preprocessTable, formatTable, KubeOptions } from '@kui-shell/plugin-kubeui'
 
 import doExecWithStdout from './exec'
-import { doHelp, isUsage } from './help'
 import commandPrefix from '../command-prefix'
 
 async function doSearch(args: Arguments<KubeOptions>) {
-  const response = await doExecWithStdout(args)
   if (isUsage(args)) {
-    doHelp(response)
+    return doHelp('helm', args)
   }
+
+  const response = await doExecWithStdout(args)
 
   const preTables = preprocessTable(response.split(/^(?=LAST SEEN|NAMESPACE|NAME\s+)/m))
   return formatTable('helm', undefined, undefined, args.parsedOptions, preTables[0])
@@ -33,6 +33,6 @@ async function doSearch(args: Arguments<KubeOptions>) {
 
 export default (registrar: Registrar) => {
   registrar.listen(`/${commandPrefix}/helm/search`, doSearch, {
-    inBrowserOk: true
+    inBrowserOk: true,
   })
 }

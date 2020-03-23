@@ -14,16 +14,21 @@
  * limitations under the License.
  */
 
-import { Arguments, Registrar, MultiModalResponse } from '@kui-shell/core'
-import { KubeOptions } from '@kui-shell/plugin-kubeui'
+import { Arguments, KResponse, Registrar, MultiModalResponse, NavResponse } from '@kui-shell/core'
+import { isUsage, doHelp, KubeOptions } from '@kui-shell/plugin-kubeui'
 
 import doExecWithStdout from './exec'
 import apiVersion from './apiVersion'
 import commandPrefix from '../command-prefix'
-import { doHelpIfRequested } from './help'
 import { HelmRelease } from '../../models/release'
 
-async function doGet(args: Arguments<KubeOptions>): Promise<string | MultiModalResponse<HelmRelease>> {
+async function doGet(
+  args: Arguments<KubeOptions>
+): Promise<string | MultiModalResponse<HelmRelease> | NavResponse | KResponse> {
+  if (isUsage(args)) {
+    return doHelp('helm', args)
+  }
+
   const { command, argvNoOptions } = args
 
   const projIdx = argvNoOptions.indexOf('get') + 1
@@ -41,7 +46,7 @@ async function doGet(args: Arguments<KubeOptions>): Promise<string | MultiModalR
   const match = response.match(basic)
   if (!match) {
     // then this isn't of the form we expected; return the raw response
-    return doHelpIfRequested(args, response)
+    return response
   }
 
   const revision = match[1]
@@ -55,22 +60,22 @@ async function doGet(args: Arguments<KubeOptions>): Promise<string | MultiModalR
     metadata: {
       name: releaseName,
       generation: revision,
-      creationTimestamp
+      creationTimestamp,
     },
     summary: {
       content: response.substring(0, endOfBasicSection).trim(),
-      contentType: 'yaml'
+      contentType: 'yaml',
     },
     isSimulacrum: true,
     originatingCommand: command,
     isKubeResource: true,
     data: response,
-    modes: []
+    modes: [],
   }
 }
 
 export default (registrar: Registrar) => {
   registrar.listen(`/${commandPrefix}/helm/get`, doGet, {
-    inBrowserOk: true
+    inBrowserOk: true,
   })
 }

@@ -8,7 +8,7 @@
   "module": "mdist/index.js",
   "types": "mdist/index.d.ts",
   "dependencies": {
-    "@kui-shell/plugin-client-common": "^8.0.5",
+    "@kui-shell/plugin-client-common": "^8.0.6",
     "@kui-shell/plugin-client-default": "^7.0.47",
     "@kui-shell/plugin-view-utilization": "*",
     "@kui-shell/plugin-kubeui": "*"
