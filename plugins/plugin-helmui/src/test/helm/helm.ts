@@ -15,8 +15,6 @@
  */
 
 import { Common, CLI, ReplExpect, SidecarExpect, Selectors, Util } from '@kui-shell/test'
-import * as assert from 'assert'
-
 import { doHelp, createNS, allocateNS, deleteNS } from '@kui-shell/plugin-kubeui/tests/lib/k8s/utils'
 
 const lists = ['list', 'ls']
@@ -66,29 +64,9 @@ describe(`helm commands ${process.env.MOCHA_RUN_TARGET || ''}`, function (this: 
   })
 
   const checkHelmInstall = async (res: ReplExpect.AppAndCount) => {
-    await ReplExpect.okWithAny(res)
+    await ReplExpect.justOK(res)
     await SidecarExpect.open(res.app)
     await SidecarExpect.showingTopNav(name)(res.app)
-  }
-
-  const checkHelmStatus = async (res: ReplExpect.AppAndCount) => {
-    await ReplExpect.okWithAny(res)
-
-    const table = await this.app.client.getText(`${Selectors.OUTPUT_N(res.count)} .bx--data-table-header__title`)
-    assert.strict.equal(table.length, 6)
-
-    const text = await this.app.client.getText(`${Selectors.OUTPUT_N(res.count)} pre`)
-    assert.ok(Array.isArray(text), 'expect more than one section of text output')
-    if (Array.isArray(text)) {
-      assert.ok(
-        text.find((x) => x && x.includes('NOTES:')),
-        'expect a NOTES section of streaming output'
-      )
-      assert.ok(
-        text.find((x) => x && x.includes('LAST DEPLOYED:')),
-        'expect a LAST DEPLOYED section of streaming output'
-      )
-    }
   }
 
   it(`should create sample helm chart`, () => {
@@ -119,15 +97,13 @@ describe(`helm commands ${process.env.MOCHA_RUN_TARGET || ''}`, function (this: 
       .catch(Common.oops(this, true))
   })
 
-  it(`should show the status of that new release`, () => {
-    return CLI.command(`helm status ${name}`, this.app).then(checkHelmStatus).catch(Common.oops(this, true))
-  })
+  help(`helm status ${name}`, ['helm', 'release', name], ['Status', 'Summary'])
 
   it(`should show the release in sidecar via helm get`, () => {
     return CLI.command(`helm get ${name}`, this.app)
       .then(ReplExpect.justOK)
       .then(SidecarExpect.open)
-      .then(SidecarExpect.showing(name))
+      .then(SidecarExpect.showingTopNav(name))
       .then(() => this.app.client.click(Selectors.SIDECAR_MODE_BUTTON('hooks')))
       .then(() => this.app.client.click(Selectors.SIDECAR_MODE_BUTTON('manifest')))
       .then(() => this.app.client.click(Selectors.SIDECAR_MODE_BUTTON('values')))
