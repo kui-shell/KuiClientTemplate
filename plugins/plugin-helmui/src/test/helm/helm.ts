@@ -17,12 +17,12 @@
 import { Common, CLI, ReplExpect, SidecarExpect, Selectors, Util } from '@kui-shell/test'
 import * as assert from 'assert'
 
-import { createNS, allocateNS, deleteNS } from '@kui-shell/plugin-kubeui/tests/lib/k8s/utils'
+import { doHelp, createNS, allocateNS, deleteNS } from '@kui-shell/plugin-kubeui/tests/lib/k8s/utils'
 
 const lists = ['list', 'ls']
 
 // TODO: enable this once proxy can find $HOME on travis
-describe(`helm commands ${process.env.MOCHA_RUN_TARGET || ''}`, function(this: Common.ISuite) {
+describe(`helm commands ${process.env.MOCHA_RUN_TARGET || ''}`, function (this: Common.ISuite) {
   before(Common.before(this))
   after(Common.after(this))
 
@@ -42,43 +42,33 @@ describe(`helm commands ${process.env.MOCHA_RUN_TARGET || ''}`, function(this: C
       .catch(Common.oops(this, true))
   })
 
-  it('should show 500 error for helm get -h', () => {
-    return CLI.command('helm get -h', this.app)
-      .then(ReplExpect.error(500))
-      .catch(Common.oops(this, true))
-  })
+  const help = doHelp.bind(this)
+  help('helm get -h', ['helm', 'get'], ['Introduction', 'Flags', 'Global Flags', 'Available'])
 
   it('should show 500 error for helm create', () => {
-    return CLI.command('helm create', this.app)
-      .then(ReplExpect.error(500, 'Error:'))
-      .catch(Common.oops(this, true))
+    return CLI.command('helm create', this.app).then(ReplExpect.error(500, 'Error:')).catch(Common.oops(this, true))
   })
 
   it('should show 500 error for helm install', () => {
-    return CLI.command('helm install', this.app)
-      .then(ReplExpect.error(500, 'Error:'))
-      .catch(Common.oops(this, true))
+    return CLI.command('helm install', this.app).then(ReplExpect.error(500, 'Error:')).catch(Common.oops(this, true))
   })
 
   it('should show 500 error for helm delete', () => {
-    return CLI.command('helm delete', this.app)
-      .then(ReplExpect.error(500, 'Error:'))
-      .catch(Common.oops(this, true))
+    return CLI.command('helm delete', this.app).then(ReplExpect.error(500, 'Error:')).catch(Common.oops(this, true))
   })
 
   allocateNS(this, ns)
 
-  lists.forEach(list => {
+  lists.forEach((list) => {
     it(`should list empty releases via helm ${list}`, () => {
-      return CLI.command(`helm ${list}`, this.app)
-        .then(ReplExpect.blank)
-        .catch(Common.oops(this))
+      return CLI.command(`helm ${list}`, this.app).then(ReplExpect.blank).catch(Common.oops(this, true))
     })
   })
 
   const checkHelmInstall = async (res: ReplExpect.AppAndCount) => {
     await ReplExpect.okWithAny(res)
-    await SidecarExpect.open(res.app).then(SidecarExpect.showing(name, undefined, true)) // true means substring match ok
+    await SidecarExpect.open(res.app)
+    await SidecarExpect.showingTopNav(name)(res.app)
   }
 
   const checkHelmStatus = async (res: ReplExpect.AppAndCount) => {
@@ -91,11 +81,11 @@ describe(`helm commands ${process.env.MOCHA_RUN_TARGET || ''}`, function(this: C
     assert.ok(Array.isArray(text), 'expect more than one section of text output')
     if (Array.isArray(text)) {
       assert.ok(
-        text.find(x => x && x.includes('NOTES:')),
+        text.find((x) => x && x.includes('NOTES:')),
         'expect a NOTES section of streaming output'
       )
       assert.ok(
-        text.find(x => x && x.includes('LAST DEPLOYED:')),
+        text.find((x) => x && x.includes('LAST DEPLOYED:')),
         'expect a LAST DEPLOYED section of streaming output'
       )
     }
@@ -104,7 +94,7 @@ describe(`helm commands ${process.env.MOCHA_RUN_TARGET || ''}`, function(this: C
   it(`should create sample helm chart`, () => {
     return CLI.command(`helm install --name ${name} stable/mysql ${inNamespace}`, this.app)
       .then(checkHelmInstall)
-      .catch(Common.oops(this))
+      .catch(Common.oops(this, true))
   })
 
   it('should refresh as a quick way to close the sidecar', () => Common.refresh(this))
@@ -113,14 +103,12 @@ describe(`helm commands ${process.env.MOCHA_RUN_TARGET || ''}`, function(this: C
     return CLI.command(`helm history ${name}`, this.app)
       .then(ReplExpect.okWithCustom({ selector: Selectors.TABLE_CELL('1', 'REVISION') }))
       .then(Util.expectText(this.app, '1'))
-      .catch(Common.oops(this))
+      .catch(Common.oops(this, true))
   })
 
   // confirm that helm list shows a row for our release
   it(`should list that new release via helm list`, () => {
-    return CLI.command(`helm list ${name}`, this.app)
-      .then(ReplExpect.okWith(name))
-      .catch(Common.oops(this))
+    return CLI.command(`helm list ${name}`, this.app).then(ReplExpect.okWith(name)).catch(Common.oops(this, true))
   })
 
   // also confirm that there is a REVISION column in that row
@@ -128,13 +116,11 @@ describe(`helm commands ${process.env.MOCHA_RUN_TARGET || ''}`, function(this: C
     return CLI.command(`helm list ${name}`, this.app)
       .then(ReplExpect.okWithCustom({ selector: Selectors.TABLE_CELL(name, 'REVISION') }))
       .then(Util.expectText(this.app, '1'))
-      .catch(Common.oops(this))
+      .catch(Common.oops(this, true))
   })
 
   it(`should show the status of that new release`, () => {
-    return CLI.command(`helm status ${name}`, this.app)
-      .then(checkHelmStatus)
-      .catch(Common.oops(this))
+    return CLI.command(`helm status ${name}`, this.app).then(checkHelmStatus).catch(Common.oops(this, true))
   })
 
   it(`should show the release in sidecar via helm get`, () => {
@@ -146,19 +132,17 @@ describe(`helm commands ${process.env.MOCHA_RUN_TARGET || ''}`, function(this: C
       .then(() => this.app.client.click(Selectors.SIDECAR_MODE_BUTTON('manifest')))
       .then(() => this.app.client.click(Selectors.SIDECAR_MODE_BUTTON('values')))
       .then(() => this.app.client.click(Selectors.SIDECAR_MODE_BUTTON('notes')))
-      .catch(Common.oops(this))
+      .catch(Common.oops(this, true))
   })
 
   it(`should delete sample helm chart`, () => {
     return CLI.command(`helm delete --purge ${name}`, this.app)
       .then(ReplExpect.okWithString(`release "${name}" deleted`))
-      .catch(Common.oops(this))
+      .catch(Common.oops(this, true))
   })
 
   it(`should list empty releases via helm list again`, () => {
-    return CLI.command(`helm list ${name}`, this.app)
-      .then(ReplExpect.blank)
-      .catch(Common.oops(this))
+    return CLI.command(`helm list ${name}`, this.app).then(ReplExpect.blank).catch(Common.oops(this, true))
   })
 
   deleteNS(this, ns)

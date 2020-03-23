@@ -15,17 +15,17 @@
  */
 
 import { Arguments, Registrar } from '@kui-shell/core'
-import { preprocessTable, formatTable, KubeOptions } from '@kui-shell/plugin-kubeui'
+import { isUsage, doHelp, preprocessTable, formatTable, KubeOptions } from '@kui-shell/plugin-kubeui'
 
 import doExecWithStdout from './exec'
-import { doHelp, isUsage } from './help'
 import commandPrefix from '../command-prefix'
 
 async function doList(args: Arguments<KubeOptions>) {
-  const response = await doExecWithStdout(args)
   if (isUsage(args)) {
-    doHelp(response)
+    return doHelp('helm', args)
   }
+
+  const response = await doExecWithStdout(args)
 
   const preTables = preprocessTable(response.split(/^(?=LAST SEEN|NAMESPACE|NAME\s+)/m))
   if (preTables[0].length === 0) {
@@ -38,10 +38,10 @@ async function doList(args: Arguments<KubeOptions>) {
 
 export default (registrar: Registrar) => {
   registrar.listen(`/${commandPrefix}/helm/list`, doList, {
-    inBrowserOk: true
+    inBrowserOk: true,
   })
 
   registrar.listen(`/${commandPrefix}/helm/ls`, doList, {
-    inBrowserOk: true
+    inBrowserOk: true,
   })
 }

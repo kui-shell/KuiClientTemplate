@@ -115,7 +115,7 @@ export const renderHelp = (out: string, command: string, verb: string, entityTyp
       // .map(_ => ` - ${_}`)
       .join('\n')
 
-  const rawSections = nonUseOut.split(/\n([^'\s].*:)\n/) // the non-use sections of the docs
+  const rawSections = nonUseOut.split(/\n\n([^'\s].*:)\n(?!\n)/) // the non-use sections of the docs
 
   // the first section is the top-level doc string
   const headerEnd =
@@ -127,8 +127,8 @@ export const renderHelp = (out: string, command: string, verb: string, entityTyp
     nRowsInViewport: section.title.match(/Available Commands/i) ? 8 : undefined,
     rows: section.content
       .split(/[\n\r]/)
-      .filter(x => x)
-      .map(line => {
+      .filter((x) => x)
+      .map((line) => {
         const [_, thisCommand, docs] = line.match(/\s*(\S+)\s+(.*)/) // eslint-disable-line @typescript-eslint/no-unused-vars
         if (thisCommand) {
           return {
@@ -160,6 +160,9 @@ export const renderHelp = (out: string, command: string, verb: string, entityTyp
 
     return S
   }, [])
+
+  // aliases section
+  const aliasesSection = allSections.find(({ title }) => title === 'Aliases:')
 
   // pull off the Usage section and place it into our usage model
   const usageSection = allSections.filter(({ title }) => title === 'Usage:')
@@ -248,8 +251,9 @@ export const renderHelp = (out: string, command: string, verb: string, entityTyp
         )
         .concat('\n\n')
         .replace(/(--\S+)/g, '`$1`')
-        .replace(/^([^\n.]+)(\.?)/, '### About\n#### $1')
+        .replace(/^\n*([^\n.]+)(\.?)/, '### About\n#### $1')
         .replace(/\n\s*(Find more information at:)\s+([^\n]+)/, '') // [Find more information] will be in links below the menus
+        .concat(!aliasesSection ? '' : `### Aliases\n${aliasesSection.content}`)
         .concat(
           `
 ### Usage
@@ -258,7 +262,7 @@ ${usageSection[0].content.slice(0, usageSection[0].content.indexOf('\n')).trim()
 \`\`\`
 `
         )
-        .concat(usePart.length > 0 ? `### Guide\n${usePart}` : ''),
+        .concat(usePart && usePart.length > 0 ? `### Guide\n${usePart}` : ''),
       contentType: 'text/markdown',
     },
   ]
@@ -272,9 +276,9 @@ ${usageSection[0].content.slice(0, usageSection[0].content.indexOf('\n')).trim()
           contentFrom: 'kubectl options',
         },
       ]
-    } else if (sections.some((section) => /Options/i.test(section.title))) {
+    } else if (sections.some((section) => /Flags|Options/i.test(section.title))) {
       return sections
-        .filter((section) => /Options/i.test(section.title))
+        .filter((section) => /Flags|Options/i.test(section.title))
         .map((section) => {
           return {
             mode: section.title.replace(':', ''),

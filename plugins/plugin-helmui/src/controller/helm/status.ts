@@ -16,7 +16,7 @@
 
 import Debug from 'debug'
 import { Arguments, ExecOptions, MixedResponse, Registrar } from '@kui-shell/core'
-import { preprocessTable, formatTable, KubeOptions } from '@kui-shell/plugin-kubeui'
+import { isUsage, doHelp, preprocessTable, formatTable, KubeOptions } from '@kui-shell/plugin-kubeui'
 
 import doExecWithStdout from './exec'
 import commandPrefix from '../command-prefix'
@@ -59,9 +59,9 @@ export const format = async (options: KubeOptions, response: string, execOptions
 
   const resources = resourcesString
     .split(/==>/)
-    .map(_ => _.split(/[\n\r]/))
-    .filter(A => A.length > 0 && A[0])
-    .map(A => {
+    .map((_) => _.split(/[\n\r]/))
+    .filter((A) => A.length > 0 && A[0])
+    .map((A) => {
       const kind = A[0].trim()
 
       // "v1/pod(related)" => "pod"
@@ -88,7 +88,7 @@ export const format = async (options: KubeOptions, response: string, execOptions
           entityType,
           Object.assign({}, options, { namespace: namespaceFor() }),
           preprocessTable([A.slice(1).join('\n')])[0]
-        )
+        ),
       }
     })
 
@@ -121,7 +121,7 @@ export const format = async (options: KubeOptions, response: string, execOptions
     }
 
     if (Array.isArray(resourcesOut)) {
-      resourcesOut.forEach(_ => result.push(_))
+      resourcesOut.forEach((_) => result.push(_))
     } else {
       result.push(resourcesOut)
     }
@@ -136,12 +136,16 @@ export const format = async (options: KubeOptions, response: string, execOptions
 }
 
 async function doStatus(args: Arguments<KubeOptions>) {
+  if (isUsage(args)) {
+    return doHelp('helm', args)
+  }
+
   const response = await doExecWithStdout(args)
   return format(args.parsedOptions, response, args.execOptions)
 }
 
 export default (registrar: Registrar) => {
   registrar.listen(`/${commandPrefix}/helm/status`, doStatus, {
-    inBrowserOk: true
+    inBrowserOk: true,
   })
 }
