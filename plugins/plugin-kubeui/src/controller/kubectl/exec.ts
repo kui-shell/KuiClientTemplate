@@ -31,6 +31,7 @@ import commandPrefix from '../command-prefix'
 import { KubeOptions, getNamespaceForArgv, getContextForArgv, fileOf, isHelpRequest } from './options'
 
 import { renderHelp } from '../../lib/util/help'
+import { getCommandFromArgs } from '../../lib/util/util'
 import { FinalState } from '../../lib/model/states'
 import { stringToTable, KubeTableResponse } from '../../lib/view/formatTable'
 
@@ -98,11 +99,12 @@ const isKubectl = (args: Arguments<KubeOptions>) =>
     args.argvNoOptions[0] === commandPrefix &&
     /^k(ubectl)?$/.test(args.argvNoOptions[1]))
 
-const isUsage = (args: Arguments<KubeOptions>) => isHelpRequest(args) || isKubectl(args)
+export const isUsage = (args: Arguments<KubeOptions>) => isHelpRequest(args) || isKubectl(args)
 
 function doHelp<O extends KubeOptions>(args: Arguments<O>, response: RawResponse): void {
   const verb = args.argvNoOptions.length >= 2 ? args.argvNoOptions[1] : ''
-  throw renderHelp(response.content.stdout, 'kubectl', verb, response.content.code)
+  const command = getCommandFromArgs(args)
+  throw renderHelp(response.content.stdout, command === 'k' ? 'kubectl' : command, verb, response.content.code)
 }
 
 /**
