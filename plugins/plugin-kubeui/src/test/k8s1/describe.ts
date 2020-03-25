@@ -84,6 +84,35 @@ commands.forEach(command => {
 
     allocateNS(this, ns, command)
 
+    const execCommand = command === 'k' ? 'kubectl' : command
+
+    it(`should give help for known outer command: ${command} describe --help`, () =>
+      CLI.command(`${command} describe -h`, this.app)
+        .then(ReplExpect.errorWithPassthrough(500))
+        .then(N =>
+          Promise.all([
+            this.app.client.waitForExist(`${Selectors.OUTPUT_N(N)} h4.usage-error-title[data-title="Options:"]`),
+            this.app.client.waitForExist(
+              `${Selectors.OUTPUT_N(N)} .bx--breadcrumb-item .bx--no-link[data-label="describe"]`
+            ),
+            this.app.client.waitForExist(
+              `${Selectors.OUTPUT_N(N)} .bx--breadcrumb-item .bx--link[data-label="${execCommand}"]`
+            )
+          ])
+        )
+        .catch(Common.oops(this)))
+
+    it(`should fail with suggestion for invalid command syntax via ${command} describe`, () => {
+      return CLI.command(`${command} describe`, this.app)
+        .then(
+          ReplExpect.error(
+            500,
+            `error: You must specify the type of resource to describe. Use "${execCommand} api-resources" for a complete list of supported resources`
+          )
+        )
+        .catch(Common.oops(this, true))
+    })
+
     // this one sometimes times out in webpack in travis; not sure why yet [nickm 20190810]
     // localIt will have it run only in electron for now
     Common.localIt(`should fail with 404 for unknown resource type via ${command}`, () => {
