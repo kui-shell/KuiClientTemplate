@@ -8,7 +8,7 @@ response to normal `kubectl` commands. To provide a
 popup-from-terminal experience, this project leverages the
 [Kui](https://github.com/IBM/kui) project.
 
-For example, `kubectl kubeui get pods` will pop up a window that
+For example, `kubectl kui get pods` will pop up a window that
 displays a table with clickable pod names; the screenshot to the right
 illustrates one such popup. <img alt="kubeui popup"
 src="docs/kubeui-popup.png" width="500px" align="right"/>
