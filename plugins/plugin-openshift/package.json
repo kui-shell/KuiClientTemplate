@@ -29,7 +29,8 @@
   "module": "mdist/index.js",
   "types": "mdist/index.d.ts",
   "dependencies": {
-    "@kui-shell/plugin-kubeui": "*"
+    "@kui-shell/plugin-kubeui": "*",
+    "@kui-shell/plugin-logui": "*"
   },
   "krew": {
     "commandPrefix": "kubeui"

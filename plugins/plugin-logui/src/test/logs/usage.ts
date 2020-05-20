@@ -17,11 +17,18 @@
 import { Common } from '@kui-shell/test'
 import { doHelp } from '@kui-shell/plugin-kubeui/tests/lib/k8s/utils'
 
-describe('kubectl logs dash h', function(this: Common.ISuite) {
-  before(Common.before(this))
-  after(Common.after(this))
+const commands = ['kubectl']
+if (process.env.NEEDS_OC) {
+  commands.push('oc')
+}
 
-  const help = doHelp.bind(this)
+commands.forEach((command) => {
+  describe(`${command} logs dash h`, function (this: Common.ISuite) {
+    before(Common.before(this))
+    after(Common.after(this))
 
-  help('kubectl logs -h', ['kubectl', 'logs'], ['Introduction', 'logs nginx'])
+    const help = doHelp.bind(this)
+
+    help(`${command} logs -h`, [command, 'logs'], ['Introduction', 'logs nginx'])
+  })
 })
