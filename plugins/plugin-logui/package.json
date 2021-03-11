@@ -32,7 +32,7 @@
     "@kui-shell/plugin-core-support": "^8.0.6",
     "@kui-shell/plugin-editor": "^8.0.6",
     "@kui-shell/plugin-kubeui": "*",
-    "ansi_up": "4.0.4",
+    "ansi_up": "5.0.0",
     "debug": "4.1.1",
     "js-yaml": "3.13.1"
   },
