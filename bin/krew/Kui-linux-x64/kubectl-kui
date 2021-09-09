@@ -1,5 +1,0 @@
-#!/usr/bin/env sh
-
-SCRIPTDIR=$(cd $(dirname "$0") && pwd)
-
-"$SCRIPTDIR"/Kui $@ &
