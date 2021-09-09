@@ -1,4 +1,4 @@
-# AnimalApp: A Demo Client for the Kui Graphical CLU Framework
+# AnimalApp: A Demo Client for the Kui Graphical CLI Framework
 
 This is a demo web application that uses
 [Kui](https://github.com/kubernetes-sigs/kui) as a framework for
