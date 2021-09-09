@@ -1,1 +1,74 @@
-dist
+# electron builds
+/dist
+
+# warning for future reference: see https://github.com/IBM/kui/issues/209
+# /package-lock.json
+
+# in case we have some leftover temporary build output
+/kui
+
+# webpack and electron staging directories
+kui-*-tmp
+
+packages/*/package-lock.json
+plugins/*/package-lock.json
+
+*~
+#*
+dist/app
+dist/build
+dist/plugins
+*.log
+*.bak
+node_modules
+wskng.iml
+.pre-scanned.json
+app/.version
+app/build/webpack-stats.html
+app/content/**/*.js.map
+app/src/@kui-plugin
+.openwhisk-shell
+dump.rdb
+#openwhisk
+.idea
+.DS_Store
+app.inst
+.travis.yml.orig
+*_BASE*
+*_BACKUP*
+*_LOCAL*
+*_REMOTE*
+keys
+*flycheck*.ts
+*flycheck*.js
+*flycheck*.js.map
+/build
+*.bak.json
+
+# these seem to come from node-pty or xterm.js
+.swp
+
+# we will copy this file out of packages/kui-builder for local dev
+.npmrc
+
+nohup.out
+
+# tsc composite build files
+*.tsbuildinfo
+
+# any temporary npm packs
+kui-shell-*.tgz
+
+# mkclient.sh stage
+kui-stage
+
+# es6 compiled modules
+packages/*/mdist
+plugins/*/mdist
+clients/**/mdist
+
+# webpack-dev-server report
+report.*.json
+
+# packages/builder/dist/electron currently generates this and does not remove it
+/kubectl-kui
