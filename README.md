@@ -1,8 +1,11 @@
 # AnimalApp: A Demo Client for the Kui Graphical CLI Framework
 
-This is a demo web application that uses
-[Kui](https://github.com/kubernetes-sigs/kui) as a framework for
-developing a visual terminal.
+[Kui](https://github.com/kubernetes-sigs/kui) is a framework for
+extending CLIs with graphical enhancements.  If you wish to extend the
+framework, either by adding custom commands, custom views, or custom
+theming, this is the place to start!
+
+This repository offers a few silly animal-oriented commands and views.
 
 ## Getting Started with Development
 
