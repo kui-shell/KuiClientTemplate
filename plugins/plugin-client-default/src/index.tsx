@@ -17,12 +17,14 @@
 import React from 'react'
 
 import { inBrowser } from '@kui-shell/core'
-import { Kui, KuiProps, ContextWidgets, MeterWidgets, CurrentWorkingDirectory } from '@kui-shell/plugin-client-common'
+import { Kui, KuiProps, ContextWidgets, MeterWidgets, CurrentWorkingDirectory, SpaceFiller } from '@kui-shell/plugin-client-common'
 
 import { CurrentGitBranch } from '@kui-shell/plugin-git'
 import { CurrentContext, CurrentNamespace } from '@kui-shell/plugin-kubectl/components'
 import { ProxyOfflineIndicator } from '@kui-shell/plugin-proxy-support'
 import { Screenshot, Search } from '@kui-shell/plugin-electron-components'
+
+import { CatDogWidget } from '@kui-shell/plugin-example'
 
 import { productName } from '@kui-shell/client/config.d/name.json'
 
@@ -62,7 +64,10 @@ export default function renderMain(props: KuiProps) {
         <CurrentGitBranch className="kui--hide-in-narrower-windows" />
       </ContextWidgets>
 
+      <SpaceFiller />
+
       <MeterWidgets>
+        <CatDogWidget />
         {inBrowser() && <ProxyOfflineIndicator />}
         <Screenshot />
       </MeterWidgets>

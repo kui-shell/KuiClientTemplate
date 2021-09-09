@@ -22,18 +22,44 @@ interface Props {
   className?: string
 }
 
-export default class CatDogWidget extends React.PureComponent<Props> {
+interface State {
+  which: 'dog' | 'cat'
+}
+
+export default class CatDogWidget extends React.PureComponent<Props, State> {
+  public constructor(props: Props) {
+    super(props)
+
+    this.state = {
+      which: 'cat'
+    }
+  }
+
+  private readonly _toggle = () => {
+    this.setState(curState => ({
+      which: curState.which === 'dog' ? 'cat' : 'dog'
+    }))
+  }
+
+  private cat() {
+    return '🐱'
+  }
+
+  private dog() {
+    return '🐶'
+  }
+
   public render() {
     return (
       <TextWithIconWidget
         className={this.props.className}
-        text={'🐶'}
+        text={this.state.which === 'cat' ? this.cat() : this.dog()}
         viewLevel="normal"
         id="kui--plugin-example--cat-dog-widget"
-        textOnclick="hello dog"
+        textOnclick={this._toggle}
         iconOnclick="hello cat"
       >
-        {'🐱'}
+        {this.state.which === 'cat' ? this.dog() : this.cat() /* intentionally inverted */}
       </TextWithIconWidget>
     )
   }
