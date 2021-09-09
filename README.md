@@ -28,8 +28,9 @@ client extends Kui with:
   - `hello sidenav` and `hello catnav` which show how to use the multi-tab "sidecar" views, with tabs on top
      and tabs on the left, respectively
 
+  <img src="docs/images/catdogwidget.gif" align="right" width="250" title="Showing the CatDogWidget StatusStripe widget">
 - A [StatusStripe
-  widget](https://github.com/kubernetes-sigs/kui/tree/master/docs/example/AnimalApp/plugins/plugin-example/src/view/CatDogWidget.tsx) that will be placed along the bottom of the Kui window. [More info](https://github.com/kubernetes-sigs/kui/wiki#approaches-for-enhancing-kui)
+  widget](plugins/plugin-example/src/view/CatDogWidget.tsx) that will be placed along the bottom of the Kui window. [More info](https://github.com/kubernetes-sigs/kui/wiki#approaches-for-enhancing-kui)
 
 ### More Documentation on Extending Kui
 
