@@ -24,7 +24,10 @@ client extends Kui with:
 - A set of
   [commands](https://github.com/kubernetes-sigs/kui/tree/master/docs/example/AnimalApp/plugins/plugin-example/src/commands)
   that use Kui's built-in views. [More info](https://github.com/kubernetes-sigs/kui/wiki#approaches-for-enhancing-kui)
-  
+  - `hello cat` and `hello dog` are simple hello worlds that returns a cat and dog emoji, respectively
+  - `hello sidenav` and `hello catnav` which show how to use the multi-tab "sidecar" views, with tabs on top
+     and tabs on the left, respectively
+
 - A [StatusStripe
   widget](https://github.com/kubernetes-sigs/kui/tree/master/docs/example/AnimalApp/plugins/plugin-example/src/view/CatDogWidget.tsx) that will be placed along the bottom of the Kui window. [More info](https://github.com/kubernetes-sigs/kui/wiki#approaches-for-enhancing-kui)
 
