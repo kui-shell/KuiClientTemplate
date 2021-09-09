@@ -1,0 +1,52 @@
+language: node_js
+node_js: 12
+
+services:
+  - docker
+
+install:
+  - Xvfb :1 -screen 0 ${WINDOW_WIDTH}x${WINDOW_HEIGHT}x24 :1 -ac >& /dev/null &
+  - ./tools/travis/microk8s.sh &
+  - k8s=$!
+  - npm ci
+  - wait $k8s
+
+# below, the various stages will define S and T
+script: npm run test:$T $S
+
+stages:
+  - test
+#  - name: release
+#    if: tag =~ /^v([0-9]{1,3}).([0-9]{1,3}).([0-9]{1,3})$/
+
+# re: dashboard below, see plugin-kubeui/src/test/k8s2/top.ts, which
+# relies on kubectl top if you see this error: "the server could not
+# find the requested resource (get services http:heapster:)", then the
+# required services (for top) were not properly enabled
+
+jobs:
+  include:
+    - env: S=logs T=electron
+    - env: S=logs T=webpack
+    - env: S=k8s T=electron
+    - env: S=k8s1 T=electron NEEDS_OC=true
+    - env: S=k8s1 T=webpack NEEDS_OC=true
+    - env: S=k8s2 T=electron NEEDS_TOP=true NEEDS_OC=true
+    - env: S=k8s2 T=webpack NEEDS_TOP=true NEEDS_OC=true
+    - env: S=helm T=electron NEEDS_HELM=true
+    - env: S=helm T=webpack NEEDS_HELM=true
+#    - stage: release
+#      install: npm ci
+#      script:
+#        - npm install -g release-it@12.4.3 auto-changelog@1.16.2
+#        - release-it
+
+env:
+  global:
+    - TRAVIS_KUBE_VERSION=1.15.7
+    - TRAVIS_HELM_VERSION=2.13.0
+    - TRAVIS_OC_VERISON=4.3.3
+    - WINDOW_WIDTH=1400
+    - WINDOW_HEIGHT=1050
+    - PATH=bin:$PATH
+    - CSP_ALLOWED_HOSTS="https://raw.githubusercontent.com http://localhost:8081 ws://localhost:8081 http://localhost:9953 http://localhost:9080 ws://localhost:9080"
