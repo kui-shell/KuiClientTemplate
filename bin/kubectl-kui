@@ -1,6 +1,0 @@
-#!/usr/bin/env node
-
-// get node off the argv
-process.argv.shift()
-
-require('@kui-shell/core').main(process.argv)

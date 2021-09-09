@@ -1,149 +1,60 @@
 {
-  "name": "kubectl-ui",
-  "version": "1.0.1",
+  "name": "AnimalApp",
+  "version": "1.0.0",
   "description": "",
   "main": "node_modules/@kui-shell/core/dist/main/main.js",
   "scripts": {
-    "build:electron:mac": "PLATFORM=mac kui-build-electron",
-    "build:electron:linux": "PLATFORM=linux kui-build-electron",
-    "build:electron:win32": "PLATFORM=win32 kui-build-electron",
-    "build:electron:all": "kui-build-electron",
-    "build:krew": "npm run -s build:electron:all && ./bin/amend-dist-for-krew.sh",
-    "compile:clean": "tsc --build tsconfig.json --clean",
-    "compile": "kui-compile tsconfig.json",
-    "watch:source": "tsc --build tsconfig.json --watch",
-    "_watch": "CSP_ALLOWED_HOSTS=\"http: https: data: filesystem: about: blob: ws: wss:\" kui-watch-webpack",
-    "watch:webpack": "npm run pty:nodejs && (npm run proxy &); npm run _watch",
-    "watch:electron": "npm run pty:electron && TARGET=electron-renderer npm run _watch",
-    "watch": "npm run kill; npm run compile && concurrently -n ES6,WEBPACK --kill-others 'npm run watch:source' 'npm run watch:electron'",
-    "kill:proxy": "kill $(lsof -t -i:8081) > /dev/null 2> /dev/null || true",
-    "kill": "kill $(lsof -t -i:908${PORT_OFFSET-0}) > /dev/null 2> /dev/null || true",
-    "proxy": "if [ -z \"$TRAVIS_JOB_ID\" ]; then npm run -s pty:nodejs; fi; kui-run-proxy",
+    "watch:source": "tsc --build . --watch",
+    "compile": "npx tsc --build . && npx kui-babel && npx kui-prescan",
+    "kill": "npm run kill:proxy; kill $(lsof -t -i:908${PORT_OFFSET-0}) > /dev/null 2> /dev/null || true",
+    "_watch": "bash -c \"npm run kill; export CSP_ALLOWED_HOSTS='http: https: data: filesystem: about: blob: ws: wss:'; kui-watch-webpack\"",
+    "watch:webpack": "bash -c \"npm run pty:nodejs && (npm run proxy &); npm run _watch $WATCH_ARGS\"",
+    "watch:electron": "bash -c \"npm run pty:electron && TARGET=electron-renderer npm run _watch\"",
+    "watch": "bash -c \"npm run kill; npm run compile && concurrently -n ES6,WEBPACK --kill-others 'npm run watch:source' 'npm run watch:electron'\"",
+    "proxy": "export PORT=8081; export KUI_USE_HTTP=true; npm run pty:nodejs && npx kui-run-proxy",
+    "kill:proxy": "kill $(lsof -t -i:808${PORT_OFFSET-1}) > /dev/null 2> /dev/null || true",
     "pty:rebuild": "kui-pty-rebuild",
     "pty:electron": "npm run pty:rebuild electron",
     "pty:nodejs": "npm run pty:rebuild node",
-    "test:electron": "npm run kill; npm run watch:electron && KUI=$(echo \"$(pwd)/bin/kubectl-kui\") kui-test",
-    "test:webpack": "npm run kill; npm run watch:webpack && KUI_USE_PROXY=true MOCHA_RUN_TARGET=webpack WEBPACK_CLIENT_URL=http://localhost:9080 kui-test",
-    "test": "npm run -s test:electron",
-    "lint": "eslint '**/*.{js,ts}'",
-    "format": "prettier --write '**/*.{css,html,js,json,md,ts}'",
-    "postinstall": "npm run -s compile && npm run pty:electron",
-    "update": "ncu -u -x \"@types/node,@types/yargs-parser,husky,electron,spectron,@types/webdriverio\" && for i in plugins/*; do (cd $i && ncu -u -x electron,spectron,@types/webdriverio && rm -rf node_modules); done && rm -rf node_modules/ package-lock.json  && npm install",
+    "build:electron:mac": "PLATFORM=mac kui-build-electron",
+    "build:electron:osx": "npm run build:electron:mac",
+    "build:electron:linux": "PLATFORM=linux kui-build-electron",
+    "build:electron:win32": "PLATFORM=win32 kui-build-electron",
+    "build:electron:windows": "PLATFORM=win32 kui-build-electron",
+    "build:electron:all": "kui-build-electron",
+    "build": "npm run compile && webpack --mode production",
+    "postinstall": "npm run compile",
     "open": "electron . shell",
-    "start:web": "npm run kill; npm run watch:webpack && open http://localhost:908${PORT_OFFSET-0}",
-    "start": "npm run kill; npm run watch:electron && npm run open"
+    "start": "WATCH_ARGS='-open' npm run watch",
+    "test": "echo \"Error: no test specified\" && exit 1"
   },
-  "engines": {
-    "node": ">=8.15.0",
-    "npm": ">=6.9.0"
-  },
-  "repository": {
-    "type": "git",
-    "url": "git@github.com:kui-shell/plugin-kubeui.git"
-  },
-  "keywords": [
-    "kubernetes",
-    "kubectl",
-    "cli",
-    "ui",
-    "kui"
-  ],
+  "keywords": [],
   "author": "@starpit",
-  "contributors": [
-    "Mengting Yan"
-  ],
   "license": "Apache-2.0",
   "devDependencies": {
-    "@kui-shell/builder": "8.0.6",
-    "@kui-shell/proxy": "8.0.6",
-    "@kui-shell/test": "8.0.6",
-    "@kui-shell/webpack": "8.0.6",
-    "@types/react": "16.9.25",
-    "@types/react-dom": "16.9.5",
-    "@types/carbon-components-react": "7.6.15",
-    "@types/debug": "4.1.5",
-    "@types/mocha": "7.0.2",
-    "@types/node": "12.12.14",
-    "@types/uuid": "7.0.2",
-    "@types/webdriverio": "4.13.3",
-    "@types/yargs-parser": "13.1.0",
-    "@typescript-eslint/eslint-plugin": "2.24.0",
-    "@typescript-eslint/parser": "2.24.0",
-    "concurrently": "^5.1.0",
-    "electron": "7.1.14",
-    "eslint": "6.8.0",
-    "eslint-config-prettier": "6.10.1",
-    "eslint-config-standard": "14.1.1",
-    "eslint-plugin-import": "2.20.1",
-    "eslint-plugin-node": "11.0.0",
-    "eslint-plugin-promise": "4.2.1",
-    "eslint-plugin-standard": "4.0.1",
-    "husky": "3.1.0",
-    "lint-staged": "10.0.8",
-    "mocha": "7.1.1",
-    "open": "^7.0.3",
-    "prettier": "2.0.1",
-    "spectron": "9.0.0",
-    "typescript": "3.8.3"
+    "@kui-shell/builder": "^10.3.13",
+    "@kui-shell/proxy": "^10.3.13",
+    "@kui-shell/react": "^10.3.13",
+    "@kui-shell/webpack": "^10.3.13",
+    "@types/node": "14.11.8",
+    "@types/react": "17.0.9",
+    "@types/react-dom": "17.0.6",
+    "concurrently": "6.2.0",
+    "electron": "11.4.9",
+    "typescript": "4.2.4"
   },
   "dependencies": {
-    "@kui-shell/client": "file:plugins/plugin-kubeui-client",
-    "@kui-shell/core": "8.0.6",
-    "@kui-shell/plugin-bash-like": "8.0.6",
-    "@kui-shell/plugin-carbon-themes": "8.0.6",
-    "@kui-shell/plugin-client-common": "8.0.6",
-    "@kui-shell/plugin-core-support": "8.0.6",
-    "@kui-shell/plugin-core-themes": "8.0.6",
-    "@kui-shell/plugin-editor": "8.0.6",
-    "@kui-shell/plugin-git": "8.0.6",
-    "@kui-shell/plugin-helmui": "file:plugins/plugin-helmui",
-    "@kui-shell/plugin-ibmcloud": "file:plugins/plugin-ibmcloud",
-    "@kui-shell/plugin-kubeui": "file:plugins/plugin-kubeui",
-    "@kui-shell/plugin-logui": "file:plugins/plugin-logui",
-    "@kui-shell/plugin-openshift": "file:plugins/plugin-openshift",
-    "@kui-shell/plugin-operator-framework": "file:plugins/plugin-operator-framework",
-    "@kui-shell/plugin-proxy-support": "8.0.6",
-    "@kui-shell/plugin-tekton": "file:plugins/plugin-tekton",
-    "@kui-shell/plugin-view-utilization": "file:plugins/plugin-view-utilization",
-    "@kui-shell/plugin-wskflow": "8.0.6",
-    "@kui-shell/react": "8.0.6"
-  },
-  "husky": {
-    "hooks": {
-      "pre-commit": "lint-staged"
-    }
-  },
-  "lint-staged": {
-    "**/*.{css,html,js,json,md,ts}": [
-      "prettier --write",
-      "git add"
-    ],
-    "**/*.{js,ts}": [
-      "eslint --fix",
-      "git add"
-    ]
-  },
-  "release-it": {
-    "git": {
-      "commit": false,
-      "tag": false,
-      "push": false,
-      "requireUpstream": false
-    },
-    "npm": {
-      "publish": false
-    },
-    "github": {
-      "release": true,
-      "releaseNotes": "npx auto-changelog --stdout --commit-limit false --unreleased --template https://raw.githubusercontent.com/release-it/release-it/master/conf/changelog-compact.hbs -p lerna.json",
-      "assets": [
-        "./dist/electron/Kui-darwin-x64.tar.bz2",
-        "./dist/electron/Kui-linux-x64.zip",
-        "./dist/electron/Kui-win32-x64.zip"
-      ]
-    },
-    "hooks": {
-      "before:init": "if [ \"$TRAVIS_OS_NAME\" = \"linux\" ]; then sudo apt-get update && sudo apt-get install wine; fi; npm run build:electron:all"
-    }
+    "@kui-shell/client": "file:./plugins/plugin-client-default",
+    "@kui-shell/core": "^10.3.13",
+    "@kui-shell/plugin-bash-like": "^10.3.13",
+    "@kui-shell/plugin-carbon-themes": "^10.3.13",
+    "@kui-shell/plugin-client-common": "^10.3.13",
+    "@kui-shell/plugin-core-support": "^10.3.13",
+    "@kui-shell/plugin-electron-components": "^10.3.13",
+    "@kui-shell/plugin-example": "file:./plugins/plugin-example",
+    "@kui-shell/plugin-git": "^10.3.13",
+    "@kui-shell/plugin-kubectl": "^10.3.13",
+    "@kui-shell/plugin-patternfly4-themes": "^10.3.13",
+    "@kui-shell/plugin-proxy-support": "^10.3.13"
   }
 }

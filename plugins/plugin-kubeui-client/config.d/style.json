@@ -1,9 +1,0 @@
-{
-  "defaultTheme": "Dark",
-  "bodyCss": ["kui"],
-  "tableStyle": "Light",
-  "promptPlaceholder": "",
-  "topTabs": {
-    "names": "command"
-  }
-}

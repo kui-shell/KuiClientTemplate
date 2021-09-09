@@ -1,14 +1,7 @@
 {
   "extends": "./node_modules/@kui-shell/builder/tsconfig-base.json",
   "references": [
-    { "path": "./plugins/plugin-kubeui" },
-    { "path": "./plugins/plugin-view-utilization" },
-    { "path": "./plugins/plugin-kubeui-client" },
-    { "path": "./plugins/plugin-helmui" },
-    { "path": "./plugins/plugin-logui" },
-    { "path": "./plugins/plugin-ibmcloud" },
-    { "path": "./plugins/plugin-tekton" },
-    { "path": "./plugins/plugin-openshift" },
-    { "path": "./plugins/plugin-operator-framework" }
+    { "path": "./plugins/plugin-example" },
+    { "path": "./plugins/plugin-client-default" }
   ]
 }
