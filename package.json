@@ -33,10 +33,10 @@
   "author": "@starpit",
   "license": "Apache-2.0",
   "devDependencies": {
-    "@kui-shell/builder": "^10.4.12",
-    "@kui-shell/proxy": "^10.4.12",
-    "@kui-shell/react": "^10.4.12",
-    "@kui-shell/webpack": "^10.4.12",
+    "@kui-shell/builder": "^10.5.2",
+    "@kui-shell/proxy": "^10.5.2",
+    "@kui-shell/react": "^10.5.2",
+    "@kui-shell/webpack": "^10.5.2",
     "@types/node": "14.11.8",
     "@types/react": "17.0.20",
     "@types/react-dom": "17.0.9",
@@ -46,16 +46,16 @@
   },
   "dependencies": {
     "@kui-shell/client": "file:./plugins/plugin-client-default",
-    "@kui-shell/core": "^10.4.12",
-    "@kui-shell/plugin-bash-like": "^10.4.12",
-    "@kui-shell/plugin-carbon-themes": "^10.4.12",
-    "@kui-shell/plugin-client-common": "^10.4.12",
-    "@kui-shell/plugin-core-support": "^10.4.12",
-    "@kui-shell/plugin-electron-components": "^10.4.12",
+    "@kui-shell/core": "^10.5.2",
+    "@kui-shell/plugin-bash-like": "^10.5.2",
+    "@kui-shell/plugin-carbon-themes": "^10.5.2",
+    "@kui-shell/plugin-client-common": "^10.5.2",
+    "@kui-shell/plugin-core-support": "^10.5.2",
+    "@kui-shell/plugin-electron-components": "^10.5.2",
     "@kui-shell/plugin-example": "file:./plugins/plugin-example",
-    "@kui-shell/plugin-git": "^10.4.12",
-    "@kui-shell/plugin-kubectl": "^10.4.12",
-    "@kui-shell/plugin-patternfly4-themes": "^10.4.12",
-    "@kui-shell/plugin-proxy-support": "^10.4.12"
+    "@kui-shell/plugin-git": "^10.5.2",
+    "@kui-shell/plugin-kubectl": "^10.5.2",
+    "@kui-shell/plugin-patternfly4-themes": "^10.5.2",
+    "@kui-shell/plugin-proxy-support": "^10.5.2"
   }
 }
