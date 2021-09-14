@@ -25,6 +25,10 @@ This [wiki](https://github.com/kubernetes-sigs/kui/wiki) introduces
 the ways in which this application enhances Kui. In particular, this
 client extends Kui with:
 
+<img src="docs/images/cattab.png" align="right" width="350" title="Showing the Kubernetes decorations">
+
+- Decorations for Kubernetes resources: a `Cat` tab, a 🐶 button, and a 🐱 badge (shown in the upper right with a green background).
+
 - A set of
   [commands](plugins/plugin-example/src/commands)
   that use Kui's built-in views. [More info](https://github.com/kubernetes-sigs/kui/wiki#approaches-for-enhancing-kui)
@@ -32,9 +36,9 @@ client extends Kui with:
   - `hello sidenav` and `hello catnav` which show how to use the multi-tab "sidecar" views, with tabs on top
      and tabs on the left, respectively
 
-  <img src="docs/images/catdogwidget.gif" align="right" width="250" title="Showing the CatDogWidget StatusStripe widget">
-- A [StatusStripe
-  widget](plugins/plugin-example/src/view/CatDogWidget.tsx) that will be placed along the bottom of the Kui window. [More info](https://github.com/kubernetes-sigs/kui/wiki#approaches-for-enhancing-kui)
+<img src="docs/images/catdogwidget.gif" align="right" width="350" title="Showing the CatDogWidget StatusStripe widget">
+
+- A [StatusStripe widget](plugins/plugin-example/src/view/CatDogWidget.tsx) that will be placed along the bottom of the Kui window. [More info](https://github.com/kubernetes-sigs/kui/wiki#approaches-for-enhancing-kui)
 
 ### More Documentation on Extending Kui
 
