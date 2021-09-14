@@ -30,7 +30,7 @@ const dogButton: ModeRegistration<KubeResource> = {
   mode: {
     mode,
     label,
-    icon: <span>'🐶'</span>,
+    icon: <span>🐶</span>,
 
     // we want to execute the command in place of the current block,
     // rather than in a new block
