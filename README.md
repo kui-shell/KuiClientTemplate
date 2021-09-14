@@ -1,11 +1,12 @@
-# AnimalApp: A Demo Client for the Kui Graphical CLI Framework
+# Client Template for the Kui Graphical CLI Framework
 
 [Kui](https://github.com/kubernetes-sigs/kui) is a framework for
 extending CLIs with graphical enhancements.  If you wish to extend the
 framework, either by adding custom commands, custom views, or custom
 theming, this is the place to start!
 
-This repository offers a few silly animal-oriented commands and views.
+This repository offers a few silly animal-oriented commands and views,
+including a way to decorate Kubernetes resources with additional tabs.
 
 ## Getting Started with Development
 
@@ -25,7 +26,7 @@ the ways in which this application enhances Kui. In particular, this
 client extends Kui with:
 
 - A set of
-  [commands](https://github.com/kubernetes-sigs/kui/tree/master/docs/example/AnimalApp/plugins/plugin-example/src/commands)
+  [commands](plugins/plugin-example/src/commands)
   that use Kui's built-in views. [More info](https://github.com/kubernetes-sigs/kui/wiki#approaches-for-enhancing-kui)
   - `hello cat` and `hello dog` are simple hello worlds that returns a cat and dog emoji, respectively
   - `hello sidenav` and `hello catnav` which show how to use the multi-tab "sidecar" views, with tabs on top
@@ -37,11 +38,11 @@ client extends Kui with:
 
 ### More Documentation on Extending Kui
 
-- [Kui Command Documentation](https://github.com/kubernetes-sigs/kui/wiki/1.-Commands) and [Terminal View Documentation](https://github.com/kubernetes-sigs/kui/wiki/2a.-Terminal-View) uses the [string](https://github.com/kubernetes-sigs/kui/tree/master/docs/example/AnimalApp/plugins/plugin-example/src/view/string), [boolean](https://github.com/kubernetes-sigs/kui/tree/master/docs/example/AnimalApp/plugins/plugin-example/src/view/boolean), and [table](https://github.com/kubernetes-sigs/kui/tree/master/docs/example/AnimalApp/plugins/plugin-example/src/view/table) view as examples of Terminal-oriented command response.
+- [Kui Command Documentation](https://github.com/kubernetes-sigs/kui/wiki/1.-Commands) and [Terminal View Documentation](https://github.com/kubernetes-sigs/kui/wiki/2a.-Terminal-View) uses the [string](plugins/plugin-example/src/view/string), [boolean](plugins/plugin-example/src/view/boolean), and [table](plugins/plugin-example/src/view/table) view as examples of Terminal-oriented command response.
 
-- [TopNavSidecar View Documentation](https://github.com/kubernetes-sigs/kui/wiki/2b.-TopNavSidecar-View) uses [this](https://github.com/kubernetes-sigs/kui/tree/master/docs/example/AnimalApp/plugins/plugin-example/src/view/mmr-example.ts) as an example of TopNavSidecar-oriented command response.
+- [TopNavSidecar View Documentation](https://github.com/kubernetes-sigs/kui/wiki/2b.-TopNavSidecar-View) uses [this](plugins/plugin-example/src/view/mmr-example.ts) as an example of TopNavSidecar-oriented command response.
 
-- [LeftNavSidecar View Documentation](https://github.com/kubernetes-sigs/kui/wiki/2c.-LeftNavSidecar-View) uses [this](https://github.com/kubernetes-sigs/kui/tree/master/docs/example/AnimalApp/plugins/plugin-example/src/view/nav-example.ts) as an example of LeftNavSidecar-oriented command response.
+- [LeftNavSidecar View Documentation](https://github.com/kubernetes-sigs/kui/wiki/2c.-LeftNavSidecar-View) uses [this](plugins/plugin-example/src/view/nav-example.ts) as an example of LeftNavSidecar-oriented command response.
 
 ## Building for Production: Electron Double-clickables
 
