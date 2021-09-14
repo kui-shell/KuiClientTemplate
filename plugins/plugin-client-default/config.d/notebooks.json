@@ -1,0 +1,8 @@
+{
+  "label": "Notebooks",
+  "submenu": [
+    { "notebook": "Welcome to the Kui Client Template", "filepath": "/kui/welcome.json" },
+    { "type": "separator" },
+    { "notebook": "Make Your Own Notebook", "filepath": "/kui/make-notebook.json" }
+  ]
+}
