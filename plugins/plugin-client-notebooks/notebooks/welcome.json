@@ -1,0 +1,130 @@
+{
+  "apiVersion": "kui-shell/v1",
+  "kind": "Notebook",
+  "metadata": {
+    "name": "Welcome to Kui Client Template"
+  },
+  "spec": {
+    "splits": [
+      {
+        "uuid": "2_c57e811f-2da8-557e-a402-9f0950407675",
+        "blocks": [
+          {
+            "response": {
+              "apiVersion": "kui-shell/v1",
+              "kind": "CommentaryResponse",
+              "props": {
+                "children": "# Welcome to the Kui Client Template\n\nAfter you have [instantiated this GitHub template](https://github.com/kui-shell/KuiClientTemplate/generate), and git cloned your repository, you can start developing your custom Kui client.\n\n```sh\nnpm ci\nnpm run watch\nnpm run open\n```\n\nLook [here](https://github.com/kubernetes-sigs/kui/wiki) for some customization ideas.\n\n## Notebooks\n\nThis is a Kui notebook. It is just a shell session, with some commentary, that has been saved via File->Save. To add a commentary block, execute the command [`#`](#kuiexec?command=%23)."
+              }
+            },
+            "historyIdx": 9,
+            "cwd": "~/git/whisk/nickm/kui/docs/example/AnimalApp",
+            "command": "# # Welcome to the Kui Client Template\\n\\nAfter you have [instantiated this GitHub template](https://github.com/kui-shell/KuiClientTemplate/generate), and git cloned your repository, you can start developing your custom Kui client.\\n\\n```sh\\nnpm ci\\nnpm run watch\\nnpm run open\\n```\\n\\nLook [here](https://github.com/kubernetes-sigs/kui/wiki) for some customization ideas.\\n\\n## Notebooks\\n\\nThis is a Kui notebook. It is just a shell session, with some commentary, that has been saved via File->Save. To add a commentary block, execute the command [`#`](#kuiexec?command=%23).",
+            "startEvent": {
+              "route": "/#",
+              "startTime": 1623183901175,
+              "command": "# # Welcome to the Kui Client Template\\n\\nAfter you have [instantiated this GitHub template](https://github.com/kui-shell/KuiClientTemplate/generate), and git cloned your repository, you can start developing your custom Kui client.\\n\\n```sh\\nnpm ci\\nnpm run watch\\nnpm run open\\n```\\n\\nLook [here](https://github.com/kubernetes-sigs/kui/wiki) for some customization ideas.\\n\\n## Notebooks\\n\\nThis is a Kui notebook. It is just a shell session, with some commentary, that has been saved via File->Save. To add a commentary block, execute the command [`#`](#kuiexec?command=%23).",
+              "pipeStages": {
+                "prefix": "",
+                "stages": [
+                  [
+                    "#"
+                  ]
+                ],
+                "redirect": ""
+              },
+              "evaluatorOptions": {
+                "usage": {
+                  "command": "commentary",
+                  "strict": "commentary",
+                  "example": "commentary -f [<markdown file path>]",
+                  "docs": "Commentary",
+                  "optional": [
+                    {
+                      "name": "--title",
+                      "alias": "-t",
+                      "docs": "Title for the commentary"
+                    },
+                    {
+                      "name": "--base-url",
+                      "alias": "-b",
+                      "docs": "Base URL for images"
+                    },
+                    {
+                      "name": "--file",
+                      "alias": "-f",
+                      "docs": "File that contains the texts"
+                    }
+                  ]
+                },
+                "outputOnly": true,
+                "noCoreRedirect": true,
+                "plugin": "plugin-client-common"
+              },
+              "execType": 0,
+              "execUUID": "19531506-cf4b-4813-adde-84333b93dd44",
+              "execOptions": {
+                "type": 0,
+                "language": "en-US",
+                "execUUID": "19531506-cf4b-4813-adde-84333b93dd44",
+                "history": 9,
+                "env": {}
+              }
+            },
+            "completeEvent": {
+              "execType": 0,
+              "completeTime": 1623183901211,
+              "command": "# # Welcome to the Kui Client Template\\n\\nAfter you have [instantiated this GitHub template](https://github.com/kui-shell/KuiClientTemplate/generate), and git cloned your repository, you can start developing your custom Kui client.\\n\\n```sh\\nnpm ci\\nnpm run watch\\nnpm run open\\n```\\n\\nLook [here](https://github.com/kubernetes-sigs/kui/wiki) for some customization ideas.\\n\\n## Notebooks\\n\\nThis is a Kui notebook. It is just a shell session, with some commentary, that has been saved via File->Save. To add a commentary block, execute the command [`#`](#kuiexec?command=%23).",
+              "argvNoOptions": [
+                "#"
+              ],
+              "parsedOptions": {
+                "_": [
+                  "#"
+                ]
+              },
+              "pipeStages": {
+                "prefix": "",
+                "stages": [
+                  [
+                    "#"
+                  ]
+                ],
+                "redirect": ""
+              },
+              "execUUID": "19531506-cf4b-4813-adde-84333b93dd44",
+              "cancelled": false,
+              "evaluatorOptions": {
+                "outputOnly": true,
+                "noCoreRedirect": true,
+                "plugin": "plugin-client-common"
+              },
+              "execOptions": {
+                "type": 0,
+                "language": "en-US",
+                "execUUID": "19531506-cf4b-4813-adde-84333b93dd44",
+                "history": 9,
+                "env": {}
+              },
+              "response": {
+                "apiVersion": "kui-shell/v1",
+                "kind": "CommentaryResponse",
+                "props": {
+                  "children": "# Welcome to AnimalApp\n\nThis is a test of notebooks."
+                }
+              },
+              "responseType": "ScalarResponse",
+              "historyIdx": 9
+            },
+            "isExperimental": false,
+            "isReplay": true,
+            "execUUID": "19531506-cf4b-4813-adde-84333b93dd44",
+            "startTime": 1623183901175,
+            "outputOnly": true,
+            "state": "valid-response"
+          }
+        ]
+      }
+    ]
+  }
+}
