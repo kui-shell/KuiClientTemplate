@@ -22,7 +22,7 @@ import { Kui, KuiProps, ContextWidgets, MeterWidgets, CurrentWorkingDirectory, S
 import { CurrentGitBranch } from '@kui-shell/plugin-git'
 import { CurrentContext, CurrentNamespace } from '@kui-shell/plugin-kubectl/components'
 import { ProxyOfflineIndicator } from '@kui-shell/plugin-proxy-support'
-import { Screenshot, Search } from '@kui-shell/plugin-electron-components'
+import { Search } from '@kui-shell/plugin-electron-components'
 
 import { CatDogWidget } from '@kui-shell/plugin-example'
 
@@ -52,8 +52,8 @@ export default function renderMain(props: KuiProps) {
       commandLine={
         props.commandLine || [
           'replay',
+          // '-r', // with this, AnimalApp opens showing only the animalapp.json notebook
           '/kui/animalapp.json'
-          // '--close-current-tab' // with this, AnimalApp opens showing only the animalapp.json notebook
         ]
       }
     >
@@ -69,7 +69,6 @@ export default function renderMain(props: KuiProps) {
       <MeterWidgets>
         <CatDogWidget />
         {inBrowser() && <ProxyOfflineIndicator />}
-        <Screenshot />
       </MeterWidgets>
     </Kui>
   )
