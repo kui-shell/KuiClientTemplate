@@ -23,8 +23,8 @@ import { CurrentContext, CurrentNamespace } from '@kui-shell/plugin-kubectl/comp
 import { ProxyOfflineIndicator } from '@kui-shell/plugin-proxy-support'
 import { Search } from '@kui-shell/plugin-electron-components'
 
+import auto from './autoplay'
 import { productName } from '@kui-shell/client/config.d/name.json'
-import autoplay from '@kui-shell/client/config.d/autoplay.json'
 
 /**
  * We will set this bit when the user dismisses the Welcome to Kui
@@ -40,6 +40,8 @@ import autoplay from '@kui-shell/client/config.d/autoplay.json'
  *
  */
 export default function renderMain(props: KuiProps) {
+  const autoplay = auto()
+
   return (
     <Kui
       noHelp
