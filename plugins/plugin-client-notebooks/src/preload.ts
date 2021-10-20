@@ -14,15 +14,18 @@
  * limitations under the License.
  */
 
-import autoplay from '@kui-shell/client/config.d/autoplay.json'
+import auto from './autoplay'
 
 /**
  * Register the welcome notebook
  *
  */
 export default async () => {
-  const { notebookVFS } = await import('@kui-shell/plugin-core-support')
-  notebookVFS.cp(undefined, autoplay.map(notebook => (
-    `plugin://client/notebooks/${notebook}`
-  )), '/kui')
+  const autoplay = auto()
+  if (autoplay.length > 0) {
+    const { notebookVFS } = await import('@kui-shell/plugin-core-support')
+    notebookVFS.cp(undefined, autoplay.map(notebook => (
+      `plugin://client/notebooks/${notebook}`
+    )), '/kui')
+  }
 }
