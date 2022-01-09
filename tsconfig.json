@@ -3,6 +3,7 @@
   "references": [
     { "path": "./plugins/plugin-example" },
     { "path": "./plugins/plugin-client-notebooks" },
+    { "path": "./plugins/plugin-client-offline" },
     { "path": "./plugins/plugin-client-default" }
   ]
 }
