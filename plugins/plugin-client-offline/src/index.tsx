@@ -40,9 +40,7 @@ export default function renderMain(props: KuiProps) {
       commandLine={
         props.commandLine || [
           'replay',
-          '-r',
-          '/kui/iter8-welcome.json',
-          '/kui/iter81-v4.json'
+          '/kui/animalapp.json'
         ]
       }
     >
