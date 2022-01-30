@@ -16,7 +16,7 @@
 
 import React from 'react'
 
-import { inBrowser } from '@kui-shell/core'
+import { Capabilities } from '@kui-shell/core'
 import { Kui, KuiProps, ContextWidgets, MeterWidgets, CurrentWorkingDirectory, SpaceFiller } from '@kui-shell/plugin-client-common'
 
 import { CurrentContext, CurrentNamespace } from '@kui-shell/plugin-kubectl/components'
@@ -48,7 +48,7 @@ export default function renderMain(props: KuiProps) {
       productName={productName}
       lightweightTables
       {...props}
-      toplevel={!inBrowser() && <Search />}
+      toplevel={!Capabilities.inBrowser() && <Search />}
       commandLine={
         props.commandLine || autoplay.length === 0 ? [] : [
           'replay',
@@ -63,7 +63,7 @@ export default function renderMain(props: KuiProps) {
       <SpaceFiller />
 
       <MeterWidgets>
-        {inBrowser() && <ProxyOfflineIndicator />}
+        {Capabilities.inBrowser() && <ProxyOfflineIndicator />}
       </MeterWidgets>
     </Kui>
   )

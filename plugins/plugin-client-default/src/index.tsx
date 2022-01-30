@@ -16,7 +16,7 @@
 
 import React from 'react'
 
-import { inBrowser } from '@kui-shell/core'
+import { Capabilities } from '@kui-shell/core'
 import { Kui, KuiProps, ContextWidgets, MeterWidgets, CurrentWorkingDirectory, SpaceFiller } from '@kui-shell/plugin-client-common'
 
 import { CurrentGitBranch } from '@kui-shell/plugin-git'
@@ -48,7 +48,7 @@ export default function renderMain(props: KuiProps) {
       productName={productName}
       lightweightTables
       {...props}
-      toplevel={!inBrowser() && <Search />}
+      toplevel={!Capabilities.inBrowser() && <Search />}
       commandLine={
         props.commandLine || [
           'replay',
@@ -68,7 +68,7 @@ export default function renderMain(props: KuiProps) {
 
       <MeterWidgets>
         <CatDogWidget />
-        {inBrowser() && <ProxyOfflineIndicator />}
+        {Capabilities.inBrowser() && <ProxyOfflineIndicator />}
       </MeterWidgets>
     </Kui>
   )
