@@ -16,19 +16,23 @@
 
 import React from 'react'
 
-import { Kui, KuiProps } from '@kui-shell/plugin-client-common'
+import { Kui, KuiProps, ContextWidgets, Icons, MadeWithKui, MeterWidgets, SpaceFiller } from '@kui-shell/plugin-client-common'
 
-import { version } from '@kui-shell/client/package.json'
-import guidebooks from '@kui-shell/client/config.d/notebooks.json'
+import { homepage, version } from '@kui-shell/client/package.json'
 import { productName } from '@kui-shell/client/config.d/name.json'
 
-/**
- * We will set this bit when the user dismisses the Welcome to Kui
- * tab, so as to avoid opening it again and bothering that user for
- * every new Kui window.
- *
- */
-// const welcomeBit = 'plugin-client-default.welcome-was-dismissed'
+function GithubIcon() {
+  return (
+    <a
+      target="#"
+      title="Visit our Github Page"
+      href={homepage}
+      className="kui--status-stripe-element-clickable kui--status-stripe-element"
+    >
+      <Icons icon="Github" className="somewhat-larger-text" />
+    </a>
+  )
+}
 
 /**
  * Offline client definition
@@ -39,21 +43,18 @@ export default function renderMain(props: KuiProps) {
       noHelp
       version={version}
       productName={productName}
-      guidebooks={guidebooks.submenu}
-      guidebooksExpanded                                                                                  
-      guidebooksCommand="commentary --replace --readonly -f"
       lightweightTables
-      loadingDone={null}                                                                                  
       {...props}
-      initialTabTitle=" "                                                                                 
-      commandLine={
-        props.commandLine || [
-          'replay',
-          '-r',
-          '/kui/welcome.md'
-        ]
-      }
-    >
+      >
+      <ContextWidgets>
+        <GithubIcon />
+      </ContextWidgets>
+
+      <SpaceFiller />
+
+      <MeterWidgets>
+        <MadeWithKui />
+      </MeterWidgets>
     </Kui>
   )
 }
