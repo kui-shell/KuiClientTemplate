@@ -17,6 +17,9 @@
 import React from 'react'
 
 import { Kui, KuiProps } from '@kui-shell/plugin-client-common'
+
+import { version } from '@kui-shell/client/package.json'
+import guidebooks from '@kui-shell/client/config.d/notebooks.json'
 import { productName } from '@kui-shell/client/config.d/name.json'
 
 /**
@@ -34,13 +37,20 @@ export default function renderMain(props: KuiProps) {
   return (
     <Kui
       noHelp
+      version={version}
       productName={productName}
+      guidebooks={guidebooks.submenu}
+      guidebooksExpanded                                                                                  
+      guidebooksCommand="commentary --replace --readonly -f"
       lightweightTables
+      loadingDone={null}                                                                                  
       {...props}
+      initialTabTitle=" "                                                                                 
       commandLine={
         props.commandLine || [
           'replay',
-          '/kui/animalapp.json'
+          '-r',
+          '/kui/welcome.md'
         ]
       }
     >
