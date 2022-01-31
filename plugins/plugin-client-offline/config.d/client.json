@@ -2,5 +2,7 @@
   "contextRoot": "./",
   "offline": true,
   "readonly": false,
-  "executable": false
+  "executable": false,
+  "singletonGuidebooks": true,
+  "showGuidebooksSidebar": true
 }
