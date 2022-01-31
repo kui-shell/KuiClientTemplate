@@ -26,6 +26,8 @@ import { Search } from '@kui-shell/plugin-electron-components'
 
 import { CatDogWidget } from '@kui-shell/plugin-example'
 
+import { version } from '@kui-shell/client/package.json'
+import guidebooks from '@kui-shell/client/config.d/notebooks.json'
 import { productName } from '@kui-shell/client/config.d/name.json'
 
 /**
@@ -45,15 +47,17 @@ import { productName } from '@kui-shell/client/config.d/name.json'
 export default function renderMain(props: KuiProps) {
   return (
     <Kui
+      version={version}
       productName={productName}
       lightweightTables
       {...props}
       toplevel={!Capabilities.inBrowser() && <Search />}
+      guidebooks={guidebooks.submenu}
       commandLine={
         props.commandLine || [
           'replay',
           // '-r', // with this, AnimalApp opens showing only the animalapp.json notebook
-          '/kui/animalapp.json'
+          '/kui/welcome.md'
         ]
       }
     >
