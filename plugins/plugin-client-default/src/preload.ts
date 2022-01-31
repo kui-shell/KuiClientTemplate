@@ -21,7 +21,7 @@
 export default async () => {
   const { notebookVFS } = await import('@kui-shell/plugin-core-support')
   notebookVFS.cp(undefined, [
-    'plugin://client/notebooks/welcome.json',
-    'plugin://client/notebooks/make-notebook.json'
+    'plugin://plugin-client-common/notebooks/welcome.md',
+    'plugin://plugin-client-common/notebooks/make-notebook.md'
   ], '/kui')
 }
